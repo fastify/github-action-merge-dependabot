@@ -4,7 +4,7 @@ This action automatically merges dependabot PRs.
 
 ## Inputs
 
-### `GITHUB_TOKEN`
+### `github-token`
 
 **Required** A github token.
 

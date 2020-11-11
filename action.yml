@@ -1,7 +1,7 @@
 name: "Github Action Merge Dependabot"
 description: "Automatically merge dependabot PRs"
 inputs:
-  GITHUB_TOKEN:
+  github-token:
     description: "A GitHub token."
     required: true
 runs:
