@@ -24,8 +24,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: salmanm/github-action-merge-dependabot@v1
+      - uses: fastify/github-action-merge-dependabot@v1
         if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
         with:
           github-token: ${{secrets.github_token}}
 ```
+
+Note: The `github_token` is automatically provided by Github Actions, which we access using `secrets.github_token` and supply to the action as an input `github-token`
