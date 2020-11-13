@@ -2,6 +2,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 
 const GITHUB_TOKEN = core.getInput('github-token', { required: true })
+const EXCLUDE_PKGS = core.getInput('exclude') || []
 
 const getMergeMethod = (repo) => {
   if (repo.allow_merge_commit) return 'merge'
@@ -21,7 +22,14 @@ async function run () {
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
     if (!isDependabotPR) {
-      return console.log('Unable to merge')
+      return core.info('Not dependabot PR, skip merging.')
+    }
+
+    // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+    const pkgName = pr.head.ref.split('/').pop().split('-').shift()
+
+    if (EXCLUDE_PKGS.includes(pkgName)) {
+      return core.info(`${pkgName} is excluded, skip merging.`)
     }
 
     await octokit.pulls.createReview({
