@@ -8,6 +8,10 @@ inputs:
     description: "Packages that you want to manually review before upgrading"
     required: false
     default: []
+  merge-method:
+    description: "The merge method you'd like to use (squash, merge, rebase)"
+    required: false
+    default: "squash"
 runs:
   using: "node12"
-  main: "index.js"
+  main: "src/index.js"

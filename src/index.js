@@ -1,14 +1,9 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 
-const GITHUB_TOKEN = core.getInput('github-token', { required: true })
-const EXCLUDE_PKGS = core.getInput('exclude') || []
+const { getInputs } = require('./util')
 
-const getMergeMethod = (repo) => {
-  if (repo.allow_merge_commit) return 'merge'
-  if (repo.allow_squash_merge) return 'squash'
-  return 'rebase'
-}
+const { GITHUB_TOKEN, MERGE_METHOD, EXCLUDE_PKGS } = getInputs()
 
 async function run () {
   try {
@@ -43,7 +38,7 @@ async function run () {
       owner,
       repo,
       pull_number: prNumber,
-      merge_method: getMergeMethod(pr.head.repo)
+      merge_method: MERGE_METHOD
     })
   } catch (error) {
     core.setFailed(error.message)
