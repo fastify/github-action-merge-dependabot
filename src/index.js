@@ -1,6 +1,7 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 
+const { logInfo } = require('./log')
 const { getInputs } = require('./util')
 
 const { GITHUB_TOKEN, MERGE_METHOD, EXCLUDE_PKGS } = getInputs()
@@ -17,14 +18,14 @@ async function run () {
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
     if (!isDependabotPR) {
-      return core.info('Not dependabot PR, skip merging.')
+      return logInfo('Not dependabot PR, skip merging.')
     }
 
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
     const pkgName = pr.head.ref.split('/').pop().split('-').shift()
 
     if (EXCLUDE_PKGS.includes(pkgName)) {
-      return core.info(`${pkgName} is excluded, skip merging.`)
+      return logInfo(`${pkgName} is excluded, skip merging.`)
     }
 
     await octokit.pulls.createReview({
