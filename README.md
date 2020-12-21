@@ -12,6 +12,14 @@ This action automatically merges dependabot PRs.
 
 *Optional* An array of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
 
+### `merge-method`
+
+*Optional* The merge method you would like to use (squash, merge, rebase). Default to `squash` merge.
+
+### `merge-comment`
+
+*Optional* An arbitrary message that you'd like to comment on the PR after it gets auto-merged. This is only useful when you're recieving too much of noise in email and would like to filter mails for PRs that got automatically merged.
+
 ## Example usage
 
 ```yml

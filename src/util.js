@@ -22,5 +22,6 @@ const getMergeMethod = () => {
 exports.getInputs = () => ({
   GITHUB_TOKEN: core.getInput('github-token', { required: true }),
   MERGE_METHOD: getMergeMethod(),
-  EXCLUDE_PKGS: core.getInput('exclude') || []
+  EXCLUDE_PKGS: core.getInput('exclude') || [],
+  MERGE_COMMENT: core.getInput('merge-comment') || ''
 })

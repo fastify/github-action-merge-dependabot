@@ -4,7 +4,7 @@ const github = require('@actions/github')
 const { logInfo } = require('./log')
 const { getInputs } = require('./util')
 
-const { GITHUB_TOKEN, MERGE_METHOD, EXCLUDE_PKGS } = getInputs()
+const { GITHUB_TOKEN, MERGE_METHOD, EXCLUDE_PKGS, MERGE_COMMENT } = getInputs()
 
 async function run () {
   try {
@@ -41,6 +41,16 @@ async function run () {
       pull_number: prNumber,
       merge_method: MERGE_METHOD
     })
+
+
+    if (MERGE_COMMENT) {
+      await octokit.issues.createComment({
+        owner,
+        repo,
+        issue_number: prNumber,
+        body: MERGE_COMMENT,
+      });
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
