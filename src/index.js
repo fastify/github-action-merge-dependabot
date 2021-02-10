@@ -15,7 +15,7 @@ async function run () {
     const repo = repository.name
     const prNumber = pr.number
 
-    const isDependabotPR = pr.user.login === 'dependabot[bot]'
+    const isDependabotPR = pr.user.login === 'dependabot[bot]' || pr.user.login === 'dependabot-preview[bot]'
 
     if (!isDependabotPR) {
       return logInfo('Not dependabot PR, skip merging.')
