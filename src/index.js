@@ -42,14 +42,13 @@ async function run () {
       merge_method: MERGE_METHOD
     })
 
-
     if (MERGE_COMMENT) {
       await octokit.issues.createComment({
         owner,
         repo,
         issue_number: prNumber,
-        body: MERGE_COMMENT,
-      });
+        body: MERGE_COMMENT
+      })
     }
   } catch (error) {
     core.setFailed(error.message)
