@@ -1,12 +1,16 @@
 name: "Github Action Merge Dependabot"
-description: "Automatically merge dependabot PRs"
+description: "Automatically approve and merge dependabot PRs"
 inputs:
   github-token:
-    description: "A GitHub token."
+    description: "A GitHub token"
     required: true
   exclude:
     description: "Packages that you want to manually review before upgrading"
     required: false
+  approve-only:
+    description: "If true, the PR is only approved but not merged"
+    required: false
+    default: false
   merge-method:
     description: "The merge method you would like to use (squash, merge, rebase)"
     required: false
