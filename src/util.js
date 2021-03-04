@@ -5,14 +5,16 @@ const { logWarning } = require('./log')
 const mergeMethods = {
   merge: 'merge',
   squash: 'squash',
-  rebase: 'rebase'
+  rebase: 'rebase',
 }
 
 const getMergeMethod = () => {
   const input = core.getInput('merge-method')
 
   if (!input || !mergeMethods[input]) {
-    logWarning('merge-method input is ignored because it is malformed, defaulting to `squash`.')
+    logWarning(
+      'merge-method input is ignored because it is malformed, defaulting to `squash`.'
+    )
     return mergeMethods.squash
   }
 
@@ -24,5 +26,5 @@ exports.getInputs = () => ({
   MERGE_METHOD: getMergeMethod(),
   EXCLUDE_PKGS: core.getInput('exclude') || [],
   MERGE_COMMENT: core.getInput('merge-comment') || '',
-  APPROVE_ONLY: core.getInput('approve-only')
+  APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
 })
