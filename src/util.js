@@ -1,3 +1,5 @@
+'use strict'
+
 const core = require('@actions/core')
 
 const { logWarning } = require('./log')
@@ -27,4 +29,5 @@ exports.getInputs = () => ({
   EXCLUDE_PKGS: core.getInput('exclude') || [],
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
+  API_URL: core.getInput('api-url'),
 })

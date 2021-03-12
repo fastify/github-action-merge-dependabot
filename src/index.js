@@ -1,7 +1,10 @@
+'use strict'
+
 const core = require('@actions/core')
 const github = require('@actions/github')
+const fetch = require('node-fetch')
 
-const { logInfo } = require('./log')
+const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 
 const {
@@ -10,28 +13,25 @@ const {
   EXCLUDE_PKGS,
   MERGE_COMMENT,
   APPROVE_ONLY,
+  API_URL,
 } = getInputs()
 
 async function run() {
   try {
-    const octokit = github.getOctokit(GITHUB_TOKEN)
-
-    const { repository, pull_request: pr } = github.context.payload
+    const { pull_request: pr } = github.context.payload
 
     if (!pr) {
-      throw new Error(
+      return logError(
         'This action must be used in the context of a Pull Request'
       )
     }
 
-    const owner = repository.owner.login
-    const repo = repository.name
-    const prNumber = pr.number
+    const pullRequestNumber = pr.number
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
     if (!isDependabotPR) {
-      return logInfo('Not dependabot PR, skipping.')
+      return logWarning('Not a dependabot PR, skipping.')
     }
 
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
@@ -41,32 +41,30 @@ async function run() {
       return logInfo(`${pkgName} is excluded, skipping.`)
     }
 
-    await octokit.pulls.createReview({
-      owner,
-      repo,
-      pull_number: prNumber,
-      event: 'APPROVE',
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        authorization: `token ${GITHUB_TOKEN}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        pullRequestNumber,
+        approveOnly: APPROVE_ONLY,
+        excludePackages: EXCLUDE_PKGS,
+        approveComment: MERGE_COMMENT,
+        mergeMethod: MERGE_METHOD,
+      }),
     })
 
-    if (APPROVE_ONLY) {
-      return logInfo('Approving only.')
+    const responseText = await response.text()
+
+    if (!response.ok) {
+      throw new Error(
+        `Request failed with status code ${response.status}: ${responseText}`
+      )
     }
 
-    await octokit.pulls.merge({
-      owner,
-      repo,
-      pull_number: prNumber,
-      merge_method: MERGE_METHOD,
-    })
-
-    if (MERGE_COMMENT) {
-      await octokit.issues.createComment({
-        owner,
-        repo,
-        issue_number: prNumber,
-        body: MERGE_COMMENT,
-      })
-    }
+    logInfo(responseText)
   } catch (error) {
     core.setFailed(error.message)
   }

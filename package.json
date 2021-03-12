@@ -1,15 +1,19 @@
 {
   "name": "github-action-merge-dependabot",
   "version": "1.2.1",
-  "description": "",
+  "description": "A GitHub action to automatically merge and approve Dependabot pull requests",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "ncc build src/index.js",
+    "lint": "eslint"
   },
   "author": {
     "name": "Salman Mitha",
     "email": "SalmanMitha@gmail.com"
   },
+  "contributors": [
+    "Simone Busoli <simone.busoli@nearform.com>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,6 +25,17 @@
   "homepage": "https://github.com/fastify/github-action-merge-dependabot#readme",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0"
+    "@actions/github": "^4.0.0",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.27.0",
+    "eslint": "^7.21.0",
+    "husky": "^4.3.8"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run build && git add dist"
+    }
   }
 }
