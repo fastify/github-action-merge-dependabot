@@ -4,7 +4,10 @@ updates:
     directory: '/'
     schedule:
       interval: daily
-  - package-ecosystem: "github-actions"
-    directory: "/"
+    ignore:
+      - dependency-name: 'husky'
+        versions: ['5.x']
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "daily"
+      interval: 'daily'
