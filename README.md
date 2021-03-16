@@ -51,7 +51,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: fastify/github-action-merge-dependabot@v2
+      - uses: fastify/github-action-merge-dependabot@v2.0.0
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
 ```
@@ -60,7 +60,7 @@ jobs:
 
 ```yml
 steps:
-  - uses: fastify/github-action-merge-dependabot@v2
+  - uses: fastify/github-action-merge-dependabot@v2.0.0
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       exclude: ['react']
@@ -70,7 +70,7 @@ steps:
 
 ```yml
 steps:
-  - uses: fastify/github-action-merge-dependabot@v2
+  - uses: fastify/github-action-merge-dependabot@v2.0.0
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       approve-only: true
