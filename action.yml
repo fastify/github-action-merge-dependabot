@@ -22,7 +22,7 @@ inputs:
   api-url:
     description: 'Url of the API where the application is running'
     required: false
-    default: 'https://dependabot-merge-action-app.herokuapp.com/'
+    default: 'https://fastify-dependabot-merge-app-5uewp47fja-uc.a.run.app/'
 runs:
   using: 'node12'
   main: 'dist/index.js'
