@@ -16,6 +16,8 @@ const {
   API_URL,
 } = getInputs()
 
+const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
+
 async function run() {
   try {
     const { pull_request: pr } = github.context.payload
@@ -57,6 +59,10 @@ async function run() {
     })
 
     const responseText = await response.text()
+
+    if (response.status === 400) {
+      logWarning(`Please ensure that Github App is installed ${GITHUB_APP_URL}`)
+    }
 
     if (!response.ok) {
       throw new Error(
