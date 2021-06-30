@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "build": "ncc build src/index.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tap"
   },
   "author": {
     "name": "Salman Mitha",
@@ -31,7 +32,8 @@
   "devDependencies": {
     "@vercel/ncc": "^0.28.6",
     "eslint": "^7.29.0",
-    "husky": "^4.3.8"
+    "husky": "^4.3.8",
+    "tap": "^15.0.9"
   },
   "husky": {
     "hooks": {

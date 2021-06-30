@@ -23,6 +23,10 @@ inputs:
     description: 'Url of the API where the application is running'
     required: false
     default: 'https://fastify-dependabot-merge-app-5uewp47fja-uc.a.run.app/'
+  target:
+    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
+    required: false
+    default: 'major'
 runs:
   using: 'node12'
   main: 'dist/index.js'

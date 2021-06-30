@@ -3,6 +3,7 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 const fetch = require('node-fetch')
+const checkTargetMatchToPR = require('./lib/checkTargetMatchToPR')
 
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
@@ -14,6 +15,7 @@ const {
   MERGE_COMMENT,
   APPROVE_ONLY,
   API_URL,
+  TARGET
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
@@ -36,6 +38,10 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
+    const isTargetMatchToPR = checkTargetMatchToPR(pr.title,TARGET)
+    if (!isTargetMatchToPR) {
+      return logWarning('Target specified does not match to PR, skipping.')
+    }
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
     const pkgName = pr.head.ref.split('/').pop().split('-').shift()
 

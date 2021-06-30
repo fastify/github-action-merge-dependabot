@@ -134,7 +134,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
+exports.getState = exports.saveState = exports.group = exports.endGroup = exports.startGroup = exports.info = exports.warning = exports.error = exports.debug = exports.isDebug = exports.setFailed = exports.setCommandEcho = exports.setOutput = exports.getBooleanInput = exports.getMultilineInput = exports.getInput = exports.addPath = exports.setSecret = exports.exportVariable = exports.ExitCode = void 0;
 const command_1 = __nccwpck_require__(241);
 const file_command_1 = __nccwpck_require__(717);
 const utils_1 = __nccwpck_require__(278);
@@ -220,6 +220,21 @@ function getInput(name, options) {
     return val.trim();
 }
 exports.getInput = getInput;
+/**
+ * Gets the values of an multiline input.  Each value is also trimmed.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string[]
+ *
+ */
+function getMultilineInput(name, options) {
+    const inputs = getInput(name, options)
+        .split('\n')
+        .filter(x => x !== '');
+    return inputs;
+}
+exports.getMultilineInput = getMultilineInput;
 /**
  * Gets the input value of the boolean type in the YAML 1.2 "core schema" specification.
  * Support boolean input list: `true | True | TRUE | false | False | FALSE` .
@@ -5971,6 +5986,61 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 909:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const { targetOptions } = __nccwpck_require__(828)
+const checkTargetMatchToPR = (prTitle, target= targetOptions.major) => {
+  if(!prTitle || target ===  targetOptions.major) {
+    return true
+  }
+  const titleSplitByFrom = prTitle.split('from')
+  if (titleSplitByFrom.length === 2) {
+    const versionsArray = titleSplitByFrom[1].split('to')
+    if(versionsArray.length === 2) {
+      const [fromVersion, toVersion] = versionsArray
+      const fromVersionArray = fromVersion.trim().split('.')
+      const toVersionArray = toVersion.trim().split('.')
+      if(fromVersionArray.length === 3 && toVersionArray === 3){
+        // TODO: we know know that we have version numbers so implement the logic
+
+      }
+    }
+  }
+  return true
+}
+module.exports = checkTargetMatchToPR
+
+
+/***/ }),
+
+/***/ 828:
+/***/ ((module) => {
+
+"use strict";
+
+
+const targetOptions = {
+  major: 'major',
+  minor: 'minor',
+  patch: 'patch',
+}
+
+const getTargetInput = (input) => {
+  if(input && targetOptions[input]) {
+    return targetOptions[input]
+  }
+  return targetOptions.major
+}
+
+module.exports = {getTargetInput,targetOptions}
+
+
+/***/ }),
+
 /***/ 653:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -5999,6 +6069,7 @@ exports.logWarning = log(warning)
 
 
 const core = __nccwpck_require__(186)
+const { getTargetInput }= __nccwpck_require__(828)
 
 const { logWarning } = __nccwpck_require__(653)
 
@@ -6028,6 +6099,7 @@ exports.getInputs = () => ({
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
+  TARGET: getTargetInput(core.getInput('target')),
 })
 
 
@@ -6190,6 +6262,7 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(186)
 const github = __nccwpck_require__(438)
 const fetch = __nccwpck_require__(467)
+const checkTargetMatchToPR = __nccwpck_require__(909)
 
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
 const { getInputs } = __nccwpck_require__(254)
@@ -6201,6 +6274,7 @@ const {
   MERGE_COMMENT,
   APPROVE_ONLY,
   API_URL,
+  TARGET
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
@@ -6223,6 +6297,10 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
+    const isTargetMatchToPR = checkTargetMatchToPR(pr.title,TARGET)
+    if (!isTargetMatchToPR) {
+      return logWarning('Target specified does not match to PR, skipping.')
+    }
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
     const pkgName = pr.head.ref.split('/').pop().split('-').shift()
 

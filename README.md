@@ -33,6 +33,10 @@ _Optional_ An arbitrary message that you'd like to comment on the PR after it ge
 
 _Optional_ A custom url where the external API which is delegated the task of approving and merging responds.
 
+### `target`
+
+_Optional_ A flag to only auto-merge on major, minor, patch updates based on Semantic Versioning. Default to `major` merge. If `major` is selected it will merge all PR's with major, minor and patch updates. If `minor` is selected it will only merge PR's with minor and patch updates. If `patch` is selected it will only merge PR's with patch update.
+
 ## Example usage
 
 ### Basic example
