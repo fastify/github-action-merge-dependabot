@@ -33,6 +33,15 @@ _Optional_ An arbitrary message that you'd like to comment on the PR after it ge
 
 _Optional_ A custom url where the external API which is delegated the task of approving and merging responds.
 
+### `target`
+
+_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Default to `major` merge. Possible options are:
+
+`major, premajor, minor, preminor, patch, prepatch, or prerelease`
+
+For more details on how semantic version difference calculated please see [semver](https://www.npmjs.com/package/semver) package
+
+
 ## Example usage
 
 ### Basic example

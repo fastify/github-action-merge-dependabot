@@ -2,6 +2,7 @@
 
 const core = require('@actions/core')
 
+const { getTargetInput } = require('./getTargetInput')
 const { logWarning } = require('./log')
 
 const mergeMethods = {
@@ -30,4 +31,5 @@ exports.getInputs = () => ({
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
+  TARGET: getTargetInput(core.getInput('target')),
 })
