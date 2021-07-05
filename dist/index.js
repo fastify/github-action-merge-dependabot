@@ -6691,7 +6691,6 @@ const { getInputs } = __nccwpck_require__(6254)
 const { GITHUB_TOKEN } = getInputs()
 
 const getPullRequest = async url => {
-  console.log(url)
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -6700,8 +6699,8 @@ const getPullRequest = async url => {
     },
   })
   console.log(response)
-
   const data = await response.json()
+  console.log(data)
 
   return data
 }
@@ -7007,7 +7006,7 @@ async function run() {
     if (workflow) {
       const url = github.context.payload.repository.pulls_url.replace(
         '{/number}',
-        pullRequestNumber
+        `/${pullRequestNumber}`
       )
 
       pr = await getPullRequest(url)
