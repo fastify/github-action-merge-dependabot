@@ -7,7 +7,6 @@ const { getInputs } = require('./util')
 const { GITHUB_TOKEN } = getInputs()
 
 const getPullRequest = async url => {
-  console.log(url)
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -16,8 +15,8 @@ const getPullRequest = async url => {
     },
   })
   console.log(response)
-
   const data = await response.json()
+  console.log(data)
 
   return data
 }

@@ -42,7 +42,7 @@ async function run() {
     if (workflow) {
       const url = github.context.payload.repository.pulls_url.replace(
         '{/number}',
-        pullRequestNumber
+        `/${pullRequestNumber}`
       )
 
       pr = await getPullRequest(url)
