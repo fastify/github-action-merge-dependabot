@@ -48,8 +48,6 @@ async function run() {
       pr = await getPullRequest(url)
     }
 
-    console.log(pr)
-
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
     if (!isDependabotPR) {

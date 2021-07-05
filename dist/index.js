@@ -6698,9 +6698,8 @@ const getPullRequest = async url => {
       accept: 'application/vnd.github.v3+json',
     },
   })
-  console.log(response)
+
   const data = await response.json()
-  console.log(data)
 
   return data
 }
@@ -7011,8 +7010,6 @@ async function run() {
 
       pr = await getPullRequest(url)
     }
-
-    console.log(pr)
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
