@@ -6803,6 +6803,7 @@ exports.getInputs = () => ({
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
   TARGET: getTargetInput(core.getInput('target')),
+  PR_NUMBER: core.getInput('pr-number'),
 })
 
 
