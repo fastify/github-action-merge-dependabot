@@ -7001,6 +7001,8 @@ async function run() {
 
     const pullRequestNumber = PR_NUMBER || pr.number
 
+    console.log(workflow)
+
     // If this is in a workflow dispatch context, re-assign the pr variable to the resulting fetched pull request data
     if (workflow) {
       const url = github.context.payload.repository.pulls_url.replace(
@@ -7010,6 +7012,8 @@ async function run() {
 
       pr = await getPullRequest(url)
     }
+
+    console.log(pr)
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
