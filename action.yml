@@ -27,6 +27,9 @@ inputs:
     description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
     required: false
     default: 'major'
+  pr-number:
+    description: 'A pull request number, only required if triggered from a workflow_dispatch event'
+    required: false
 runs:
   using: 'node12'
   main: 'dist/index.js'

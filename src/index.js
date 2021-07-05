@@ -5,6 +5,7 @@ const github = require('@actions/github')
 const fetch = require('node-fetch')
 
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
+const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 
@@ -16,21 +17,36 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request: pr } = github.context.payload
+    const { pull_request, workflow } = github.context.payload
 
-    if (!pr) {
+    const isSupportedContext = pull_request || workflow
+
+    if (!isSupportedContext) {
       return logError(
-        'This action must be used in the context of a Pull Request'
+        'This action must be used in the context of a Pull Request or a Workflow Dispatch event'
       )
     }
 
-    const pullRequestNumber = pr.number
+    let pr = pull_request
+
+    const pullRequestNumber = PR_NUMBER || pr.number
+
+    // If this is in a workflow dispatch context, re-assign the pr variable to the resulting fetched pull request data
+    if (workflow) {
+      const url = github.context.payload.repository.pulls_url.replace(
+        '{/number}',
+        pullRequestNumber
+      )
+
+      pr = await getPullRequest(url)
+    }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
