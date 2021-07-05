@@ -6697,9 +6697,9 @@ const getPullRequest = async url => {
     headers: {
       authorization: `token ${GITHUB_TOKEN}`,
       accept: 'application/vnd.github.v3+json',
-      'content-type': 'application/json',
     },
   })
+  console.log(response)
 
   const data = await response.json()
 
