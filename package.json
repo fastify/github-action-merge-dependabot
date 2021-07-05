@@ -6,7 +6,8 @@
   "scripts": {
     "build": "ncc build src/index.js",
     "lint": "eslint .",
-    "test": "tap"
+    "test": "tap",
+    "prepare": "husky install"
   },
   "author": {
     "name": "Salman Mitha",
@@ -36,10 +37,5 @@
     "husky": "^7.0.0",
     "prettier": "^2.3.2",
     "tap": "^15.0.9"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build && git add dist"
-    }
   }
 }
