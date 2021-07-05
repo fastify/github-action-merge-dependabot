@@ -6691,11 +6691,13 @@ const { getInputs } = __nccwpck_require__(6254)
 const { GITHUB_TOKEN } = getInputs()
 
 const getPullRequest = async url => {
+  console.log(url)
   const response = await fetch(url, {
     method: 'GET',
     headers: {
       authorization: `token ${GITHUB_TOKEN}`,
-      'content-type': 'application/vnd.github.v3+json',
+      accept: 'application/vnd.github.v3+json',
+      'content-type': 'application/json',
     },
   })
 
@@ -7000,8 +7002,6 @@ async function run() {
     let pr = pull_request
 
     const pullRequestNumber = PR_NUMBER || pr.number
-
-    console.log(workflow)
 
     // If this is in a workflow dispatch context, re-assign the pr variable to the resulting fetched pull request data
     if (workflow) {
