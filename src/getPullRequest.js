@@ -15,15 +15,9 @@ const getPullRequest = async url => {
     },
   })
 
-  const responseText = await response.text()
+  const data = await response.json()
 
-  if (!response.ok) {
-    throw new Error(
-      `Request failed with status code ${response.status}: ${responseText}`
-    )
-  }
-
-  return response
+  return data
 }
 
 module.exports = getPullRequest
