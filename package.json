@@ -34,7 +34,7 @@
   "devDependencies": {
     "@vercel/ncc": "^0.28.6",
     "eslint": "^7.30.0",
-    "husky": "^7.0.0",
+    "husky": "^7.0.1",
     "prettier": "^2.3.2",
     "tap": "^15.0.9"
   }
