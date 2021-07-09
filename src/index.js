@@ -40,7 +40,7 @@ async function run() {
 
     if (!pullRequestNumber) {
       return logError(
-        'No pull request number has been found. Please make sure '
+        'No pull request number has been found. Please make sure a pull request number has been provided'
       )
     }
 
