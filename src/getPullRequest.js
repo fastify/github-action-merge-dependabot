@@ -1,23 +1,21 @@
 'use strict'
 
-const fetch = require('node-fetch')
+const github = require('@actions/github')
 
 const { getInputs } = require('./util')
 
 const { GITHUB_TOKEN } = getInputs()
 
-const getPullRequest = async url => {
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      authorization: `token ${GITHUB_TOKEN}`,
-      accept: 'application/vnd.github.v3+json',
-    },
+const getPullRequest = async (owner, repoName, pullRequestNumber) => {
+  const octokit = github.getOctokit(GITHUB_TOKEN)
+
+  const { data: pullRequest } = await octokit.rest.pulls.get({
+    owner,
+    repo: repoName,
+    pull_number: pullRequestNumber,
   })
 
-  const data = await response.json()
-
-  return data
+  return pullRequest
 }
 
 module.exports = getPullRequest

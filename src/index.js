@@ -38,14 +38,13 @@ async function run() {
 
     const pullRequestNumber = PR_NUMBER || pr.number
 
-    // If this is in a workflow dispatch context, re-assign the pr variable to the resulting fetched pull request data
+    // If this is in a workflow dispatch context, re-assign the pr variable based on response from octokit
     if (workflow) {
-      const url = github.context.payload.repository.pulls_url.replace(
-        '{/number}',
-        `/${pullRequestNumber}`
-      )
+      const repo = github.context.payload.repository
+      const owner = repo.owner.login
+      const repoName = repo.name
 
-      pr = await getPullRequest(url)
+      pr = await getPullRequest(owner, repoName, pullRequestNumber)
     }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
