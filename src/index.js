@@ -38,6 +38,12 @@ async function run() {
 
     const pullRequestNumber = PR_NUMBER || pr.number
 
+    if (!pullRequestNumber) {
+      return logError(
+        'No pull request number has been found. Please make sure '
+      )
+    }
+
     // If this is in a workflow dispatch context, re-assign the pr variable based on response from octokit
     if (workflow) {
       const repo = github.context.payload.repository
