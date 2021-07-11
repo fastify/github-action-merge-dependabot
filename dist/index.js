@@ -6684,24 +6684,22 @@ module.exports = checkTargetMatchToPR
 "use strict";
 
 
-const fetch = __nccwpck_require__(467)
+const github = __nccwpck_require__(5438)
 
 const { getInputs } = __nccwpck_require__(6254)
 
 const { GITHUB_TOKEN } = getInputs()
 
-const getPullRequest = async url => {
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      authorization: `token ${GITHUB_TOKEN}`,
-      accept: 'application/vnd.github.v3+json',
-    },
+const getPullRequest = async (owner, repoName, pullRequestNumber) => {
+  const octokit = github.getOctokit(GITHUB_TOKEN)
+
+  const { data: pullRequest } = await octokit.rest.pulls.get({
+    owner,
+    repo: repoName,
+    pull_number: pullRequestNumber,
   })
 
-  const data = await response.json()
-
-  return data
+  return pullRequest
 }
 
 module.exports = getPullRequest
@@ -7001,14 +6999,19 @@ async function run() {
 
     const pullRequestNumber = PR_NUMBER || pr.number
 
-    // If this is in a workflow dispatch context, re-assign the pr variable to the resulting fetched pull request data
-    if (workflow) {
-      const url = github.context.payload.repository.pulls_url.replace(
-        '{/number}',
-        `/${pullRequestNumber}`
+    if (!pullRequestNumber) {
+      return logError(
+        'No pull request number has been found. Please make sure a pull request number has been provided'
       )
+    }
 
-      pr = await getPullRequest(url)
+    // If this is in a workflow dispatch context, re-assign the pr variable based on response from octokit
+    if (workflow) {
+      const repo = github.context.payload.repository
+      const owner = repo.owner.login
+      const repoName = repo.name
+
+      pr = await getPullRequest(owner, repoName, pullRequestNumber)
     }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
