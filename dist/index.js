@@ -6987,7 +6987,9 @@ async function run() {
   try {
     const { pull_request, workflow } = github.context.payload
 
-    const isSupportedContext = pull_request || workflow
+    const isPullRequest = Boolean(pull_request)
+    const isWorkflowDispatch = Boolean(workflow)
+    const isSupportedContext = isPullRequest || isWorkflowDispatch
 
     if (!isSupportedContext) {
       return logError(
@@ -6995,23 +6997,26 @@ async function run() {
       )
     }
 
-    let pr = pull_request
+    let pr
+    let pullRequestNumber
 
-    const pullRequestNumber = PR_NUMBER || pr.number
+    // Conditionally sets pr and pullRequestNumber based on context. The default context case is "pull request"
+    if (isWorkflowDispatch) {
+      if (!PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))) {
+        return logError(
+          'Missing or invalid pull request number. Please make sure you are using a valid pull request number'
+        )
+      }
 
-    if (!pullRequestNumber) {
-      return logError(
-        'No pull request number has been found. Please make sure a pull request number has been provided'
-      )
-    }
-
-    // If this is in a workflow dispatch context, re-assign the pr variable based on response from octokit
-    if (workflow) {
+      pullRequestNumber = PR_NUMBER
       const repo = github.context.payload.repository
       const owner = repo.owner.login
       const repoName = repo.name
 
       pr = await getPullRequest(owner, repoName, pullRequestNumber)
+    } else {
+      pr = pull_request
+      pullRequestNumber = pr.number
     }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
