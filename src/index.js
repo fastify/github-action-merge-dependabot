@@ -5,6 +5,7 @@ const github = require('@actions/github')
 const fetch = require('node-fetch')
 
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
+const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 
@@ -16,21 +17,46 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request: pr } = github.context.payload
+    const { pull_request, workflow } = github.context.payload
 
-    if (!pr) {
+    const isPullRequest = Boolean(pull_request)
+    const isWorkflowDispatch = Boolean(workflow)
+    const isSupportedContext = isPullRequest || isWorkflowDispatch
+
+    if (!isSupportedContext) {
       return logError(
-        'This action must be used in the context of a Pull Request'
+        'This action must be used in the context of a Pull Request or a Workflow Dispatch event'
       )
     }
 
-    const pullRequestNumber = pr.number
+    let pr
+    let pullRequestNumber
+
+    // Conditionally sets pr and pullRequestNumber based on context. The default context case is "pull request"
+    if (isWorkflowDispatch) {
+      if (!PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))) {
+        return logError(
+          'Missing or invalid pull request number. Please make sure you are using a valid pull request number'
+        )
+      }
+
+      pullRequestNumber = PR_NUMBER
+      const repo = github.context.payload.repository
+      const owner = repo.owner.login
+      const repoName = repo.name
+
+      pr = await getPullRequest(owner, repoName, pullRequestNumber)
+    } else {
+      pr = pull_request
+      pullRequestNumber = pr.number
+    }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 

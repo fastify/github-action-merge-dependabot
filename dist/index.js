@@ -6678,6 +6678,35 @@ module.exports = checkTargetMatchToPR
 
 /***/ }),
 
+/***/ 6754:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const github = __nccwpck_require__(5438)
+
+const { getInputs } = __nccwpck_require__(6254)
+
+const { GITHUB_TOKEN } = getInputs()
+
+const getPullRequest = async (owner, repoName, pullRequestNumber) => {
+  const octokit = github.getOctokit(GITHUB_TOKEN)
+
+  const { data: pullRequest } = await octokit.rest.pulls.get({
+    owner,
+    repo: repoName,
+    pull_number: pullRequestNumber,
+  })
+
+  return pullRequest
+}
+
+module.exports = getPullRequest
+
+
+/***/ }),
+
 /***/ 5013:
 /***/ ((module) => {
 
@@ -6772,6 +6801,7 @@ exports.getInputs = () => ({
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
   TARGET: getTargetInput(core.getInput('target')),
+  PR_NUMBER: core.getInput('pr-number'),
 })
 
 
@@ -6936,6 +6966,7 @@ const github = __nccwpck_require__(5438)
 const fetch = __nccwpck_require__(467)
 
 const checkTargetMatchToPR = __nccwpck_require__(7186)
+const getPullRequest = __nccwpck_require__(6754)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
 const { getInputs } = __nccwpck_require__(6254)
 
@@ -6947,21 +6978,46 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request: pr } = github.context.payload
+    const { pull_request, workflow } = github.context.payload
 
-    if (!pr) {
+    const isPullRequest = Boolean(pull_request)
+    const isWorkflowDispatch = Boolean(workflow)
+    const isSupportedContext = isPullRequest || isWorkflowDispatch
+
+    if (!isSupportedContext) {
       return logError(
-        'This action must be used in the context of a Pull Request'
+        'This action must be used in the context of a Pull Request or a Workflow Dispatch event'
       )
     }
 
-    const pullRequestNumber = pr.number
+    let pr
+    let pullRequestNumber
+
+    // Conditionally sets pr and pullRequestNumber based on context. The default context case is "pull request"
+    if (isWorkflowDispatch) {
+      if (!PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))) {
+        return logError(
+          'Missing or invalid pull request number. Please make sure you are using a valid pull request number'
+        )
+      }
+
+      pullRequestNumber = PR_NUMBER
+      const repo = github.context.payload.repository
+      const owner = repo.owner.login
+      const repoName = repo.name
+
+      pr = await getPullRequest(owner, repoName, pullRequestNumber)
+    } else {
+      pr = pull_request
+      pullRequestNumber = pr.number
+    }
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 

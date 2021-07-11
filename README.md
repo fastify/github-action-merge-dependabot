@@ -41,6 +41,9 @@ _Optional_ A flag to only auto-merge updates based on Semantic Versioning. Defau
 
 For more details on how semantic version difference calculated please see [semver](https://www.npmjs.com/package/semver) package
 
+### `pr-number`
+
+_Optional_ A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event)
 
 ## Example usage
 
@@ -83,6 +86,42 @@ steps:
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       approve-only: true
+```
+
+### Trigger action from workflow_dispatch event
+
+If you need to trigger this action manually, you can use the [workflow_dispatch](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
+
+When using the `workflow_dispatch` approach, you will need to send the PR number as part of the input for this action:
+
+```yml
+name: automerge
+
+on: 
+  workflow_dispatch:
+    inputs:
+      pr:
+        required: true
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v2.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr: ${{ github.event.inputs.pr }}
+```
+
+You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/reference/actions/#create-a-workflow-dispatch-event):
+
+```bash
+# Note: replace dynamic values with your relevant data
+curl -X POST \
+  -H "Accept: application/vnd.github.v3+json" \
+  -H "Authorization: token {token}" \
+  https://api.github.com/repos/{owner}/{reponame}/actions/workflows/{workflow}/dispatches \
+  -d '{"ref":"{ref}", "inputs":{ "pr-number": "{number}"}}'
 ```
 
 ## Notes
