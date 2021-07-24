@@ -17,7 +17,6 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
-  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
@@ -26,9 +25,7 @@ async function run() {
   try {
     const { pull_request, workflow } = github.context.payload
 
-    const isPullRequest = Boolean(pull_request)
-    const isWorkflowDispatch = Boolean(workflow)
-    const isSupportedContext = isPullRequest || isWorkflowDispatch
+    const isSupportedContext = pull_request || workflow
 
     if (!isSupportedContext) {
       return logError(
@@ -36,27 +33,7 @@ async function run() {
       )
     }
 
-    let pr
-    let pullRequestNumber
-
-    // Conditionally sets pr and pullRequestNumber based on context. The default context case is "pull request"
-    if (isWorkflowDispatch) {
-      if (!PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))) {
-        return logError(
-          'Missing or invalid pull request number. Please make sure you are using a valid pull request number'
-        )
-      }
-
-      pullRequestNumber = PR_NUMBER
-      const repo = github.context.payload.repository
-      const owner = repo.owner.login
-      const repoName = repo.name
-
-      pr = await getPullRequest(owner, repoName, pullRequestNumber)
-    } else {
-      pr = pull_request
-      pullRequestNumber = pr.number
-    }
+    const pr = getPullRequest()
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
@@ -84,7 +61,7 @@ async function run() {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        pullRequestNumber,
+        pullRequestNumber: pr.number,
         approveOnly: APPROVE_ONLY,
         excludePackages: EXCLUDE_PKGS,
         approveComment: MERGE_COMMENT,
