@@ -7012,7 +7012,7 @@ async function run() {
       )
     }
 
-    const pr = getPullRequest()
+    const pr = await getPullRequest()
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
