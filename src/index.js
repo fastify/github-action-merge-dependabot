@@ -26,7 +26,7 @@ async function run() {
   try {
     const { pull_request } = github.context.payload
 
-    const hasPullRequestNumber = !PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))
+    const hasPullRequestNumber = PR_NUMBER && isNaN(PR_NUMBER)
 
     if (!pull_request || !hasPullRequestNumber) {
       return logError(
