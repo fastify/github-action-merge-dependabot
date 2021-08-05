@@ -6988,8 +6988,8 @@ async function run() {
   try {
     const { pull_request } = github.context.payload
 
-    console.log(PR_NUMBER)
-    console.log(!pull_request || !PR_NUMBER)
+    console.log(!PR_NUMBER)
+    console.log(!pull_request)
 
     if (!pull_request || !PR_NUMBER) {
       return logError(
