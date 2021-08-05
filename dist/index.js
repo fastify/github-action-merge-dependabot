@@ -6988,13 +6988,7 @@ async function run() {
   try {
     const { pull_request } = github.context.payload
 
-    const hasPullRequestNumber = PR_NUMBER && isNaN(PR_NUMBER)
-    console.log(pull_request)
-    console.log(hasPullRequestNumber)
-    console.log(typeof PR_NUMBER)
-    console.log(isNaN(PR_NUMBER))
-
-    if (!pull_request || !hasPullRequestNumber) {
+    if (!pull_request || !PR_NUMBER) {
       return logError(
         'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
