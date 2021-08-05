@@ -6991,6 +6991,8 @@ async function run() {
     const hasPullRequestNumber = PR_NUMBER && isNaN(PR_NUMBER)
     console.log(pull_request)
     console.log(hasPullRequestNumber)
+    console.log(typeof PR_NUMBER)
+    console.log(isNaN(PR_NUMBER))
 
     if (!pull_request || !hasPullRequestNumber) {
       return logError(
