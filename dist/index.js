@@ -6988,6 +6988,9 @@ async function run() {
   try {
     const { pull_request } = github.context.payload
 
+    console.log(PR_NUMBER)
+    console.log(!pull_request || !PR_NUMBER)
+
     if (!pull_request || !PR_NUMBER) {
       return logError(
         'This action must be used in the context of a Pull Request or with a Pull Request number'
