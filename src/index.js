@@ -17,23 +17,29 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request, workflow } = github.context.payload
+    const { pull_request } = github.context.payload
 
-    const isSupportedContext = pull_request || workflow
+    const hasPullRequestNumber = !PR_NUMBER || (PR_NUMBER && isNaN(PR_NUMBER))
 
-    if (!isSupportedContext) {
+    if (!pull_request || !hasPullRequestNumber) {
       return logError(
-        'This action must be used in the context of a Pull Request or a Workflow Dispatch event'
+        'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
     }
 
-    const pr = await getPullRequest()
+    const pr =
+      pull_request ||
+      (await getPullRequest({
+        pullRequestNumber: PR_NUMBER,
+        githubToken: GITHUB_TOKEN,
+      }))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
