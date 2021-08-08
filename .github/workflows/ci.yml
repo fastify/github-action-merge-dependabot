@@ -14,7 +14,7 @@ jobs:
       - name: Detect Generation needed Dist
         run: |
           npm run build
-          git diff --exit-code --quiet ./dist && echo "No changes detected. Ok." || echo "Changes detected. Please run npm run build"
+          git diff --exit-code --quiet ./dist && echo "No changes detected. Ok." || echo "Changes detected. Please run npm run build" && exit 1
 
   automerge:
     needs: build
