@@ -17,11 +17,15 @@ const preReleaseUpgradePRTitle =
 const preReleaseToPathUpgradePRTitle =
   'chore(deps-dev): bump fastify from 3.18.0-alpha to 3.18.2'
 const sameVersion = 'chore(deps-dev): bump fastify from 3.18.0 to 3.18.0'
+const patchPRTitleInSubDirectory = 'chore(deps-dev): bump fastify from 3.18.0 to 3.18.1 in /packages/a'
 
 tap.test('checkTargetMatchToPR', async t => {
   t.test('should return true when target is major', async t => {
     t.test('and PR is patch', async t => {
       t.ok(checkTargetMatchToPR(patchPRTitle, targetOptions.major))
+    })
+    t.test('and PR is patch in a subdirectory', async t => {
+      t.ok(checkTargetMatchToPR(patchPRTitleInSubDirectory, targetOptions.major))
     })
     t.test('and PR is patch with pre-release version', async t => {
       t.ok(checkTargetMatchToPR(preReleaseUpgradePRTitle, targetOptions.major))
