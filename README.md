@@ -100,7 +100,7 @@ name: automerge
 on: 
   workflow_dispatch:
     inputs:
-      pr:
+      pr-number:
         required: true
 
 jobs:
