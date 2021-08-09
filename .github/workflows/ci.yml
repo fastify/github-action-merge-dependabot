@@ -12,7 +12,7 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - name: Detect Generation needed Dist
-        if: github.actor != 'dependabot'
+        if: github.actor != 'dependabot' && github.event_name == 'pull_request'
         run: |
           npm run build
           git diff --exit-code --quiet ./dist && echo "No changes detected. Ok." && exit 0 \
