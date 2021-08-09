@@ -3,7 +3,7 @@ const semverDiff = require('semver/functions/diff')
 
 const { semanticVersionOrder } = require('./getTargetInput')
 
-const expression = /from ([^\s]+) to (.+)$/
+const expression = /from ([^\s]+) to ([^\s]+)/
 
 const checkTargetMatchToPR = (prTitle, target) => {
   const match = expression.exec(prTitle)
