@@ -110,7 +110,7 @@ jobs:
       - uses: fastify/github-action-merge-dependabot@v2.2.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr: ${{ github.event.inputs.pr }}
+          pr-number: ${{ github.event.inputs.pr-number }}
 ```
 
 You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/reference/actions/#create-a-workflow-dispatch-event):
