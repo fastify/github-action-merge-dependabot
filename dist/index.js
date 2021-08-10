@@ -6678,6 +6678,36 @@ module.exports = checkTargetMatchToPR
 
 /***/ }),
 
+/***/ 6754:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const github = __nccwpck_require__(5438)
+
+const getPullRequest = async ({ pullRequestNumber, githubToken }) => {
+  const payload = github.context.payload
+  const octokit = github.getOctokit(githubToken)
+
+  const repo = payload.repository
+  const owner = repo.owner.login
+  const repoName = repo.name
+
+  const { data: pullRequest } = await octokit.rest.pulls.get({
+    owner,
+    repo: repoName,
+    pull_number: pullRequestNumber,
+  })
+
+  return pullRequest
+}
+
+module.exports = getPullRequest
+
+
+/***/ }),
+
 /***/ 5013:
 /***/ ((module) => {
 
@@ -6772,6 +6802,7 @@ exports.getInputs = () => ({
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
   TARGET: getTargetInput(core.getInput('target')),
+  PR_NUMBER: core.getInput('pr-number'),
 })
 
 
@@ -9995,6 +10026,7 @@ const github = __nccwpck_require__(5438)
 const fetch = __nccwpck_require__(467)
 
 const checkTargetMatchToPR = __nccwpck_require__(7186)
+const getPullRequest = __nccwpck_require__(6754)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
 const { getInputs } = __nccwpck_require__(6254)
 
@@ -10006,21 +10038,27 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request: pr } = github.context.payload
+    const { pull_request } = github.context.payload
 
-    if (!pr) {
+    if (!pull_request && !PR_NUMBER) {
       return logError(
-        'This action must be used in the context of a Pull Request'
+        'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
     }
 
-    const pullRequestNumber = pr.number
+    const pr =
+      pull_request ||
+      (await getPullRequest({
+        pullRequestNumber: PR_NUMBER,
+        githubToken: GITHUB_TOKEN,
+      }))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
@@ -10048,7 +10086,7 @@ async function run() {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        pullRequestNumber,
+        pullRequestNumber: pr.number,
         approveOnly: APPROVE_ONLY,
         excludePackages: EXCLUDE_PKGS,
         approveComment: MERGE_COMMENT,

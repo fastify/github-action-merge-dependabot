@@ -5,6 +5,7 @@ const github = require('@actions/github')
 const fetch = require('node-fetch')
 
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
+const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 
@@ -16,21 +17,27 @@ const {
   APPROVE_ONLY,
   API_URL,
   TARGET,
+  PR_NUMBER,
 } = getInputs()
 
 const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
-    const { pull_request: pr } = github.context.payload
+    const { pull_request } = github.context.payload
 
-    if (!pr) {
+    if (!pull_request && !PR_NUMBER) {
       return logError(
-        'This action must be used in the context of a Pull Request'
+        'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
     }
 
-    const pullRequestNumber = pr.number
+    const pr =
+      pull_request ||
+      (await getPullRequest({
+        pullRequestNumber: PR_NUMBER,
+        githubToken: GITHUB_TOKEN,
+      }))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
@@ -58,7 +65,7 @@ async function run() {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        pullRequestNumber,
+        pullRequestNumber: pr.number,
         approveOnly: APPROVE_ONLY,
         excludePackages: EXCLUDE_PKGS,
         approveComment: MERGE_COMMENT,
