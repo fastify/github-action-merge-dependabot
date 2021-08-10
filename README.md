@@ -2,10 +2,6 @@
 
 This action automatically approves and merges dependabot PRs.
 
-> ⚠️UPGRADE NEEDED
->  
-> **Version v2.0.0 will stop working on 1st August 2021**. If you are using version v2.0.0, you must upgrade to the latest version. 
-
 ## Usage
 
 - **install the [GitHub App](https://github.com/apps/dependabot-merge-action) on the repositories or organization where you want to use this action.** Using a GitHub App is necessary since [this change](https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions/) GitHub introduced which limits the permissions of the provided GITHUB_TOKEN and the availability of secrets in Dependabot pull requests. The source [code of the GitHub App](https://github.com/fastify/dependabot-merge-action-app/) is open source and hosted on Google Cloud Platform. You can also host your own version of the app and customize the `api-url` input to point to your hosted instance.
@@ -101,7 +97,7 @@ When using the `workflow_dispatch` approach, you will need to send the PR number
 ```yml
 name: automerge
 
-on: 
+on:
   workflow_dispatch:
     inputs:
       pr-number:
