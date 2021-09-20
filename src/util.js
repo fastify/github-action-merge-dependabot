@@ -25,7 +25,7 @@ const getMergeMethod = () => {
 }
 
 const parseCommaSeparatedValue = (value) => {
-  return value.split(',').map(el => el.trim() );
+  return value.split(',').map(el => el.trim());
 }
 
 exports.getInputs = () => ({
