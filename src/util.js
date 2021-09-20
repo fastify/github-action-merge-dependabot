@@ -24,10 +24,14 @@ const getMergeMethod = () => {
   return mergeMethods[input]
 }
 
+const parseCommaSeparatedValue = (value) => {
+  return value.split(',').map(el => el.trim());
+}
+
 exports.getInputs = () => ({
   GITHUB_TOKEN: core.getInput('github-token', { required: true }),
   MERGE_METHOD: getMergeMethod(),
-  EXCLUDE_PKGS: core.getInput('exclude') || [],
+  EXCLUDE_PKGS: parseCommaSeparatedValue(core.getInput('exclude')) || [],
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
   API_URL: core.getInput('api-url'),
