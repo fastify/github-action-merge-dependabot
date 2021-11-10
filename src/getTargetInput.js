@@ -1,5 +1,7 @@
 'use strict'
 
+const core = require('@actions/core')
+
 const targetOptions = {
   major: 'major',
   premajor: 'premajor',
@@ -21,7 +23,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
-  console.log('getTargetInput params', input)
+  core.info('getTargetInput params', input)
   return targetOptions[input] || targetOptions.major
 }
 
