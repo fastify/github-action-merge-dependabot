@@ -24,6 +24,7 @@ const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 async function run() {
   try {
+    console.log(JSON.stringify(github.context.payload))
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {
@@ -39,6 +40,8 @@ async function run() {
         githubToken: GITHUB_TOKEN,
       }))
 
+      console.log(JSON.stringify(pr))
+
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
     if (!isDependabotPR) {
@@ -47,6 +50,7 @@ async function run() {
 
     const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
+    console.log({isTargetMatchToPR})
     if (!isTargetMatchToPR) {
       return logWarning('Target specified does not match to PR, skipping.')
     }

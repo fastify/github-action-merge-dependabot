@@ -21,6 +21,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
+  console.log('getTargetInput params', input)
   return targetOptions[input] || targetOptions.major
 }
 
