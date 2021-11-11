@@ -9321,6 +9321,7 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
+    console.log('target is ', TARGET)
 
     if (TARGET !== 'any') {
       const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
