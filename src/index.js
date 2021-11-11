@@ -25,10 +25,8 @@ const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 async function run() {
   try {
     console.log('Hello')
-    logDebug('Hello')
-    logInfo('Hello')
-    
-    logInfo(JSON.stringify(github.context.payload))
+
+    console.log(JSON.stringify(github.context.payload))
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {
@@ -95,7 +93,7 @@ async function run() {
 
     logInfo(responseText)
   } catch (error) {
-    logError(error)
+    console.log(error)
     core.setFailed(error.message)
   }
 }

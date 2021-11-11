@@ -1,22 +1,21 @@
 'use strict'
 const semverDiff = require('semver/functions/diff')
-const { logInfo } = require('./log')
 
 const { semanticVersionOrder } = require('./getTargetInput')
 
 const expression = /from ([^\s]+) to ([^\s]+)/
 
 const checkTargetMatchToPR = (prTitle, target) => {
-  logInfo({prTitle})
-  logInfo({target})
+  console.log({prTitle})
+  console.log({target})
   const match = expression.exec(prTitle)
-  logInfo(match)
+  console.log(match)
 
   if (!match) {
     return true
   }
   const diff = semverDiff(match[1], match[2])
-  logInfo(diff)
+  console.log(diff)
 
   return !(
     diff &&

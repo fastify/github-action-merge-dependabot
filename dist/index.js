@@ -8942,23 +8942,22 @@ function wrappy (fn, cb) {
 "use strict";
 
 const semverDiff = __nccwpck_require__(8540)
-const { logInfo } = __nccwpck_require__(3334)
 
 const { semanticVersionOrder } = __nccwpck_require__(7185)
 
 const expression = /from ([^\s]+) to ([^\s]+)/
 
 const checkTargetMatchToPR = (prTitle, target) => {
-  logInfo({prTitle})
-  logInfo({target})
+  console.log({prTitle})
+  console.log({target})
   const match = expression.exec(prTitle)
-  logInfo(match)
+  console.log(match)
 
   if (!match) {
     return true
   }
   const diff = semverDiff(match[1], match[2])
-  logInfo(diff)
+  console.log(diff)
 
   return !(
     diff &&
@@ -9001,12 +9000,10 @@ module.exports = getPullRequest
 /***/ }),
 
 /***/ 7185:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module) => {
 
 "use strict";
 
-
-const { logDebug } = __nccwpck_require__(3334)
 
 const targetOptions = {
   major: 'major',
@@ -9029,7 +9026,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
-  logDebug('getTargetInput params', input)
+  console.log('getTargetInput params', input)
   return targetOptions[input] || targetOptions.major
 }
 
@@ -9304,10 +9301,8 @@ const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 async function run() {
   try {
     console.log('Hello')
-    logDebug('Hello')
-    logInfo('Hello')
-    
-    logInfo(JSON.stringify(github.context.payload))
+
+    console.log(JSON.stringify(github.context.payload))
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {
@@ -9374,7 +9369,7 @@ async function run() {
 
     logInfo(responseText)
   } catch (error) {
-    logError(error)
+    console.log(error)
     core.setFailed(error.message)
   }
 }
