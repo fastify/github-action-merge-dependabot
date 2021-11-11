@@ -37,7 +37,7 @@ _Optional_ A custom url where the external API which is delegated the task of ap
 
 _Optional_ A flag to only auto-merge updates based on Semantic Versioning. Default to `major` merge. Possible options are:
 
-`major, premajor, minor, preminor, patch, prepatch, prerelease or any`
+`major, premajor, minor, preminor, patch, prepatch, prerelease or any`. Defaults to `any`.
 
 For more details on how semantic version difference calculated please see [semver](https://www.npmjs.com/package/semver) package
 
