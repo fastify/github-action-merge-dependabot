@@ -45,10 +45,12 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
+    if (TARGET !== 'any') {
+      const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
-    if (!isTargetMatchToPR) {
-      return logWarning('Target specified does not match to PR, skipping.')
+      if (!isTargetMatchToPR) {
+        return logWarning('Target specified does not match to PR, skipping.')
+      }
     }
 
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
