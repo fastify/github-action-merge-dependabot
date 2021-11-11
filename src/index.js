@@ -8,6 +8,7 @@ const checkTargetMatchToPR = require('./checkTargetMatchToPR')
 const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
+const { targetOptions } = require('./getTargetInput')
 
 const {
   GITHUB_TOKEN,
@@ -45,7 +46,7 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    if (TARGET !== 'any') {
+    if (TARGET !== targetOptions.any) {
       const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
       if (!isTargetMatchToPR) {

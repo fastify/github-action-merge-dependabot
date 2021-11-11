@@ -23,7 +23,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
-  return targetOptions[input] || targetOptions.major
+  return targetOptions[input] || targetOptions.any
 }
 
 module.exports = { getTargetInput, targetOptions, semanticVersionOrder }

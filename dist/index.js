@@ -9024,7 +9024,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
-  return targetOptions[input] || targetOptions.major
+  return targetOptions[input] || targetOptions.any
 }
 
 module.exports = { getTargetInput, targetOptions, semanticVersionOrder }
@@ -9281,6 +9281,7 @@ const checkTargetMatchToPR = __nccwpck_require__(2793)
 const getPullRequest = __nccwpck_require__(3004)
 const { logInfo, logWarning, logError } = __nccwpck_require__(3334)
 const { getInputs } = __nccwpck_require__(4649)
+const { targetOptions } = __nccwpck_require__(7185)
 
 const {
   GITHUB_TOKEN,
@@ -9318,7 +9319,7 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    if (TARGET !== 'any') {
+    if (TARGET !== targetOptions.any) {
       const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
       if (!isTargetMatchToPR) {
