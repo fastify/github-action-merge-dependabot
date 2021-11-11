@@ -8951,13 +8951,13 @@ const checkTargetMatchToPR = (prTitle, target) => {
   console.log({prTitle})
   console.log({target})
   const match = expression.exec(prTitle)
-  console.log(match)
+  console.log({match})
 
   if (!match) {
     return true
   }
   const diff = semverDiff(match[1], match[2])
-  console.log(diff)
+  console.log({diff})
 
   return !(
     diff &&
@@ -9326,12 +9326,13 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
-    core.info({isTargetMatchToPR})
-    if (!isTargetMatchToPR) {
-      return logWarning('Target specified does not match to PR, skipping.')
-    }
+    // const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
+
+    // console.log({isTargetMatchToPR})
+    // if (!isTargetMatchToPR) {
+    //   return logWarning('Target specified does not match to PR, skipping.')
+    // }
 
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
     const pkgName = pr.head.ref.split('/').pop().split('-').shift()
