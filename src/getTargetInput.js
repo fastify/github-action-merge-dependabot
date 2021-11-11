@@ -1,6 +1,6 @@
 'use strict'
 
-const core = require('@actions/core')
+const { logDebug } = require('./log')
 
 const targetOptions = {
   major: 'major',
@@ -23,7 +23,7 @@ const semanticVersionOrder = [
 ]
 
 const getTargetInput = input => {
-  core.info('getTargetInput params', input)
+  logDebug('getTargetInput params', input)
   return targetOptions[input] || targetOptions.major
 }
 
