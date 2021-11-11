@@ -9,8 +9,11 @@ tap.test('getTargetInput', async t => {
       t.equal(getTargetInput(targetOptions.major), targetOptions.major)
     })
     t.test('when input is not recognized', async t => {
-      t.equal(getTargetInput('bad_input'), targetOptions.major)
+      t.equal(getTargetInput('bad_input'), targetOptions.any)
     })
+  })
+  t.test('should return any when any provided', async t => {
+    t.equal(getTargetInput(targetOptions.any), targetOptions.any)
   })
   t.test('should return minor when minor provided', async t => {
     t.equal(getTargetInput(targetOptions.minor), targetOptions.minor)
