@@ -8,6 +8,7 @@ const checkTargetMatchToPR = require('./checkTargetMatchToPR')
 const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
+const { targetOptions } = require('./getTargetInput')
 
 const {
   GITHUB_TOKEN,
@@ -45,10 +46,12 @@ async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
+    if (TARGET !== targetOptions.any) {
+      const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
-    if (!isTargetMatchToPR) {
-      return logWarning('Target specified does not match to PR, skipping.')
+      if (!isTargetMatchToPR) {
+        return logWarning('Target specified does not match to PR, skipping.')
+      }
     }
 
     // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"

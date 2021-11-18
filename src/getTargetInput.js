@@ -8,6 +8,7 @@ const targetOptions = {
   patch: 'patch',
   prepatch: 'prepatch',
   prerelease: 'prerelease',
+  any: 'any'
 }
 
 const semanticVersionOrder = [
@@ -18,10 +19,11 @@ const semanticVersionOrder = [
   targetOptions.minor,
   targetOptions.premajor,
   targetOptions.major,
+  targetOptions.any
 ]
 
 const getTargetInput = input => {
-  return targetOptions[input] || targetOptions.major
+  return targetOptions[input] || targetOptions.any
 }
 
 module.exports = { getTargetInput, targetOptions, semanticVersionOrder }
