@@ -5,6 +5,7 @@ const github = require('@actions/github')
 const fetch = require('node-fetch')
 const semverMajor = require('semver/functions/major')
 
+const { githubClient } = require('./github-client')
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
 const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
@@ -43,6 +44,7 @@ module.exports = async function run() {
       }))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
+    const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')

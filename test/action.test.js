@@ -10,6 +10,7 @@ const github = require('@actions/github')
 
 const actionLog = require('../src/log')
 const actionUtil = require('../src/util')
+const actionGithubClient = require('../src/github-client')
 
 const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
@@ -41,7 +42,8 @@ function buildStubbedAction({
     }),
     './getPullRequest': prStub.resolves(),
     './log': logStub,
-    './util': utilStub
+    './util': utilStub,
+    './github-client': clientStub
   })
 
   return {
@@ -260,6 +262,7 @@ tap.test('should call external api for github-action-merge-dependabot major rele
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnce)
-  t.ok(stubs.fetchStub.calledOnce)
+  t.ok(stubs.logStub.logInfo.calledOnceWith('Dependabot merge completed'))
+  t.ok(stubs.approveStub.calledOnce)
+  t.ok(stubs.mergeStub.calledOnce)
 })

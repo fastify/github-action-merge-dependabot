@@ -46,4 +46,4 @@ function githubClient(githubToken) {
 
 }
 
-module.exports = githubClient
+module.exports = { githubClient }

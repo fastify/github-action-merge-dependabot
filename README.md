@@ -27,7 +27,7 @@ _Optional_ An arbitrary message that you'd like to comment on the PR after it ge
 
 ### `target`
 
-_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Default to `major` merge. Possible options are:
+_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Default to `any` merge. Possible options are:
 
 `major, premajor, minor, preminor, patch, prepatch, prerelease or any`. Defaults to `any`.
 
@@ -47,7 +47,11 @@ The permissions required are:
 - [`pull-requests`](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps#permission-on-pull-requests) permission: it is needed to approve PRs.
 - [`contents`](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps#permission-on-contents) permission: it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see the example below.
 
-      
+If some of the required permissions are missing, the action will fail with the error message:
+
+```
+Error: Resource not accessible by integration
+```
 
 ### Basic example
 
@@ -78,11 +82,12 @@ jobs:
 ### Excluding packages
 
 ```yml
+permissions:
+  pull-requests: write
+  contents: write
+
 steps:
   - uses: fastify/github-action-merge-dependabot@v2.1.1
-    permissions:
-      pull-requests: write
-      contents: write
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       exclude: 'react,fastify'
@@ -91,10 +96,10 @@ steps:
 ### Approving without merging
 
 ```yml
+permissions:
+  pull-requests: write
 steps:
   - uses: fastify/github-action-merge-dependabot@v2.1.1
-    permissions:
-      pull-requests: write
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       approve-only: true
