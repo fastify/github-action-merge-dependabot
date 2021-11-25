@@ -1,4 +1,4 @@
-name: CI
+name: action-test
 on: [push, pull_request]
 jobs:
   build:
