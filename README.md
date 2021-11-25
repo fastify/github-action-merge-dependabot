@@ -4,8 +4,7 @@ This action automatically approves and merges dependabot PRs.
 
 ## Usage
 
-- **install the [GitHub App](https://github.com/apps/dependabot-merge-action) on the repositories or organization where you want to use this action.** Using a GitHub App is necessary since [this change](https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions/) GitHub introduced which limits the permissions of the provided GITHUB_TOKEN and the availability of secrets in Dependabot pull requests. The source [code of the GitHub App](https://github.com/fastify/dependabot-merge-action-app/) is open source and hosted on Google Cloud Platform. You can also host your own version of the app and customize the `api-url` input to point to your hosted instance.
-- configure this action in your workflows providing the inputs described below
+Configure this action in your workflows providing the inputs described below.
 
 ## Inputs
 
@@ -28,10 +27,6 @@ _Optional_ The merge method you would like to use (squash, merge, rebase). Defau
 ### `merge-comment`
 
 _Optional_ An arbitrary message that you'd like to comment on the PR after it gets auto-merged. This is only useful when you're recieving too much of noise in email and would like to filter mails for PRs that got automatically merged.
-
-### `api-url`
-
-_Optional_ A custom url where the external API which is delegated the task of approving and merging responds.
 
 ### `target`
 

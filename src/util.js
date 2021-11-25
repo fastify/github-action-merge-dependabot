@@ -34,8 +34,6 @@ exports.getInputs = () => ({
   EXCLUDE_PKGS: parseCommaSeparatedValue(core.getInput('exclude')) || [],
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
-  API_URL: core.getInput('api-url'),
-  DEFAULT_API_URL: 'https://fastify-dependabot-merge-app-5uewp47fja-uc.a.run.app/',
   TARGET: getTargetInput(core.getInput('target')),
   PR_NUMBER: core.getInput('pr-number'),
 })
