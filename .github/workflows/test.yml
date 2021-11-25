@@ -1,4 +1,4 @@
-name: CI
+name: action-test
 on: [push, pull_request]
 jobs:
   build:
@@ -8,18 +8,24 @@ jobs:
       - uses: actions/setup-node@v2.4.1
         with:
           node-version: '12.x' # https://github.com/actions/runner/issues/772
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
+      - run: |
+          npm ci
+          npm run lint
+          npm run test
 
   automerge:
     needs: build
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-      contents: write
+      contents: write # block accidental merge
     steps:
-      - uses: fastify/github-action-merge-dependabot@main
+      - uses: actions/checkout@v2
+      - uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          target: minor
+          approve-only: false
+          target: any
+        env:
+          NODE_ENV: 'test-ga-action'
+
