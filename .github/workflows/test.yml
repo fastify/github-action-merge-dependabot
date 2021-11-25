@@ -24,7 +24,7 @@ jobs:
       - uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          approve-only: true
+          approve-only: false
           target: any
         env:
           NODE_ENV: 'test-ga-action'
