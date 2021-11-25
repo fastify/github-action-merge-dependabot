@@ -20,7 +20,8 @@ jobs:
       pull-requests: write
       contents: read # block accidental merge
     steps:
-      - uses: fastify/github-action-merge-dependabot@main
+      - uses: actions/checkout@v2
+      - uses: ./
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           approve-only: true
