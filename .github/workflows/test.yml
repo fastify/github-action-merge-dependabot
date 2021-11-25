@@ -1,0 +1,29 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.4.0
+      - uses: actions/setup-node@v2.4.1
+        with:
+          node-version: '12.x' # https://github.com/actions/runner/issues/772
+      - run: |
+          npm ci
+          npm run lint
+          npm run test
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read # block accidental merge
+    steps:
+      - uses: fastify/github-action-merge-dependabot@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          approve-only: true
+          target: any
+        env:
+          NODE_ENV: 'test-ga-action'

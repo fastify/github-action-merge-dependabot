@@ -36,7 +36,8 @@ async function run() {
 
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
-    const isDependabotPR = pr.user.login === 'dependabot[bot]'
+    const isTest = process.env.NODE_ENV === 'test-ga-action'
+    const isDependabotPR = pr.user.login === 'dependabot[bot]' || isTest
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
     }
