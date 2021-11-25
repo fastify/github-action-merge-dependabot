@@ -125,6 +125,9 @@ tap.test('checkTargetMatchToPR', async t => {
     t.test('PR title has the same version', async t => {
       t.ok(checkTargetMatchToPR(sameVersion, targetOptions.prepatch))
     })
+    t.test('PR title does not match', async t => {
+      t.ok(checkTargetMatchToPR('a whatever title', targetOptions.prepatch))
+    })
   })
   t.test('should return false when', async t => {
     t.test('PR is patch and target is prepatch', async t => {
