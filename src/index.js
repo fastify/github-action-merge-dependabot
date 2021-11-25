@@ -4,8 +4,9 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const fetch = require('node-fetch')
 
+const githubActionClient = require('./github-action-client')
+
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
-const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 const { targetOptions } = require('./getTargetInput')
@@ -33,12 +34,12 @@ async function run() {
       )
     }
 
-    const pr =
-      pull_request ||
-      (await getPullRequest({
-        pullRequestNumber: PR_NUMBER,
-        githubToken: GITHUB_TOKEN,
-      }))
+    const client = githubActionClient(GITHUB_TOKEN)
+
+
+    // TODO do i have the right permissions?
+
+    const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
 
@@ -61,34 +62,21 @@ async function run() {
       return logInfo(`${pkgName} is excluded, skipping.`)
     }
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        authorization: `token ${GITHUB_TOKEN}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        pullRequestNumber: pr.number,
-        approveOnly: APPROVE_ONLY,
-        excludePackages: EXCLUDE_PKGS,
-        approveComment: MERGE_COMMENT,
-        mergeMethod: MERGE_METHOD,
-      }),
-    })
-
-    const responseText = await response.text()
-
-    if (response.status === 400) {
-      logWarning(`Please ensure that Github App is installed ${GITHUB_APP_URL}`)
+    await client.approvePullRequest(pr.number, MERGE_COMMENT)
+    if (APPROVE_ONLY) {
+      return 'Approving only'
     }
 
-    if (!response.ok) {
-      throw new Error(
-        `Request failed with status code ${response.status}: ${responseText}`
-      )
-    }
+    await client.mergePullRequest(pr.number, MERGE_METHOD)
 
-    logInfo(responseText)
+
+    // if (!response.ok) {
+    //   throw new Error(
+    //     `Request failed with status code ${response.status}: ${responseText}`
+    //   )
+    // }
+
+    logInfo('Dependabot merge completed')
   } catch (error) {
     core.setFailed(error.message)
   }
