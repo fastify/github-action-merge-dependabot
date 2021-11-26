@@ -130,3 +130,7 @@ curl -X POST \
 - Only the [GitHub native Dependabot integration](https://docs.github.com/en/github/administering-a-repository/keeping-your-dependencies-updated-automatically) is supported, the old [Dependabot Preview app](https://github.com/marketplace/dependabot-preview) isn't.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
 - If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
+
+## Acknowledgements
+
+This project is kindly sponsored by [NearForm](https://nearform.com)
