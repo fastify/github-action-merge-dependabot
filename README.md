@@ -133,5 +133,4 @@ curl -X POST \
 
 ## Acknowledgements
 
-This project is kindly sponsored by:
-- [NearForm](https://nearform.com)
+This project is kindly sponsored by [NearForm](https://nearform.com)
