@@ -9,6 +9,7 @@
     "ecmaVersion": 2020
   },
   "rules": {
-    "strict": ["error", "global"]
+    "strict": ["error", "global"],
+    "eol-last": ["error", "always"]
   }
 }
