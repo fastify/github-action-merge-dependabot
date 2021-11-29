@@ -2,12 +2,10 @@
 
 const core = require('@actions/core')
 const github = require('@actions/github')
-const fetch = require('node-fetch')
 const semverMajor = require('semver/functions/major')
 
 const { githubClient } = require('./github-client')
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
-const getPullRequest = require('./getPullRequest')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 const { targetOptions } = require('./getTargetInput')
@@ -18,13 +16,10 @@ const {
   EXCLUDE_PKGS,
   MERGE_COMMENT,
   APPROVE_ONLY,
-  API_URL,
-  DEFAULT_API_URL,
   TARGET,
   PR_NUMBER,
 } = getInputs()
 
-const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 module.exports = async function run() {
   try {
@@ -36,16 +31,11 @@ module.exports = async function run() {
       )
     }
 
-    const pr =
-      pull_request ||
-      (await getPullRequest({
-        pullRequestNumber: PR_NUMBER,
-        githubToken: GITHUB_TOKEN,
-      }))
+    const client = githubClient(GITHUB_TOKEN)
 
-    const isDependabotPR = pr.user.login === 'dependabot[bot]'
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
+    const isDependabotPR = pr.user.login === 'dependabot[bot]'
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
     }
@@ -67,46 +57,19 @@ module.exports = async function run() {
       return logInfo(`${pkgName} is excluded, skipping.`)
     }
 
-    if (API_URL !== DEFAULT_API_URL &&
-      pkgName === 'github-action-merge-dependabot' &&
-      isMajorRelease(pr)) {
+    if (pkgName === 'github-action-merge-dependabot' && isMajorRelease(pr)) {
       logWarning(upgradeMessage)
       core.setFailed(upgradeMessage)
       return
     }
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        authorization: `token ${GITHUB_TOKEN}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        pullRequestNumber: pr.number,
-        approveOnly: APPROVE_ONLY,
-        excludePackages: EXCLUDE_PKGS,
-        approveComment: MERGE_COMMENT,
-        mergeMethod: MERGE_METHOD,
-      }),
-    })
-
-    const responseText = await response.text()
-
-    if (response.status === 400) {
-      logWarning(`Please ensure that Github App is installed ${GITHUB_APP_URL}`)
+    await client.approvePullRequest(pr.number, MERGE_COMMENT)
+    if (APPROVE_ONLY) {
+      return logInfo('Approving only')
     }
 
-    if (response.status === 422) {
-      logWarning(upgradeMessage)
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Request failed with status code ${response.status}: ${responseText}`
-      )
-    }
-
-    logInfo(responseText)
+    await client.mergePullRequest(pr.number, MERGE_METHOD)
+    logInfo('Dependabot merge completed')
   } catch (error) {
     core.setFailed(error.message)
   }

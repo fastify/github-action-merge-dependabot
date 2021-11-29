@@ -9039,11 +9039,10 @@ function wrappy (fn, cb) {
 
 const core = __nccwpck_require__(2186)
 const github = __nccwpck_require__(5438)
-const fetch = __nccwpck_require__(467)
 const semverMajor = __nccwpck_require__(6688)
 
+const { githubClient } = __nccwpck_require__(3386)
 const checkTargetMatchToPR = __nccwpck_require__(7186)
-const getPullRequest = __nccwpck_require__(6754)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
 const { getInputs } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
@@ -9054,13 +9053,10 @@ const {
   EXCLUDE_PKGS,
   MERGE_COMMENT,
   APPROVE_ONLY,
-  API_URL,
-  DEFAULT_API_URL,
   TARGET,
   PR_NUMBER,
 } = getInputs()
 
-const GITHUB_APP_URL = 'https://github.com/apps/dependabot-merge-action'
 
 module.exports = async function run() {
   try {
@@ -9072,15 +9068,11 @@ module.exports = async function run() {
       )
     }
 
-    const pr =
-      pull_request ||
-      (await getPullRequest({
-        pullRequestNumber: PR_NUMBER,
-        githubToken: GITHUB_TOKEN,
-      }))
+    const client = githubClient(GITHUB_TOKEN)
+
+    const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === 'dependabot[bot]'
-
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
     }
@@ -9102,46 +9094,19 @@ module.exports = async function run() {
       return logInfo(`${pkgName} is excluded, skipping.`)
     }
 
-    if (API_URL !== DEFAULT_API_URL &&
-      pkgName === 'github-action-merge-dependabot' &&
-      isMajorRelease(pr)) {
+    if (pkgName === 'github-action-merge-dependabot' && isMajorRelease(pr)) {
       logWarning(upgradeMessage)
       core.setFailed(upgradeMessage)
       return
     }
 
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        authorization: `token ${GITHUB_TOKEN}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        pullRequestNumber: pr.number,
-        approveOnly: APPROVE_ONLY,
-        excludePackages: EXCLUDE_PKGS,
-        approveComment: MERGE_COMMENT,
-        mergeMethod: MERGE_METHOD,
-      }),
-    })
-
-    const responseText = await response.text()
-
-    if (response.status === 400) {
-      logWarning(`Please ensure that Github App is installed ${GITHUB_APP_URL}`)
+    await client.approvePullRequest(pr.number, MERGE_COMMENT)
+    if (APPROVE_ONLY) {
+      return logInfo('Approving only')
     }
 
-    if (response.status === 422) {
-      logWarning(upgradeMessage)
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Request failed with status code ${response.status}: ${responseText}`
-      )
-    }
-
-    logInfo(responseText)
+    await client.mergePullRequest(pr.number, MERGE_METHOD)
+    logInfo('Dependabot merge completed')
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -9202,36 +9167,6 @@ module.exports = checkTargetMatchToPR
 
 /***/ }),
 
-/***/ 6754:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-const github = __nccwpck_require__(5438)
-
-const getPullRequest = async ({ pullRequestNumber, githubToken }) => {
-  const payload = github.context.payload
-  const octokit = github.getOctokit(githubToken)
-
-  const repo = payload.repository
-  const owner = repo.owner.login
-  const repoName = repo.name
-
-  const { data: pullRequest } = await octokit.rest.pulls.get({
-    owner,
-    repo: repoName,
-    pull_number: pullRequestNumber,
-  })
-
-  return pullRequest
-}
-
-module.exports = getPullRequest
-
-
-/***/ }),
-
 /***/ 5013:
 /***/ ((module) => {
 
@@ -9265,6 +9200,63 @@ const getTargetInput = input => {
 }
 
 module.exports = { getTargetInput, targetOptions, semanticVersionOrder }
+
+
+/***/ }),
+
+/***/ 3386:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const github = __nccwpck_require__(5438)
+
+function githubClient(githubToken) {
+  const payload = github.context.payload
+  const octokit = github.getOctokit(githubToken)
+
+  const repo = payload.repository
+  const owner = repo.owner.login
+  const repoName = repo.name
+
+  return {
+    async getPullRequest(pullRequestNumber) {
+      const { data: pullRequest } = await octokit.rest.pulls.get({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+      })
+      return pullRequest
+    },
+
+    async approvePullRequest(pullRequestNumber, approveComment) {
+      const { data } = await octokit.rest.pulls.createReview({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+        event: 'APPROVE',
+        body: approveComment
+      })
+      // todo assert
+      return data
+    },
+
+    async mergePullRequest(pullRequestNumber, mergeMethod) {
+      const { data } = await octokit.rest.pulls.merge({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+        merge_method: mergeMethod,
+      })
+      // todo assert
+      return data
+    }
+  }
+
+}
+
+module.exports = { githubClient }
 
 
 /***/ }),
@@ -9330,8 +9322,6 @@ exports.getInputs = () => ({
   EXCLUDE_PKGS: parseCommaSeparatedValue(core.getInput('exclude')) || [],
   MERGE_COMMENT: core.getInput('merge-comment') || '',
   APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
-  API_URL: core.getInput('api-url'),
-  DEFAULT_API_URL: 'https://fastify-dependabot-merge-app-5uewp47fja-uc.a.run.app/',
   TARGET: getTargetInput(core.getInput('target')),
   PR_NUMBER: core.getInput('pr-number'),
 })
