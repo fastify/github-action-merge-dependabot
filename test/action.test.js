@@ -70,6 +70,18 @@ tap.test('should not run if a pull request number is missing', async t => {
   t.ok(stubs.fetchStub.notCalled)
 })
 
+tap.test('should retrieve PR info when trigger by non pull_request events', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: { 'not a pull_request': {} },
+    inputs: { PR_NUMBER }
+  })
+
+  await action()
+
+  t.ok(stubs.prStub.calledOnce)
+})
+
 tap.test('should skip non-dependabot PR', async t => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
@@ -85,6 +97,7 @@ tap.test('should skip non-dependabot PR', async t => {
 
   await action()
 
+  t.ok(stubs.prStub.calledOnce)
   t.ok(stubs.logStub.logWarning.calledOnceWith('Not a dependabot PR, skipping.'))
   t.ok(stubs.fetchStub.notCalled)
 })
