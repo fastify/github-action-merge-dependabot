@@ -3,6 +3,7 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 const fetch = require('node-fetch')
+const semverMajor = require('semver/functions/major')
 
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
 const getPullRequest = require('./getPullRequest')
@@ -17,6 +18,7 @@ const {
   MERGE_COMMENT,
   APPROVE_ONLY,
   API_URL,
+  DEFAULT_API_URL,
   TARGET,
   PR_NUMBER,
 } = getInputs()
@@ -54,11 +56,21 @@ module.exports = async function run() {
       }
     }
 
-    // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-    const pkgName = pr.head.ref.split('/').pop().split('-').shift()
+    const { name: pkgName, version } = getPackageDetails(pr)
+    const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
+  Read how to upgrade it manually:
+  https://github.com/fastify/github-action-merge-dependabot/releases/tag/v${version}`
 
     if (EXCLUDE_PKGS.includes(pkgName)) {
       return logInfo(`${pkgName} is excluded, skipping.`)
+    }
+
+    if (API_URL !== DEFAULT_API_URL &&
+      pkgName === 'github-action-merge-dependabot' &&
+      isMajorRelease(pr)) {
+      logWarning(upgradeMessage)
+      core.setFailed(upgradeMessage)
+      return
     }
 
     const response = await fetch(API_URL, {
@@ -82,6 +94,10 @@ module.exports = async function run() {
       logWarning(`Please ensure that Github App is installed ${GITHUB_APP_URL}`)
     }
 
+    if (response.status === 422) {
+      logWarning(upgradeMessage)
+    }
+
     if (!response.ok) {
       throw new Error(
         `Request failed with status code ${response.status}: ${responseText}`
@@ -92,4 +108,27 @@ module.exports = async function run() {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
+
+function getPackageDetails(pullRequest) {
+  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+  const nameAndVersion = pullRequest.head.ref.split('/').pop().split('-')
+  const version = nameAndVersion.pop() // remove the version
+  return {
+    name: nameAndVersion.join('-'),
+    version
+  }
+}
+
+function isMajorRelease(pullRequest) {
+  const expression = /bump \S+ from (\S+) to (\S+)/i
+  const match = expression.exec(pullRequest.title)
+  if (match) {
+    const [, oldVersion, newVersion] = match
+    if (semverMajor(oldVersion) !== semverMajor(newVersion)) {
+      return true
+    }
+  }
+  return false
 }

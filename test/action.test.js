@@ -13,6 +13,7 @@ const actionUtil = require('../src/util')
 
 const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
+const DEFAULT_API_URL = 'http://foo.bar'
 
 function buildStubbedAction({
   payload,
@@ -128,7 +129,7 @@ tap.test('should ignore excluded package', async t => {
   t.ok(stubs.fetchStub.notCalled)
 })
 
-tap.test('apply only should not merge', async t => {
+tap.test('approve only should not merge', async t => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -162,5 +163,90 @@ tap.test('should review and merge', async t => {
   await action()
 
   t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
+  t.ok(stubs.fetchStub.calledOnce)
+})
+
+tap.test('should merge github-action-merge-dependabot minor release (custom API_URL)', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'chore(deps): bump fastify/github-action-merge-dependabot from 2.5.0 to 2.6.0',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0' },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'any',
+      EXCLUDE_PKGS: [],
+      API_URL: 'custom one',
+      DEFAULT_API_URL,
+    }
+  })
+
+  await action()
+
+  t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
+  t.ok(stubs.fetchStub.calledOnce)
+})
+
+tap.test('should not merge github-action-merge-dependabot major release (custom API_URL)', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'chore(deps): bump fastify/github-action-merge-dependabot from 2.5.0 to 3.6.0',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3.6.0' },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'any',
+      EXCLUDE_PKGS: [],
+      API_URL: 'custom one',
+      DEFAULT_API_URL,
+    }
+  })
+
+  await action()
+
+  t.ok(stubs.logStub.logWarning.calledOnce)
+  t.match(stubs.logStub.logWarning.getCalls()[0].firstArg, /Cannot automerge github-action-merge-dependabot 3.6.0/)
+  t.ok(stubs.fetchStub.notCalled)
+})
+
+tap.test('should call external api for github-action-merge-dependabot major release', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'chore(deps): bump fastify/github-action-merge-dependabot from 2.5.0 to 3.6.0',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3.6.0' },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'any',
+      EXCLUDE_PKGS: [],
+      API_URL: DEFAULT_API_URL,
+      DEFAULT_API_URL,
+    }
+  })
+
+  stubs.fetchStub.resolves({
+    ok: false,
+    status: 422,
+    async text() { return 'how to migrate' },
+  }),
+
+  await action()
+
+  t.ok(stubs.logStub.logWarning.calledOnce)
   t.ok(stubs.fetchStub.calledOnce)
 })
