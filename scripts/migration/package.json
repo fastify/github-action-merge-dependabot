@@ -1,0 +1,19 @@
+{
+  "name": "github-action-merge-dependabot-migration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automation to upgrage github-action-merge-dependabot to latest version",
+  "main": "migrate.js",
+  "scripts": {
+    "migrate": "massive-wax upgrade --fork -p=migrate.js --token=$GITHUB_TOKEN -b=github-action-merge-dependabot-3.0.0 -c='chore: upgrade github-action-merge-dependabot' -b=automerge-3 -r=repositories.txt -m='.yml$'"
+  },
+  "keywords": [],
+  "author": "Manuel Spigolon <manuel.spigolon@nearform.com> (https://github.com/Eomm)",
+  "license": "MIT",
+  "devDependencies": {
+    "massive-wax": "^1.0.0"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
