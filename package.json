@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.33.0",
-    "eslint": "^8.3.0",
+    "eslint": "^8.4.0",
     "husky": "^7.0.4",
     "prettier": "^2.5.0",
     "proxyquire": "^2.1.3",
