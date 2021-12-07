@@ -18,6 +18,9 @@ const preReleaseToPathUpgradePRTitle =
   'chore(deps-dev): bump fastify from 3.18.0-alpha to 3.18.2'
 const sameVersion = 'chore(deps-dev): bump fastify from 3.18.0 to 3.18.0'
 const patchPRTitleInSubDirectory = 'chore(deps-dev): bump fastify from 3.18.0 to 3.18.1 in /packages/a'
+const semverLikeMinor = 'chore(deps): bump nearform/optic-release-automation-action from 2.2.0 to 2.3'
+const semverLikeMajor = 'chore(deps): bump nearform/optic-release-automation-action from 2.2.0 to 3'
+const semverLikeBothWay = 'chore(deps): bump nearform/optic-release-automation-action from 2 to 3'
 
 tap.test('checkTargetMatchToPR', async t => {
   t.test('should return true when target is major', async t => {
@@ -138,6 +141,29 @@ tap.test('checkTargetMatchToPR', async t => {
     })
     t.test('PR is premajor and target is minor', async t => {
       t.notOk(checkTargetMatchToPR(preMajorPRTitle, targetOptions.minor))
+    })
+  })
+
+  t.test('semver-like PR titles', async t => {
+    t.test('semver to minor semver-like', async t => {
+      t.notOk(checkTargetMatchToPR(semverLikeMinor, targetOptions.prepatch))
+      t.notOk(checkTargetMatchToPR(semverLikeMinor, targetOptions.patch))
+      t.ok(checkTargetMatchToPR(semverLikeMinor, targetOptions.minor))
+      t.ok(checkTargetMatchToPR(semverLikeMinor, targetOptions.major))
+    })
+
+    t.test('semver to major semver-like', async t => {
+      t.notOk(checkTargetMatchToPR(semverLikeMajor, targetOptions.prepatch))
+      t.notOk(checkTargetMatchToPR(semverLikeMajor, targetOptions.patch))
+      t.notOk(checkTargetMatchToPR(semverLikeMajor, targetOptions.minor))
+      t.ok(checkTargetMatchToPR(semverLikeMajor, targetOptions.major))
+    })
+
+    t.test('semver-like to semver-like', async t => {
+      t.notOk(checkTargetMatchToPR(semverLikeBothWay, targetOptions.prepatch))
+      t.notOk(checkTargetMatchToPR(semverLikeBothWay, targetOptions.patch))
+      t.notOk(checkTargetMatchToPR(semverLikeBothWay, targetOptions.minor))
+      t.ok(checkTargetMatchToPR(semverLikeBothWay, targetOptions.major))
     })
   })
 })

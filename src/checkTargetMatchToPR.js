@@ -1,5 +1,6 @@
 'use strict'
 const semverDiff = require('semver/functions/diff')
+const semverCoerce = require('semver/functions/coerce')
 
 const { semanticVersionOrder } = require('./getTargetInput')
 
@@ -11,7 +12,9 @@ const checkTargetMatchToPR = (prTitle, target) => {
   if (!match) {
     return true
   }
-  const diff = semverDiff(match[1], match[2])
+
+  const [, from, to] = match
+  const diff = semverDiff(semverCoerce(from), semverCoerce(to))
 
   return !(
     diff &&
