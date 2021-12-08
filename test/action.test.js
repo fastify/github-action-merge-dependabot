@@ -270,7 +270,7 @@ tap.test('should check submodules semver when target is set', async t => {
     payload: {
       pull_request: {
         number: PR_NUMBER,
-        title: 'Bump dotbot from aa93350 to ac5793c',
+        title: 'Bump dotbot from `aa93350` to `ac5793c`',
         user: { login: BOT_NAME },
         head: { ref: 'dependabot/submodules/dotbot-ac5793c' },
       }
@@ -286,6 +286,6 @@ tap.test('should check submodules semver when target is set', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
-  t.ok(stubs.fetchStub.calledOnce)
+  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
+  t.ok(stubs.fetchStub.notCalled)
 })

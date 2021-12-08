@@ -15,10 +15,9 @@ const checkTargetMatchToPR = (prTitle, target) => {
 
   const [, from, to] = match
 
-  const isNotSemantic = isAlpha(from) 
-  
-  || isAlpha(to)
-
+  if(hasBadChars(from) || hasBadChars(to)) {
+    return false
+  }
 
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
 
@@ -28,8 +27,8 @@ const checkTargetMatchToPR = (prTitle, target) => {
   )
 }
 
-function isAlpha(version) {
-  return /[A-Z]+/i.test(version)
+function hasBadChars(version) {
+  return /`/.test(version)
 }
 
 module.exports = checkTargetMatchToPR
