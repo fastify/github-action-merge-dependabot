@@ -44,7 +44,7 @@ Possible options are:
 For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.
 
 If you set a value other than `any`, PRs that are not semantic version compliant are skipped.
-An example of a non-semantic version is a commit hash.
+An example of a non-semantic version is a commit hash when using git submodules.
 
 ### `pr-number`
 

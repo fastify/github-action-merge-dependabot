@@ -1,8 +1,10 @@
 'use strict'
 const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
+const semverValid = require('semver/functions/valid')
 
 const { semanticVersionOrder } = require('./getTargetInput')
+const { logWarning } = require('./log')
 
 const expression = /from ([^\s]+) to ([^\s]+)/
 
@@ -15,7 +17,8 @@ const checkTargetMatchToPR = (prTitle, target) => {
 
   const [, from, to] = match
 
-  if(hasBadChars(from) || hasBadChars(to)) {
+  if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
+    logWarning(`PR title contains invalid semver versions from: ${from} to: ${to}`)
     return false
   }
 
