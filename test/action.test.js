@@ -263,3 +263,29 @@ tap.test('should call external api for github-action-merge-dependabot major rele
   t.ok(stubs.logStub.logWarning.calledOnce)
   t.ok(stubs.fetchStub.calledOnce)
 })
+
+tap.test('should check submodules semver when target is set', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'chore(deps): bump fastify/submodule from 2.5.0 to 2.6',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/github_actions/fastify/submodule-2.6' },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'minor',
+      EXCLUDE_PKGS: [],
+      API_URL: 'custom one',
+      DEFAULT_API_URL,
+    }
+  })
+
+  await action()
+
+  t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
+  t.ok(stubs.fetchStub.calledOnce)
+})
