@@ -43,6 +43,9 @@ Possible options are:
 
 For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.
 
+If you set a value other than `any`, PRs that are not semantic version compliant are skipped.
+An example of a non-semantic version is a commit hash when using git submodules.
+
 ### `pr-number`
 
 _Optional_ A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event)

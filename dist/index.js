@@ -6144,6 +6144,64 @@ module.exports = SemVer
 
 /***/ }),
 
+/***/ 3466:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const SemVer = __nccwpck_require__(8088)
+const parse = __nccwpck_require__(5925)
+const {re, t} = __nccwpck_require__(9523)
+
+const coerce = (version, options) => {
+  if (version instanceof SemVer) {
+    return version
+  }
+
+  if (typeof version === 'number') {
+    version = String(version)
+  }
+
+  if (typeof version !== 'string') {
+    return null
+  }
+
+  options = options || {}
+
+  let match = null
+  if (!options.rtl) {
+    match = version.match(re[t.COERCE])
+  } else {
+    // Find the right-most coercible string that does not share
+    // a terminus with a more left-ward coercible string.
+    // Eg, '1.2.3.4' wants to coerce '2.3.4', not '3.4' or '4'
+    //
+    // Walk through the string checking with a /g regexp
+    // Manually set the index so as to pick up overlapping matches.
+    // Stop when we get a match that ends at the string end, since no
+    // coercible string can be more right-ward without the same terminus.
+    let next
+    while ((next = re[t.COERCERTL].exec(version)) &&
+        (!match || match.index + match[0].length !== version.length)
+    ) {
+      if (!match ||
+            next.index + next[0].length !== match.index + match[0].length) {
+        match = next
+      }
+      re[t.COERCERTL].lastIndex = next.index + next[1].length + next[2].length
+    }
+    // leave it in a clean state
+    re[t.COERCERTL].lastIndex = -1
+  }
+
+  if (match === null)
+    return null
+
+  return parse(`${match[2]}.${match[3] || '0'}.${match[4] || '0'}`, options)
+}
+module.exports = coerce
+
+
+/***/ }),
+
 /***/ 4309:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -6242,6 +6300,19 @@ const parse = (version, options) => {
 }
 
 module.exports = parse
+
+
+/***/ }),
+
+/***/ 9601:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const parse = __nccwpck_require__(5925)
+const valid = (version, options) => {
+  const v = parse(version, options)
+  return v ? v.version : null
+}
+module.exports = valid
 
 
 /***/ }),
@@ -9179,8 +9250,11 @@ function isMajorRelease(pullRequest) {
 "use strict";
 
 const semverDiff = __nccwpck_require__(4297)
+const semverCoerce = __nccwpck_require__(3466)
+const semverValid = __nccwpck_require__(9601)
 
 const { semanticVersionOrder } = __nccwpck_require__(5013)
+const { logWarning } = __nccwpck_require__(653)
 
 const expression = /from ([^\s]+) to ([^\s]+)/
 
@@ -9190,13 +9264,27 @@ const checkTargetMatchToPR = (prTitle, target) => {
   if (!match) {
     return true
   }
-  const diff = semverDiff(match[1], match[2])
+
+  const [, from, to] = match
+
+  if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
+    logWarning(`PR title contains invalid semver versions from: ${from} to: ${to}`)
+    return false
+  }
+
+  const diff = semverDiff(semverCoerce(from), semverCoerce(to))
 
   return !(
     diff &&
     semanticVersionOrder.indexOf(diff) > semanticVersionOrder.indexOf(target)
   )
 }
+
+function hasBadChars(version) {
+  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
+  return /`/.test(version)
+}
+
 module.exports = checkTargetMatchToPR
 
 

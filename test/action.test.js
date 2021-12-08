@@ -263,3 +263,29 @@ tap.test('should call external api for github-action-merge-dependabot major rele
   t.ok(stubs.logStub.logWarning.calledOnce)
   t.ok(stubs.fetchStub.calledOnce)
 })
+
+tap.test('should check submodules semver when target is set', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'Bump dotbot from `aa93350` to `ac5793c`',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/submodules/dotbot-ac5793c' },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'minor',
+      EXCLUDE_PKGS: [],
+      API_URL: 'custom one',
+      DEFAULT_API_URL,
+    }
+  })
+
+  await action()
+
+  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
+  t.ok(stubs.fetchStub.notCalled)
+})
