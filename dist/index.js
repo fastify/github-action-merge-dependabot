@@ -6304,6 +6304,19 @@ module.exports = parse
 
 /***/ }),
 
+/***/ 9601:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const parse = __nccwpck_require__(5925)
+const valid = (version, options) => {
+  const v = parse(version, options)
+  return v ? v.version : null
+}
+module.exports = valid
+
+
+/***/ }),
+
 /***/ 2293:
 /***/ ((module) => {
 
@@ -9238,8 +9251,10 @@ function isMajorRelease(pullRequest) {
 
 const semverDiff = __nccwpck_require__(4297)
 const semverCoerce = __nccwpck_require__(3466)
+const semverValid = __nccwpck_require__(9601)
 
 const { semanticVersionOrder } = __nccwpck_require__(5013)
+const { logWarning } = __nccwpck_require__(653)
 
 const expression = /from ([^\s]+) to ([^\s]+)/
 
@@ -9251,6 +9266,12 @@ const checkTargetMatchToPR = (prTitle, target) => {
   }
 
   const [, from, to] = match
+
+  if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
+    logWarning(`PR title contains invalid semver versions from: ${from} to: ${to}`)
+    return false
+  }
+
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
 
   return !(
@@ -9258,6 +9279,12 @@ const checkTargetMatchToPR = (prTitle, target) => {
     semanticVersionOrder.indexOf(diff) > semanticVersionOrder.indexOf(target)
   )
 }
+
+function hasBadChars(version) {
+  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
+  return /`/.test(version)
+}
+
 module.exports = checkTargetMatchToPR
 
 

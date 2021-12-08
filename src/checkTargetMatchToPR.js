@@ -31,6 +31,7 @@ const checkTargetMatchToPR = (prTitle, target) => {
 }
 
 function hasBadChars(version) {
+  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
   return /`/.test(version)
 }
 
