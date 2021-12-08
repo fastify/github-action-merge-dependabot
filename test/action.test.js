@@ -270,9 +270,9 @@ tap.test('should check submodules semver when target is set', async t => {
     payload: {
       pull_request: {
         number: PR_NUMBER,
-        title: 'chore(deps): bump fastify/submodule from 2.5.0 to 2.6',
+        title: 'Bump dotbot from aa93350 to ac5793c',
         user: { login: BOT_NAME },
-        head: { ref: 'dependabot/github_actions/fastify/submodule-2.6' },
+        head: { ref: 'dependabot/submodules/dotbot-ac5793c' },
       }
     },
     inputs: {

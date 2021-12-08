@@ -14,6 +14,12 @@ const checkTargetMatchToPR = (prTitle, target) => {
   }
 
   const [, from, to] = match
+
+  const isNotSemantic = isAlpha(from) 
+  
+  || isAlpha(to)
+
+
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
 
   return !(
@@ -21,4 +27,9 @@ const checkTargetMatchToPR = (prTitle, target) => {
     semanticVersionOrder.indexOf(diff) > semanticVersionOrder.indexOf(target)
   )
 }
+
+function isAlpha(version) {
+  return /[A-Z]+/i.test(version)
+}
+
 module.exports = checkTargetMatchToPR

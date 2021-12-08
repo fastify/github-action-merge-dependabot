@@ -21,6 +21,7 @@ const patchPRTitleInSubDirectory = 'chore(deps-dev): bump fastify from 3.18.0 to
 const semverLikeMinor = 'chore(deps): bump nearform/optic-release-automation-action from 2.2.0 to 2.3'
 const semverLikeMajor = 'chore(deps): bump nearform/optic-release-automation-action from 2.2.0 to 3'
 const semverLikeBothWay = 'chore(deps): bump nearform/optic-release-automation-action from 2 to 3'
+const submodules = 'Bump dotbot from aa93350 to ac5793c'
 
 tap.test('checkTargetMatchToPR', async t => {
   t.test('should return true when target is major', async t => {
@@ -165,5 +166,12 @@ tap.test('checkTargetMatchToPR', async t => {
       t.notOk(checkTargetMatchToPR(semverLikeBothWay, targetOptions.minor))
       t.ok(checkTargetMatchToPR(semverLikeBothWay, targetOptions.major))
     })
+  })
+
+  t.test('submodules', async t => {
+    t.notOk(checkTargetMatchToPR(submodules, targetOptions.prepatch))
+    t.notOk(checkTargetMatchToPR(submodules, targetOptions.patch))
+    t.notOk(checkTargetMatchToPR(submodules, targetOptions.minor))
+    t.notOk(checkTargetMatchToPR(submodules, targetOptions.major))
   })
 })
