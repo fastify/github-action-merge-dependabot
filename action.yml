@@ -31,7 +31,7 @@ inputs:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 branding:
   icon: 'git-pull-request'
