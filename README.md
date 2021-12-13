@@ -176,7 +176,7 @@ jobs:
 +      contents: write
     steps:
 -     - uses: fastify/github-action-merge-dependabot@v2.1.1
-+     - uses: fastify/github-action-merge-dependabot@v3.0.0
++     - uses: fastify/github-action-merge-dependabot@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
