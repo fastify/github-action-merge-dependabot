@@ -5,9 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2.4.0
-      - uses: actions/setup-node@v2.4.1
+      - uses: actions/setup-node@v2.5.0
         with:
-          node-version: 12 # https://github.com/actions/runner/issues/772
+          node-version-file: '.nvmrc'
       - run: npm ci
       - run: npm run lint
       - run: npm run test

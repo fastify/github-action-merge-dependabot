@@ -11,7 +11,7 @@ This action automatically approves and merges dependabot PRs.
 
 ### `exclude`
 
-_Optional_ An comma separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
+_Optional_ A comma separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
 
 ### `approve-only`
 
@@ -27,11 +27,16 @@ _Optional_ An arbitrary message that you'd like to comment on the PR after it ge
 
 ### `target`
 
-_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Default to `any` merge. Possible options are:
+_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Defaults to `any`.
 
-`major, premajor, minor, preminor, patch, prepatch, prerelease or any`. Defaults to `any`.
+Possible options are:
 
-For more details on how semantic version difference calculated please see [semver](https://www.npmjs.com/package/semver) package
+`major, premajor, minor, preminor, patch, prepatch, prerelease, any`.
+
+For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.
+
+If you set a value other than `any`, PRs that are not semantic version compliant are skipped.
+An example of a non-semantic version is a commit hash when using git submodules.
 
 ### `pr-number`
 

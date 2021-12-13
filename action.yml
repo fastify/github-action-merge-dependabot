@@ -22,12 +22,12 @@ inputs:
   target:
     description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
     required: false
-    default: 'major'
+    default: 'any'
   pr-number:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 branding:
   icon: 'git-pull-request'
