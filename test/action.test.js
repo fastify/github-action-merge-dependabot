@@ -69,9 +69,9 @@ tap.test('should not run if a pull request number is missing', async t => {
   })
   await action()
 
-  t.ok(stubs.logStub.logError.calledOnceWith('This action must be used in the context of a Pull Request or with a Pull Request number'))
-  t.ok(stubs.approveStub.notCalled)
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logError, 'This action must be used in the context of a Pull Request or with a Pull Request number')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('should retrieve PR info when trigger by non pull_request events', async t => {
@@ -83,7 +83,7 @@ tap.test('should retrieve PR info when trigger by non pull_request events', asyn
 
   await action()
 
-  t.ok(stubs.prStub.calledOnce)
+  sinon.assert.calledOnce(stubs.prStub)
 })
 
 tap.test('should skip non-dependabot PR', async t => {
@@ -101,10 +101,10 @@ tap.test('should skip non-dependabot PR', async t => {
 
   await action()
 
-  t.ok(stubs.prStub.calledOnce)
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Not a dependabot PR, skipping.'))
-  t.ok(stubs.approveStub.notCalled)
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.calledOnce(stubs.prStub)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Not a dependabot PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('should process dependabot PR and skip PR not in target', async t => {
@@ -124,9 +124,9 @@ tap.test('should process dependabot PR and skip PR not in target', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
-  t.ok(stubs.approveStub.notCalled)
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Target specified does not match to PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('should ignore excluded package', async t => {
@@ -144,9 +144,9 @@ tap.test('should ignore excluded package', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('foo is excluded, skipping.'))
-  t.ok(stubs.approveStub.notCalled)
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'foo is excluded, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('approve only should not merge', async t => {
@@ -166,8 +166,8 @@ tap.test('approve only should not merge', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('Approving only'))
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Approving only')
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('should review and merge', async t => {
@@ -185,9 +185,9 @@ tap.test('should review and merge', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('Dependabot merge completed'))
-  t.ok(stubs.approveStub.calledOnce)
-  t.ok(stubs.mergeStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
 tap.test('should merge github-action-merge-dependabot minor release', async t => {
@@ -206,9 +206,9 @@ tap.test('should merge github-action-merge-dependabot minor release', async t =>
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('Dependabot merge completed'))
-  t.ok(stubs.approveStub.calledOnce)
-  t.ok(stubs.mergeStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
 tap.test('should not merge github-action-merge-dependabot major release', async t => {
@@ -227,10 +227,10 @@ tap.test('should not merge github-action-merge-dependabot major release', async 
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnce)
+  sinon.assert.calledOnce(stubs.logStub.logWarning)
   t.match(stubs.logStub.logWarning.getCalls()[0].firstArg, /Cannot automerge github-action-merge-dependabot 3.6.0/)
-  t.ok(stubs.approveStub.notCalled)
-  t.ok(stubs.mergeStub.notCalled)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
 tap.test('should review and merge', async t => {
@@ -248,9 +248,9 @@ tap.test('should review and merge', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('Dependabot merge completed'))
-  t.ok(stubs.approveStub.calledOnce)
-  t.ok(stubs.mergeStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
 tap.test('should check submodules semver when target is set', async t => {
@@ -273,6 +273,7 @@ tap.test('should check submodules semver when target is set', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Target specified does not match to PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
