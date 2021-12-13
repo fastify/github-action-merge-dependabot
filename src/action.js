@@ -58,7 +58,6 @@ module.exports = async function run() {
     }
 
     if (pkgName === 'github-action-merge-dependabot' && isMajorRelease(pr)) {
-      logWarning(upgradeMessage)
       core.setFailed(upgradeMessage)
       return
     }
