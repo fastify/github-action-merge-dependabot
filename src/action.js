@@ -53,7 +53,7 @@ module.exports = async function run() {
     const { name: pkgName, version } = getPackageDetails(pr)
     const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
   Read how to upgrade it manually:
-  https://github.com/fastify/github-action-merge-dependabot/releases/tag/v${version}`
+  https://github.com/fastify/github-action-merge-dependabot#how-to-upgrade-from-2x-to-new-3x`
 
     if (EXCLUDE_PKGS.includes(pkgName)) {
       return logInfo(`${pkgName} is excluded, skipping.`)
