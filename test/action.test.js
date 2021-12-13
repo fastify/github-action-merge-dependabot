@@ -211,7 +211,7 @@ tap.test('should merge github-action-merge-dependabot minor release', async () =
   sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should not merge github-action-merge-dependabot major release', async t => {
+tap.test('should not merge github-action-merge-dependabot major release', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -227,8 +227,7 @@ tap.test('should not merge github-action-merge-dependabot major release', async 
 
   await action()
 
-  sinon.assert.calledOnce(stubs.logStub.logWarning)
-  t.match(stubs.logStub.logWarning.getCalls()[0].firstArg, /Cannot automerge github-action-merge-dependabot 3.6.0/)
+  sinon.assert.calledOnce(stubs.coreStub.setFailed)
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
