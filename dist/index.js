@@ -9026,6 +9026,7 @@ function wrappy (fn, cb) {
 const core = __nccwpck_require__(2186)
 const github = __nccwpck_require__(5438)
 const semverMajor = __nccwpck_require__(6688)
+const semverCoerce = __nccwpck_require__(3466)
 
 const { githubClient } = __nccwpck_require__(3386)
 const checkTargetMatchToPR = __nccwpck_require__(7186)
@@ -9064,6 +9065,7 @@ module.exports = async function run() {
     }
 
     if (TARGET !== targetOptions.any) {
+      logInfo(`Checking if PR title [${pr.title}] has target ${TARGET}`)
       const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
       if (!isTargetMatchToPR) {
@@ -9113,7 +9115,9 @@ function isMajorRelease(pullRequest) {
   const match = expression.exec(pullRequest.title)
   if (match) {
     const [, oldVersion, newVersion] = match
-    if (semverMajor(oldVersion) !== semverMajor(newVersion)) {
+    const oldVersionSemver = semverCoerce(oldVersion)
+    const newVersionSemver = semverCoerce(newVersion)
+    if (semverMajor(oldVersionSemver) !== semverMajor(newVersionSemver)) {
       return true
     }
   }
