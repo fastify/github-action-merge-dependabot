@@ -268,8 +268,6 @@ tap.test('should check submodules semver when target is set', async t => {
       PR_NUMBER,
       TARGET: 'minor',
       EXCLUDE_PKGS: [],
-      API_URL: 'custom one',
-      DEFAULT_API_URL,
     }
   })
 
