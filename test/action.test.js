@@ -63,7 +63,7 @@ function buildStubbedAction({
 
 tap.afterEach(() => { sinon.restore() })
 
-tap.test('should not run if a pull request number is missing', async t => {
+tap.test('should not run if a pull request number is missing', async () => {
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} }
   })
@@ -74,7 +74,7 @@ tap.test('should not run if a pull request number is missing', async t => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should retrieve PR info when trigger by non pull_request events', async t => {
+tap.test('should retrieve PR info when trigger by non pull_request events', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { 'not a pull_request': {} },
@@ -86,7 +86,7 @@ tap.test('should retrieve PR info when trigger by non pull_request events', asyn
   sinon.assert.calledOnce(stubs.prStub)
 })
 
-tap.test('should skip non-dependabot PR', async t => {
+tap.test('should skip non-dependabot PR', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -107,7 +107,7 @@ tap.test('should skip non-dependabot PR', async t => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should process dependabot PR and skip PR not in target', async t => {
+tap.test('should process dependabot PR and skip PR not in target', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -129,7 +129,7 @@ tap.test('should process dependabot PR and skip PR not in target', async t => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should ignore excluded package', async t => {
+tap.test('should ignore excluded package', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -149,7 +149,7 @@ tap.test('should ignore excluded package', async t => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('approve only should not merge', async t => {
+tap.test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -170,7 +170,7 @@ tap.test('approve only should not merge', async t => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should review and merge', async t => {
+tap.test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -190,7 +190,7 @@ tap.test('should review and merge', async t => {
   sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should merge github-action-merge-dependabot minor release', async t => {
+tap.test('should merge github-action-merge-dependabot minor release', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -233,7 +233,7 @@ tap.test('should not merge github-action-merge-dependabot major release', async 
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should review and merge', async t => {
+tap.test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -253,7 +253,7 @@ tap.test('should review and merge', async t => {
   sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should check submodules semver when target is set', async t => {
+tap.test('should check submodules semver when target is set', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
