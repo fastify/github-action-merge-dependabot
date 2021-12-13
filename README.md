@@ -149,6 +149,38 @@ curl -X POST \
   -d '{"ref":"{ref}", "inputs":{ "pr-number": "{number}"}}'
 ```
 
+
+## How to upgrade from `2.x` to new `3.x`
+
+- Update the action version.
+- Add the new `permissions` configuration into your workflow or, instead, you can set the permissions rules on [the repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository) or on [the organization](https://docs.github.com/en/enterprise-server@3.3/admin/policies/enforcing-policies-for-your-enterprise/enforcing-policies-for-github-actions-in-your-enterprise#enforcing-a-policy-for-workflow-permissions-in-your-enterprise).
+- If you have customized the `api-url` you can:
+  - Remove the `api-url` option from your workflow.
+  - Turn off the [`dependabot-merge-action-app`](https://github.com/fastify/dependabot-merge-action-app/) application.
+
+
+Migration example:
+
+```diff
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # ...
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
++    permissions:
++      pull-requests: write
++      contents: write
+    steps:
+-     - uses: fastify/github-action-merge-dependabot@v2.1.1
++     - uses: fastify/github-action-merge-dependabot@v3.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
 ## Notes
 
 - A GitHub token is automatically provided by Github Actions, which can be accessed using `secrets.GITHUB_TOKEN` and supplied to the action as an input `github-token`.
