@@ -10,10 +10,10 @@ const github = require('@actions/github')
 
 const actionLog = require('../src/log')
 const actionUtil = require('../src/util')
+const actionGithubClient = require('../src/github-client')
 
 const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
-const DEFAULT_API_URL = 'http://foo.bar'
 
 function buildStubbedAction({
   payload,
@@ -29,19 +29,21 @@ function buildStubbedAction({
     .returns({ GITHUB_TOKEN, ...inputs })
 
   const prStub = sinon.stub();
-  const fetchStub = sinon.stub()
+  const approveStub = sinon.stub();
+  const mergeStub = sinon.stub();
+  const clientStub = sinon.stub(actionGithubClient, 'githubClient')
+    .returns({
+      getPullRequest: prStub.resolves(),
+      approvePullRequest: approveStub.resolves(),
+      mergePullRequest: mergeStub.resolves()
+    })
 
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
     '@actions/github': githubStub,
-    'node-fetch': fetchStub.resolves({
-      ok: true,
-      status: 200,
-      async text() { return 'pr-text' },
-    }),
-    './getPullRequest': prStub.resolves(),
     './log': logStub,
-    './util': utilStub
+    './util': utilStub,
+    './github-client': clientStub
   })
 
   return {
@@ -52,7 +54,8 @@ function buildStubbedAction({
       logStub,
       utilStub,
       prStub,
-      fetchStub
+      approveStub,
+      mergeStub,
     }
   }
 
@@ -60,17 +63,18 @@ function buildStubbedAction({
 
 tap.afterEach(() => { sinon.restore() })
 
-tap.test('should not run if a pull request number is missing', async t => {
+tap.test('should not run if a pull request number is missing', async () => {
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} }
   })
   await action()
 
-  t.ok(stubs.logStub.logError.calledOnceWith('This action must be used in the context of a Pull Request or with a Pull Request number'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logError, 'This action must be used in the context of a Pull Request or with a Pull Request number')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should retrieve PR info when trigger by non pull_request events', async t => {
+tap.test('should retrieve PR info when trigger by non pull_request events', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { 'not a pull_request': {} },
@@ -79,10 +83,10 @@ tap.test('should retrieve PR info when trigger by non pull_request events', asyn
 
   await action()
 
-  t.ok(stubs.prStub.calledOnce)
+  sinon.assert.calledOnce(stubs.prStub)
 })
 
-tap.test('should skip non-dependabot PR', async t => {
+tap.test('should skip non-dependabot PR', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -97,12 +101,13 @@ tap.test('should skip non-dependabot PR', async t => {
 
   await action()
 
-  t.ok(stubs.prStub.calledOnce)
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Not a dependabot PR, skipping.'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledOnce(stubs.prStub)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Not a dependabot PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should process dependabot PR and skip PR not in target', async t => {
+tap.test('should process dependabot PR and skip PR not in target', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -119,11 +124,12 @@ tap.test('should process dependabot PR and skip PR not in target', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Target specified does not match to PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should ignore excluded package', async t => {
+tap.test('should ignore excluded package', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -138,11 +144,12 @@ tap.test('should ignore excluded package', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('foo is excluded, skipping.'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'foo is excluded, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('approve only should not merge', async t => {
+tap.test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -155,12 +162,15 @@ tap.test('approve only should not merge', async t => {
     head: { ref: 'dependabot/npm_and_yarn/foo-0.0.1' },
   })
 
+  stubs.approveStub.resolves({ data: true })
+
   await action()
 
-  t.ok(stubs.fetchStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Approving only')
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should review and merge', async t => {
+tap.test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -175,11 +185,12 @@ tap.test('should review and merge', async t => {
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
-  t.ok(stubs.fetchStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should merge github-action-merge-dependabot minor release (custom API_URL)', async t => {
+tap.test('should merge github-action-merge-dependabot minor release', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -190,22 +201,17 @@ tap.test('should merge github-action-merge-dependabot minor release (custom API_
         head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0' },
       }
     },
-    inputs: {
-      PR_NUMBER,
-      TARGET: 'any',
-      EXCLUDE_PKGS: [],
-      API_URL: 'custom one',
-      DEFAULT_API_URL,
-    }
+    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [], }
   })
 
   await action()
 
-  t.ok(stubs.logStub.logInfo.calledOnceWith('pr-text'))
-  t.ok(stubs.fetchStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should not merge github-action-merge-dependabot major release (custom API_URL)', async t => {
+tap.test('should not merge github-action-merge-dependabot major release', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -216,55 +222,37 @@ tap.test('should not merge github-action-merge-dependabot major release (custom 
         head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3.6.0' },
       }
     },
-    inputs: {
-      PR_NUMBER,
-      TARGET: 'any',
-      EXCLUDE_PKGS: [],
-      API_URL: 'custom one',
-      DEFAULT_API_URL,
-    }
+    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [], }
   })
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnce)
-  t.match(stubs.logStub.logWarning.getCalls()[0].firstArg, /Cannot automerge github-action-merge-dependabot 3.6.0/)
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledOnce(stubs.coreStub.setFailed)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should call external api for github-action-merge-dependabot major release', async t => {
+tap.test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
-        title: 'chore(deps): bump fastify/github-action-merge-dependabot from 2.5.0 to 3.6.0',
         user: { login: BOT_NAME },
-        head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3.6.0' },
+        head: { ref: 'dependabot/npm_and_yarn/foo-0.0.1' },
       }
     },
-    inputs: {
-      PR_NUMBER,
-      TARGET: 'any',
-      EXCLUDE_PKGS: [],
-      API_URL: DEFAULT_API_URL,
-      DEFAULT_API_URL,
-    }
+    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [] }
   })
-
-  stubs.fetchStub.resolves({
-    ok: false,
-    status: 422,
-    async text() { return 'how to migrate' },
-  }),
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnce)
-  t.ok(stubs.fetchStub.calledOnce)
+  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Dependabot merge completed')
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should check submodules semver when target is set', async t => {
+tap.test('should check submodules semver when target is set', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -279,13 +267,12 @@ tap.test('should check submodules semver when target is set', async t => {
       PR_NUMBER,
       TARGET: 'minor',
       EXCLUDE_PKGS: [],
-      API_URL: 'custom one',
-      DEFAULT_API_URL,
     }
   })
 
   await action()
 
-  t.ok(stubs.logStub.logWarning.calledOnceWith('Target specified does not match to PR, skipping.'))
-  t.ok(stubs.fetchStub.notCalled)
+  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Target specified does not match to PR, skipping.')
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
