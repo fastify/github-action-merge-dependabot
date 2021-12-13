@@ -3,6 +3,7 @@
 const core = require('@actions/core')
 const github = require('@actions/github')
 const semverMajor = require('semver/functions/major')
+const semverCoerce = require('semver/functions/coerce')
 
 const { githubClient } = require('./github-client')
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
@@ -41,6 +42,7 @@ module.exports = async function run() {
     }
 
     if (TARGET !== targetOptions.any) {
+      logInfo(`Checking if PR title [${pr.title}] has target ${TARGET}`)
       const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
 
       if (!isTargetMatchToPR) {
@@ -90,7 +92,9 @@ function isMajorRelease(pullRequest) {
   const match = expression.exec(pullRequest.title)
   if (match) {
     const [, oldVersion, newVersion] = match
-    if (semverMajor(oldVersion) !== semverMajor(newVersion)) {
+    const oldVersionSemver = semverCoerce(oldVersion)
+    const newVersionSemver = semverCoerce(newVersion)
+    if (semverMajor(oldVersionSemver) !== semverMajor(newVersionSemver)) {
       return true
     }
   }

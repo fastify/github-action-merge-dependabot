@@ -232,6 +232,28 @@ tap.test('should not merge github-action-merge-dependabot major release', async 
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
+tap.test('should not merge github-action-merge-dependabot major release with semver-like title', async t => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        title: 'Bump fastify/github-action-merge-dependabot from 2.7.1 to 3',
+        user: { login: BOT_NAME },
+        head: { ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3' },
+      }
+    },
+    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [], }
+  })
+
+  await action()
+
+  sinon.assert.calledOnce(stubs.coreStub.setFailed)
+  t.match(stubs.coreStub.setFailed.firstCall.args[0], /^Cannot automerge github-action-merge-dependabot 3 major release./)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
 tap.test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
