@@ -1,0 +1,29 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: 'The semver to use'
+        required: true
+        default: 'patch'
+  pull_request:
+    types: [closed]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setting action build runtime
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - uses: nearform/optic-release-automation-action@v2
+        with:
+          github-token: ${{ secrets.github_token }}
+          semver: ${{ github.event.inputs.semver }}
+          sync-semver-tags: true
+          build-command: |
+            echo 'installing husky hooks..'
+            npm ci
+
