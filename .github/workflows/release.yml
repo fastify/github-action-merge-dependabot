@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setting action build runtime
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v2.5.1
         with:
           node-version: 16
       - uses: nearform/optic-release-automation-action@v2
