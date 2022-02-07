@@ -4,6 +4,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const semverMajor = require('semver/functions/major')
 const semverCoerce = require('semver/functions/coerce')
+const toolkit = require('actions-toolkit')
 
 const { githubClient } = require('./github-client')
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
@@ -24,6 +25,9 @@ const {
 
 module.exports = async function run() {
   try {
+    const warning = toolkit.getActionRefWarning('fastify/github-action-merge-dependabot')
+    if (warning) core.warning(warning)
+
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {

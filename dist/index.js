@@ -3786,6 +3786,45 @@ exports.request = request;
 
 /***/ }),
 
+/***/ 2183:
+/***/ ((module) => {
+
+"use strict";
+
+
+/**
+ * Returns warning message if the action reference is pinned to master/main
+ *
+ * @param     repoName          Full name of the repo (owner/repo-name)
+ * @return   { String | null }  Warning to be emitted
+ */
+function getActionRefWarning(repoName) {
+  if (!repoName) return null
+
+  const actionRef = process.env.GITHUB_ACTION_REF
+
+  if (actionRef === 'main' || actionRef === 'master') {
+    return (
+      `${repoName} is pinned at HEAD. We strongly ` +
+      `advise against pinning to "@master" as it may be unstable. Please ` +
+      `update your GitHub Action YAML from:\n\n` +
+      `    uses: '${repoName}@master'\n\n` +
+      `to:\n\n` +
+      `    uses: '${repoName}@<release/tag version>'\n\n` +
+      `Alternatively, you can pin to any git tag or git SHA in the ` +
+      `repository.`
+    )
+  }
+  return null
+}
+
+module.exports = {
+  getActionRefWarning
+}
+
+
+/***/ }),
+
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -9027,6 +9066,7 @@ const core = __nccwpck_require__(2186)
 const github = __nccwpck_require__(5438)
 const semverMajor = __nccwpck_require__(6688)
 const semverCoerce = __nccwpck_require__(3466)
+const toolkit = __nccwpck_require__(2183)
 
 const { githubClient } = __nccwpck_require__(3386)
 const checkTargetMatchToPR = __nccwpck_require__(7186)
@@ -9047,6 +9087,9 @@ const {
 
 module.exports = async function run() {
   try {
+    const warning = toolkit.getActionRefWarning('fastify/github-action-merge-dependabot')
+    if (warning) core.warning(warning)
+
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {
