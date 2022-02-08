@@ -9087,8 +9087,7 @@ const {
 
 module.exports = async function run() {
   try {
-    const warning = toolkit.getActionRefWarning('fastify/github-action-merge-dependabot')
-    if (warning) core.warning(warning)
+    toolkit.getActionRefWarning('fastify/github-action-merge-dependabot')
 
     const { pull_request } = github.context.payload
 
