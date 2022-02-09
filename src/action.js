@@ -25,7 +25,7 @@ const {
 
 module.exports = async function run() {
   try {
-    toolkit.logActionRefWarning('fastify/github-action-merge-dependabot')
+    toolkit.logActionRefWarning()
 
     const { pull_request } = github.context.payload
 
