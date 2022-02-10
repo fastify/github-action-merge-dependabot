@@ -3805,7 +3805,7 @@ function logActionRefWarning() {
   if (actionRef === 'main' || actionRef === 'master') {
     core.warning(
       `${repoName} is pinned at HEAD. We strongly ` +
-        `advise against pinning to "@master" as it may be unstable. Please ` +
+        `advise against pinning to "@${actionRef}" as it may be unstable. Please ` +
         `update your GitHub Action YAML from:\n\n` +
         `    uses: '${repoName}@${actionRef}'\n\n` +
         `to:\n\n` +
