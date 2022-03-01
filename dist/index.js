@@ -3786,6 +3786,43 @@ exports.request = request;
 
 /***/ }),
 
+/***/ 2183:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const core = __nccwpck_require__(2186)
+const github = __nccwpck_require__(5438)
+
+/**
+ * Displays warning message if the action reference is pinned to master/main
+ */
+function logActionRefWarning() {
+  const actionRef = process.env.GITHUB_ACTION_REF
+  const repoName = github.context.payload.repository.full_name
+
+  if (actionRef === 'main' || actionRef === 'master') {
+    core.warning(
+      `${repoName} is pinned at HEAD. We strongly ` +
+        `advise against pinning to "@${actionRef}" as it may be unstable. Please ` +
+        `update your GitHub Action YAML from:\n\n` +
+        `    uses: '${repoName}@${actionRef}'\n\n` +
+        `to:\n\n` +
+        `    uses: '${repoName}@<release/tag version>'\n\n` +
+        `Alternatively, you can pin to any git tag or git SHA in the ` +
+        `repository.`
+    )
+  }
+}
+
+module.exports = {
+  logActionRefWarning
+}
+
+
+/***/ }),
+
 /***/ 3682:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -9027,6 +9064,7 @@ const core = __nccwpck_require__(2186)
 const github = __nccwpck_require__(5438)
 const semverMajor = __nccwpck_require__(6688)
 const semverCoerce = __nccwpck_require__(3466)
+const toolkit = __nccwpck_require__(2183)
 
 const { githubClient } = __nccwpck_require__(3386)
 const checkTargetMatchToPR = __nccwpck_require__(7186)
@@ -9047,6 +9085,8 @@ const {
 
 module.exports = async function run() {
   try {
+    toolkit.logActionRefWarning()
+
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {

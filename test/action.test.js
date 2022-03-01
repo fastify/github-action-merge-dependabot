@@ -7,6 +7,7 @@ const sinon = require('sinon')
 // Stubbing modules
 const core = require('@actions/core')
 const github = require('@actions/github')
+const toolkit = require('actions-toolkit')
 
 const actionLog = require('../src/log')
 const actionUtil = require('../src/util')
@@ -21,6 +22,9 @@ function buildStubbedAction({
 }) {
 
   const coreStub = sinon.stub(core)
+  const toolkitStub = sinon.stub(toolkit, 'logActionRefWarning')
+    .get(() => sinon.stub())
+
   const githubStub = sinon.stub(github, 'context')
     .get(() => { return { payload } })
 
@@ -40,6 +44,7 @@ function buildStubbedAction({
 
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
+    'actions-toolkit': toolkitStub,
     '@actions/github': githubStub,
     './log': logStub,
     './util': utilStub,

@@ -4,6 +4,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const semverMajor = require('semver/functions/major')
 const semverCoerce = require('semver/functions/coerce')
+const toolkit = require('actions-toolkit')
 
 const { githubClient } = require('./github-client')
 const checkTargetMatchToPR = require('./checkTargetMatchToPR')
@@ -24,6 +25,8 @@ const {
 
 module.exports = async function run() {
   try {
+    toolkit.logActionRefWarning()
+
     const { pull_request } = github.context.payload
 
     if (!pull_request && !PR_NUMBER) {
