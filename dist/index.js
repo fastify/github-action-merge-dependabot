@@ -4028,6 +4028,219 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
+/***/ 153:
+/***/ (function(module, exports) {
+
+/**
+ * @file gitdiff 消息解析器
+ * @author errorrik(errorrik@gmail.com)
+ */
+
+(function (root) {
+    var STAT_START = 2;
+    var STAT_FILE_META = 3;
+    var STAT_HUNK = 5;
+
+
+    var parser = {
+        /**
+         * 解析 gitdiff 消息
+         *
+         * @param {string} source gitdiff消息内容
+         * @return {Object}
+         */
+        parse: function (source) {
+            var infos = [];
+            var stat = STAT_START;
+            var currentInfo;
+            var currentHunk;
+            var changeOldLine;
+            var changeNewLine;
+
+
+            var lines = source.split('\n');
+            var linesLen = lines.length;
+            var i = 0;
+
+            while (i < linesLen) {
+                var line = lines[i];
+
+                if (line.indexOf('diff --git') === 0) {
+                    // read file
+                    currentInfo = {
+                        hunks: [],
+                        oldEndingNewLine: true,
+                        newEndingNewLine: true
+                    };
+
+                    infos.push(currentInfo);
+
+
+                    // 1. 如果oldPath是/dev/null就是add
+                    // 2. 如果newPath是/dev/null就是delete
+                    // 3. 如果有 rename from foo.js 这样的就是rename
+                    // 4. 如果有 copy from foo.js 这样的就是copy
+                    // 5. 其它情况是modify
+                    var currentInfoType = null;
+
+
+                    // read type and index
+                    var simiLine;
+                    simiLoop: while ((simiLine = lines[++i])) {
+                        var spaceIndex = simiLine.indexOf(' ');
+                        var infoType = spaceIndex > -1 ? simiLine.slice(0, spaceIndex) : infoType;
+
+                        switch (infoType) {
+                            case 'diff': // diff --git
+                                i--;
+                                break simiLoop;
+
+                            case 'deleted':
+                            case 'new':
+                                var leftStr = simiLine.slice(spaceIndex + 1);
+                                if (leftStr.indexOf('file mode') === 0) {
+                                    currentInfo[infoType === 'new' ? 'newMode' : 'oldMode'] = leftStr.slice(10);
+                                }
+                                break;
+
+                            case 'similarity':
+                                currentInfo.similarity = parseInt(simiLine.split(' ')[2], 10);
+                                break;
+
+                            case 'index':
+                                var segs = simiLine.slice(spaceIndex + 1).split(' ');
+                                var revs = segs[0].split('..');
+                                currentInfo.oldRevision = revs[0];
+                                currentInfo.newRevision = revs[1];
+
+                                if (segs[1]) {
+                                    currentInfo.oldMode = currentInfo.newMode = segs[1];
+                                }
+                                break;
+                            
+
+                            case 'copy':
+                            case 'rename':
+                                var infoStr = simiLine.slice(spaceIndex + 1);
+                                if (infoStr.indexOf('from') === 0) {
+                                    currentInfo.oldPath = infoStr.slice(5);
+                                }
+                                else { // rename to
+                                    currentInfo.newPath = infoStr.slice(3);
+                                }
+                                currentInfoType = infoType;
+                                break;
+
+                            case '---':
+                                var oldPath = simiLine.slice(spaceIndex + 1);
+                                var newPath = lines[++i].slice(4); // next line must be "+++ xxx"
+                                if (oldPath === '/dev/null') {
+                                    newPath = newPath.slice(2);
+                                    currentInfoType = 'add';
+                                }
+                                else if (newPath === '/dev/null') {
+                                    oldPath = oldPath.slice(2);
+                                    currentInfoType = 'delete';
+                                } else {
+                                    currentInfoType = 'modify';
+                                    oldPath = oldPath.slice(2);
+                                    newPath = newPath.slice(2);
+                                }
+
+                                currentInfo.oldPath = oldPath;
+                                currentInfo.newPath = newPath;
+                                stat = STAT_HUNK;
+                                break simiLoop;
+                        }
+                    }
+
+                    currentInfo.type = currentInfoType || 'modify';
+                }
+                else if (line.indexOf('Binary') === 0) {
+                    currentInfo.isBinary = true;
+                    currentInfo.type = line.indexOf('/dev/null and') >= 0
+                        ? 'add'
+                        : (line.indexOf('and /dev/null') >= 0 ? 'delete' : 'modify');
+                    stat = STAT_START;
+                    currentInfo = null;
+                }
+                else if (stat === STAT_HUNK) {
+                    if (line.indexOf('@@') === 0) {
+                        var match = /^@@\s+-([0-9]+)(,([0-9]+))?\s+\+([0-9]+)(,([0-9]+))?/.exec(line)
+                        currentHunk = {
+                            content: line,
+                            oldStart: match[1] - 0,
+                            newStart: match[4] - 0,
+                            oldLines: match[3] - 0 || 1,
+                            newLines: match[6] - 0 || 1,
+                            changes: []
+                        };
+
+                        currentInfo.hunks.push(currentHunk);
+                        changeOldLine = currentHunk.oldStart;
+                        changeNewLine = currentHunk.newStart;
+                    }
+                    else {
+                        var typeChar = line.slice(0, 1);
+                        var change = {
+                            content: line.slice(1)
+                        };
+
+                        switch (typeChar) {
+                            case '+':
+                                change.type = 'insert';
+                                change.isInsert = true;
+                                change.lineNumber = changeNewLine;
+                                changeNewLine++;
+                                break;
+
+                            case '-':
+                                change.type = 'delete';
+                                change.isDelete = true;
+                                change.lineNumber = changeOldLine;
+                                changeOldLine++;
+                                break;
+
+                            case ' ':
+                                change.type = 'normal';
+                                change.isNormal = true;
+                                change.oldLineNumber = changeOldLine;
+                                change.newLineNumber = changeNewLine;
+                                changeOldLine++;
+                                changeNewLine++;
+                                break;
+
+                            case '\\': // Seems "no newline" is the only case starting with /
+                                var lastChange = currentHunk.changes[currentHunk.changes.length - 1];
+                                if (!lastChange.isDelete) {
+                                    currentInfo.newEndingNewLine = false;
+                                }
+                                if (!lastChange.isInsert) {
+                                    currentInfo.oldEndingNewLine = false;
+                                }
+                        }
+
+                        change.type && currentHunk.changes.push(change);
+                    }
+                }
+
+                i++;
+            }
+
+            return infos;
+        }
+    };
+
+    if (true) {
+        // For CommonJS
+        exports = module.exports = parser;
+    }
+    else {}
+})(this);
+
+
+/***/ }),
+
 /***/ 3287:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -6202,16 +6415,6 @@ module.exports = diff
 const compare = __nccwpck_require__(4309)
 const eq = (a, b, loose) => compare(a, b, loose) === 0
 module.exports = eq
-
-
-/***/ }),
-
-/***/ 6688:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(8088)
-const major = (a, loose) => new SemVer(a, loose).major
-module.exports = major
 
 
 /***/ }),
@@ -9062,15 +9265,18 @@ function wrappy (fn, cb) {
 
 const core = __nccwpck_require__(2186)
 const github = __nccwpck_require__(5438)
-const semverMajor = __nccwpck_require__(6688)
+const semverDiff = __nccwpck_require__(4297)
 const semverCoerce = __nccwpck_require__(3466)
 const toolkit = __nccwpck_require__(2183)
 
 const { githubClient } = __nccwpck_require__(3386)
-const checkTargetMatchToPR = __nccwpck_require__(7186)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
 const { getInputs } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
+const {
+  getModuleVersionChanges,
+  checkModuleVersionChanges,
+} = __nccwpck_require__(9488)
 
 const {
   GITHUB_TOKEN,
@@ -9081,7 +9287,6 @@ const {
   TARGET,
   PR_NUMBER,
 } = getInputs()
-
 
 module.exports = async function run() {
   try {
@@ -9104,25 +9309,31 @@ module.exports = async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    if (TARGET !== targetOptions.any) {
-      logInfo(`Checking if PR title [${pr.title}] has target ${TARGET}`)
-      const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
+    const prDiff = await client.getPullRequestDiff(pr.number)
+    const moduleChanges = getModuleVersionChanges(prDiff)
 
+    if (TARGET !== targetOptions.any) {
+      logInfo(`Checking if the changes in the PR can be merged`)
+
+      const isTargetMatchToPR = checkModuleVersionChanges(moduleChanges, TARGET)
       if (!isTargetMatchToPR) {
         return logWarning('Target specified does not match to PR, skipping.')
       }
     }
 
-    const { name: pkgName, version } = getPackageDetails(pr)
-    const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
-  Read how to upgrade it manually:
-  https://github.com/fastify/github-action-merge-dependabot#how-to-upgrade-from-2x-to-new-3x`
-
-    if (EXCLUDE_PKGS.includes(pkgName)) {
-      return logInfo(`${pkgName} is excluded, skipping.`)
+    const changedExcludedPackages = EXCLUDE_PKGS.filter((pkg) => pkg in moduleChanges)
+    if (changedExcludedPackages.length > 0) {
+      return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
+${changedExcludedPackages.join(', ')}. Skipping.`)
     }
 
-    if (pkgName === 'github-action-merge-dependabot' && isMajorRelease(pr)) {
+    const thisModuleChanges = moduleChanges['github-action-merge-dependabot']
+    if (thisModuleChanges && isAMajorReleaseBump(thisModuleChanges)) {
+      const version = moduleChanges['github-action-merge-dependabot'].insert
+      const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
+    Read how to upgrade it manually:
+    https://github.com/fastify/github-action-merge-dependabot#how-to-upgrade-from-2x-to-new-3x`
+
       core.setFailed(upgradeMessage)
       return
     }
@@ -9139,76 +9350,16 @@ module.exports = async function run() {
   }
 }
 
-function getPackageDetails(pullRequest) {
-  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
-  const nameAndVersion = pullRequest.head.ref.split('/').pop().split('-')
-  const version = nameAndVersion.pop() // remove the version
-  return {
-    name: nameAndVersion.join('-'),
-    version
-  }
-}
-
-function isMajorRelease(pullRequest) {
-  const expression = /bump \S+ from (\S+) to (\S+)/i
-  const match = expression.exec(pullRequest.title)
-  if (match) {
-    const [, oldVersion, newVersion] = match
-    const oldVersionSemver = semverCoerce(oldVersion)
-    const newVersionSemver = semverCoerce(newVersion)
-    if (semverMajor(oldVersionSemver) !== semverMajor(newVersionSemver)) {
-      return true
-    }
-  }
-  return false
-}
-
-
-/***/ }),
-
-/***/ 7186:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-"use strict";
-
-const semverDiff = __nccwpck_require__(4297)
-const semverCoerce = __nccwpck_require__(3466)
-const semverValid = __nccwpck_require__(9601)
-
-const { semanticVersionOrder } = __nccwpck_require__(5013)
-const { logWarning } = __nccwpck_require__(653)
-
-const expression = /from ([^\s]+) to ([^\s]+)/
-
-const checkTargetMatchToPR = (prTitle, target) => {
-  const match = expression.exec(prTitle)
-
-  if (!match) {
-    return true
-  }
-
-  const [, from, to] = match
-
-  if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
-    logWarning(`PR title contains invalid semver versions from: ${from} to: ${to}`)
+function isAMajorReleaseBump(change) {
+  const from = change.delete
+  const to = change.insert
+  if (!from || !to) {
     return false
   }
 
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
-
-  return !(
-    diff &&
-    semanticVersionOrder.indexOf(diff) > semanticVersionOrder.indexOf(target)
-  )
+  return diff === targetOptions.major
 }
-
-function hasBadChars(version) {
-  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
-  return /`/.test(version)
-}
-
-module.exports = checkTargetMatchToPR
 
 
 /***/ }),
@@ -9297,9 +9448,20 @@ function githubClient(githubToken) {
       })
       // todo assert
       return data
-    }
-  }
+    },
 
+    async getPullRequestDiff(pullRequestNumber) {
+      const { data: pullRequest } = await octokit.rest.pulls.get({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+        mediaType: {
+          format: 'diff',
+        },
+      })
+      return pullRequest
+    },
+  }
 }
 
 module.exports = { githubClient }
@@ -9324,6 +9486,94 @@ exports.logDebug = log(debug)
 exports.logError = log(error)
 exports.logInfo = log(info)
 exports.logWarning = log(warning)
+
+
+/***/ }),
+
+/***/ 9488:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const semverDiff = __nccwpck_require__(4297)
+const semverCoerce = __nccwpck_require__(3466)
+const semverValid = __nccwpck_require__(9601)
+const { parse } = __nccwpck_require__(153)
+
+const { semanticVersionOrder } = __nccwpck_require__(5013)
+const { logWarning } = __nccwpck_require__(653)
+
+const expression = /"([^\s]+)":\s*"([^\s]+)"/
+
+function hasBadChars(version) {
+  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
+  return /^[^^~*-0-9+x]/.test(version)
+}
+
+const checkModuleVersionChanges = (moduleChanges, target) => {
+  for (const module in moduleChanges) {
+    const from = moduleChanges[module].delete
+    const to = moduleChanges[module].insert
+
+    if (!from || !to) {
+      return false
+    }
+
+    if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
+      logWarning(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
+      return false
+    }
+
+    const diff = semverDiff(semverCoerce(from), semverCoerce(to))
+    const isDiffBeyondTarget =
+      semanticVersionOrder.indexOf(diff) > semanticVersionOrder.indexOf(target)
+
+    if (diff && isDiffBeyondTarget) {
+      return false
+    }
+  }
+
+  return true
+}
+
+const getModuleVersionChanges = (prDiff) => {
+  const parsedDiffFiles = parse(prDiff)
+  const packageJsonChanges = parsedDiffFiles.find((file) => file.newPath === 'package.json')
+  if (!packageJsonChanges) {
+    return false
+  }
+
+  const moduleChanges = {}
+  for (const idx in packageJsonChanges.hunks) {
+    const changes = packageJsonChanges.hunks[idx].changes.filter(
+      (c) => c.type === 'delete' || c.type === 'insert'
+    )
+
+    for (const changeIdx in changes) {
+      const change = changes[changeIdx]
+
+      const match = expression.exec(change.content)
+      if (!match) {
+        continue
+      }
+
+      const [, module, version] = match
+      if (module in moduleChanges) {
+        moduleChanges[module][change.type] = version
+      } else {
+        moduleChanges[module] = { [change.type]: version }
+      }
+    }
+  }
+
+  return moduleChanges
+}
+
+module.exports = {
+  getModuleVersionChanges,
+  checkModuleVersionChanges,
+}
 
 
 /***/ }),

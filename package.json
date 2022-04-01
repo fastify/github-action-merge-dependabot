@@ -29,6 +29,7 @@
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",
     "actions-toolkit": "github:nearform/actions-toolkit",
+    "gitdiff-parser": "^0.2.2",
     "semver": "^7.3.5"
   },
   "devDependencies": {
