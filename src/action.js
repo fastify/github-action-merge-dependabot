@@ -6,6 +6,7 @@ const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
 const toolkit = require('actions-toolkit')
 
+const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
@@ -64,12 +65,12 @@ module.exports = async function run() {
 ${changedExcludedPackages.join(', ')}. Skipping.`)
     }
 
-    const thisModuleChanges = moduleChanges['github-action-merge-dependabot']
+    const thisModuleChanges = moduleChanges[packageInfo.name]
     if (thisModuleChanges && isAMajorReleaseBump(thisModuleChanges)) {
-      const version = moduleChanges['github-action-merge-dependabot'].insert
-      const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
+      const version = moduleChanges[packageInfo.name].insert
+      const upgradeMessage = `Cannot automerge ${packageInfo.name} ${version} major release.
     Read how to upgrade it manually:
-    https://github.com/fastify/github-action-merge-dependabot#how-to-upgrade-from-2x-to-new-3x`
+    https://github.com/fastify/${packageInfo.name}#how-to-upgrade-from-2x-to-new-3x`
 
       core.setFailed(upgradeMessage)
       return
