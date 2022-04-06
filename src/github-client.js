@@ -41,9 +41,20 @@ function githubClient(githubToken) {
       })
       // todo assert
       return data
-    }
-  }
+    },
 
+    async getPullRequestDiff(pullRequestNumber) {
+      const { data: pullRequest } = await octokit.rest.pulls.get({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+        mediaType: {
+          format: 'diff',
+        },
+      })
+      return pullRequest
+    },
+  }
 }
 
 module.exports = { githubClient }

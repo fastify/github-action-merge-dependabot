@@ -2,15 +2,19 @@
 
 const core = require('@actions/core')
 const github = require('@actions/github')
-const semverMajor = require('semver/functions/major')
+const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
 const toolkit = require('actions-toolkit')
 
+const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
-const checkTargetMatchToPR = require('./checkTargetMatchToPR')
 const { logInfo, logWarning, logError } = require('./log')
 const { getInputs } = require('./util')
 const { targetOptions } = require('./getTargetInput')
+const {
+  getModuleVersionChanges,
+  checkModuleVersionChanges,
+} = require('./moduleVersionChanges')
 
 const {
   GITHUB_TOKEN,
@@ -21,7 +25,6 @@ const {
   TARGET,
   PR_NUMBER,
 } = getInputs()
-
 
 module.exports = async function run() {
   try {
@@ -44,25 +47,31 @@ module.exports = async function run() {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
-    if (TARGET !== targetOptions.any) {
-      logInfo(`Checking if PR title [${pr.title}] has target ${TARGET}`)
-      const isTargetMatchToPR = checkTargetMatchToPR(pr.title, TARGET)
+    const prDiff = await client.getPullRequestDiff(pr.number)
+    const moduleChanges = getModuleVersionChanges(prDiff)
 
+    if (TARGET !== targetOptions.any) {
+      logInfo(`Checking if the changes in the PR can be merged`)
+
+      const isTargetMatchToPR = checkModuleVersionChanges(moduleChanges, TARGET)
       if (!isTargetMatchToPR) {
         return logWarning('Target specified does not match to PR, skipping.')
       }
     }
 
-    const { name: pkgName, version } = getPackageDetails(pr)
-    const upgradeMessage = `Cannot automerge github-action-merge-dependabot ${version} major release.
-  Read how to upgrade it manually:
-  https://github.com/fastify/github-action-merge-dependabot#how-to-upgrade-from-2x-to-new-3x`
-
-    if (EXCLUDE_PKGS.includes(pkgName)) {
-      return logInfo(`${pkgName} is excluded, skipping.`)
+    const changedExcludedPackages = EXCLUDE_PKGS.filter((pkg) => pkg in moduleChanges)
+    if (changedExcludedPackages.length > 0) {
+      return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
+${changedExcludedPackages.join(', ')}. Skipping.`)
     }
 
-    if (pkgName === 'github-action-merge-dependabot' && isMajorRelease(pr)) {
+    const thisModuleChanges = moduleChanges[packageInfo.name]
+    if (thisModuleChanges && isAMajorReleaseBump(thisModuleChanges)) {
+      const version = moduleChanges[packageInfo.name].insert
+      const upgradeMessage = `Cannot automerge ${packageInfo.name} ${version} major release.
+    Read how to upgrade it manually:
+    https://github.com/fastify/${packageInfo.name}#how-to-upgrade-from-2x-to-new-3x`
+
       core.setFailed(upgradeMessage)
       return
     }
@@ -79,27 +88,13 @@ module.exports = async function run() {
   }
 }
 
-function getPackageDetails(pullRequest) {
-  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
-  const nameAndVersion = pullRequest.head.ref.split('/').pop().split('-')
-  const version = nameAndVersion.pop() // remove the version
-  return {
-    name: nameAndVersion.join('-'),
-    version
+function isAMajorReleaseBump(change) {
+  const from = change.delete
+  const to = change.insert
+  if (!from || !to) {
+    return false
   }
-}
 
-function isMajorRelease(pullRequest) {
-  const expression = /bump \S+ from (\S+) to (\S+)/i
-  const match = expression.exec(pullRequest.title)
-  if (match) {
-    const [, oldVersion, newVersion] = match
-    const oldVersionSemver = semverCoerce(oldVersion)
-    const newVersionSemver = semverCoerce(newVersion)
-    if (semverMajor(oldVersionSemver) !== semverMajor(newVersionSemver)) {
-      return true
-    }
-  }
-  return false
+  const diff = semverDiff(semverCoerce(from), semverCoerce(to))
+  return diff === targetOptions.major
 }
