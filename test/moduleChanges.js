@@ -147,6 +147,20 @@ index d3dfd3d..bd28161 100644
 -        "github-action-merge-dependabot": "1.2.3",
 +        "github-action-merge-dependabot": "2.1.0",
 `,
+  noPackageJsonChanges: `
+diff --git a/test/action.test.js b/test/action.test.js
+index e8c6572..751e69d 100644
+--- a/test/action.test.js
++++ b/test/action.test.js
+@@ -9,6 +9,7 @@ const core = require('@actions/core')
+ const github = require('@actions/github')
+ const toolkit = require('actions-toolkit')
+
++
+ const { diffs } = require('./moduleChanges')
+ const actionLog = require('../src/log')
+ const actionUtil = require('../src/util')
+`
 }
 
 const moduleChanges = {}

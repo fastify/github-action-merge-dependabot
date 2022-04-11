@@ -288,3 +288,27 @@ tap.test('should check submodules semver when target is set', async () => {
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
+
+tap.test('should merge if no changes were made to package.json', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'main',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.called(stubs.approveStub)
+  sinon.assert.called(stubs.mergeStub)
+})
