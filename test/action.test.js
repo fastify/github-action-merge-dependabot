@@ -289,7 +289,7 @@ tap.test('should check submodules semver when target is set', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should work if no changes were made to package.json', async () => {
+tap.test('should merge if no changes were made to package.json', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {

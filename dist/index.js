@@ -9381,6 +9381,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
 function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
+
   if (!from || !to) {
     return false
   }
