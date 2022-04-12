@@ -91,9 +91,6 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
 function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
-  if (!from || !to) {
-    return false
-  }
 
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major

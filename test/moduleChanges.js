@@ -147,6 +147,15 @@ index d3dfd3d..bd28161 100644
 -        "github-action-merge-dependabot": "1.2.3",
 +        "github-action-merge-dependabot": "2.1.0",
 `,
+  thisModuleInvalidVersion: `
+diff --git a/package.json b/package.json
+index d3dfd3d..bd28161 100644
+--- a/package.json
++++ b/package.json
+@@ -19,9 +19,9 @@
+-        "github-action-merge-dependabot": "",
++        "github-action-merge-dependabot": "",
+`,
   noPackageJsonChanges: `
 diff --git a/test/action.test.js b/test/action.test.js
 index e8c6572..751e69d 100644

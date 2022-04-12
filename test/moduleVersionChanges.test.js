@@ -120,4 +120,8 @@ tap.test('checkModuleVersionChanges', async t => {
     t.notOk(checkModuleVersionChanges(moduleChanges.multipleFilesDiff, targetOptions.minor))
     t.ok(checkModuleVersionChanges(moduleChanges.multipleFilesDiff, targetOptions.major))
   })
+
+  t.test('should deal with invalid package version', async t => {
+    t.notOk(checkModuleVersionChanges({ 'github-action-merge-dependabot-': { insert: '', delete: '' } }, targetOptions.minor))
+  })
 })
