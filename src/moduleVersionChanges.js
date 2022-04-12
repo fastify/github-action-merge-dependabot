@@ -45,7 +45,7 @@ const getModuleVersionChanges = (prDiff) => {
   const parsedDiffFiles = parse(prDiff)
   const packageJsonChanges = parsedDiffFiles.find((file) => file.newPath === 'package.json')
   if (!packageJsonChanges) {
-    return {}
+    return false
   }
 
   const moduleChanges = {}

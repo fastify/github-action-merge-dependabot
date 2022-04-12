@@ -48,7 +48,9 @@ module.exports = async function run() {
     }
 
     const prDiff = await client.getPullRequestDiff(pr.number)
-    const moduleChanges = getModuleVersionChanges(prDiff)
+
+    // Get changed modules from diff if available or from PR title as fallback
+    const moduleChanges = getModuleVersionChanges(prDiff) || parsePrTitle(pr)
 
     if (TARGET !== targetOptions.any) {
       logInfo(`Checking if the changes in the PR can be merged`)
@@ -97,4 +99,17 @@ function isAMajorReleaseBump(change) {
 
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
+}
+
+function parsePrTitle(pullRequest) {
+  const expression = /bump (\S+) from (\S+) to (\S+)/i
+  const match = expression.exec(pullRequest.title)
+
+  if (!match) {
+    return {}
+  }
+
+  const [, packageName, oldVersion, newVersion] = match
+
+  return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }
