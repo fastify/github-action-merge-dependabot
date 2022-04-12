@@ -302,7 +302,7 @@ tap.test('should merge major bump using PR title', async () => {
     },
     inputs: {
       PR_NUMBER,
-      TARGET: 'any',
+      TARGET: 'major',
       EXCLUDE_PKGS: ['react'],
     }
   })
@@ -314,6 +314,33 @@ tap.test('should merge major bump using PR title', async () => {
   sinon.assert.called(stubs.approveStub)
   sinon.assert.called(stubs.mergeStub)
 })
+
+tap.test('should forbid major bump using PR title', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions/checkout from 2 to 3'
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'minor',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
 
 tap.test('should not merge major bump if updating github-action-merge-dependabot', async () => {
   const PR_NUMBER = Math.random()
