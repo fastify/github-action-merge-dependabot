@@ -9338,7 +9338,9 @@ module.exports = async function run() {
     }
 
     const prDiff = await client.getPullRequestDiff(pr.number)
-    const moduleChanges = getModuleVersionChanges(prDiff)
+
+    // Get changed modules from diff if available or from PR title as fallback
+    const moduleChanges = getModuleVersionChanges(prDiff) || parsePrTitle(pr)
 
     if (TARGET !== targetOptions.any) {
       logInfo(`Checking if the changes in the PR can be merged`)
@@ -9384,6 +9386,19 @@ function isAMajorReleaseBump(change) {
 
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
+}
+
+function parsePrTitle(pullRequest) {
+  const expression = /bump (\S+) from (\S+) to (\S+)/i
+  const match = expression.exec(pullRequest.title)
+
+  if (!match) {
+    return {}
+  }
+
+  const [, packageName, oldVersion, newVersion] = match
+
+  return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }
 
 
@@ -9566,7 +9581,7 @@ const getModuleVersionChanges = (prDiff) => {
   const parsedDiffFiles = parse(prDiff)
   const packageJsonChanges = parsedDiffFiles.find((file) => file.newPath === 'package.json')
   if (!packageJsonChanges) {
-    return {}
+    return false
   }
 
   const moduleChanges = {}
@@ -9782,7 +9797,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.6.0","@actions/github":"^5.0.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.6"},"devDependencies":{"@vercel/ncc":"^0.33.3","eslint":"^8.13.0","husky":"^7.0.4","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^13.0.1","tap":"^16.0.1"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.2","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.6.0","@actions/github":"^5.0.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.6"},"devDependencies":{"@vercel/ncc":"^0.33.3","eslint":"^8.13.0","husky":"^7.0.4","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^13.0.1","tap":"^16.0.1"}}');
 
 /***/ })
 

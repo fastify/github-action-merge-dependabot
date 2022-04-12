@@ -157,18 +157,19 @@ index d3dfd3d..bd28161 100644
 +        "github-action-merge-dependabot": "",
 `,
   noPackageJsonChanges: `
-diff --git a/test/action.test.js b/test/action.test.js
-index e8c6572..751e69d 100644
---- a/test/action.test.js
-+++ b/test/action.test.js
-@@ -9,6 +9,7 @@ const core = require('@actions/core')
- const github = require('@actions/github')
- const toolkit = require('actions-toolkit')
-
-+
- const { diffs } = require('./moduleChanges')
- const actionLog = require('../src/log')
- const actionUtil = require('../src/util')
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e790278..678e751 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -4,7 +4,7 @@ jobs:
+   build:
+     runs-on: ubuntu-latest
+     steps:
+-      - uses: actions/checkout@v2
++      - uses: actions/checkout@v3
+       - uses: actions/setup-node@v3
+         with:
+           node-version-file: '.nvmrc'
 `
 }
 

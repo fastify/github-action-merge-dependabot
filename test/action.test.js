@@ -289,18 +289,20 @@ tap.test('should check submodules semver when target is set', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should merge if no changes were made to package.json', async () => {
+tap.test('should merge major bump using PR title', async () => {
   const PR_NUMBER = Math.random()
+
   const { action, stubs } = buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
+        title: 'build(deps): bump actions/checkout from 2 to 3'
       }
     },
     inputs: {
       PR_NUMBER,
-      TARGET: 'main',
+      TARGET: 'major',
       EXCLUDE_PKGS: ['react'],
     }
   })
@@ -311,4 +313,57 @@ tap.test('should merge if no changes were made to package.json', async () => {
 
   sinon.assert.called(stubs.approveStub)
   sinon.assert.called(stubs.mergeStub)
+})
+
+tap.test('should forbid major bump using PR title', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions/checkout from 2 to 3'
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'minor',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
+
+tap.test('should not merge major bump if updating github-action-merge-dependabot', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump github-action-merge-dependabot from 2 to 3'
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'any',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })
