@@ -289,7 +289,7 @@ tap.test('should check submodules semver when target is set', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.only('should merge major bump using PR title', async () => {
+tap.test('should merge major bump using PR title', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -315,7 +315,7 @@ tap.only('should merge major bump using PR title', async () => {
   sinon.assert.called(stubs.mergeStub)
 })
 
-tap.only('should not merge major bump if updating github-action-merge-dependabot', async () => {
+tap.test('should not merge major bump if updating github-action-merge-dependabot', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
