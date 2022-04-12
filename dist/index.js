@@ -9393,7 +9393,7 @@ function parsePrTitle(pullRequest) {
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    return {}
+    throw new Error("Invalid PR title, expected format `bump <package> from <old-version> to <new-version>`")
   }
 
   const [, packageName, oldVersion, newVersion] = match

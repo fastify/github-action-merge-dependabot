@@ -367,3 +367,30 @@ tap.test('should not merge major bump if updating github-action-merge-dependabot
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
+
+tap.test('should throw if the PR title is not valid', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'Invalid PR title'
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'major',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+  sinon.assert.calledWith(stubs.coreStub.setFailed, "Invalid PR name, expected format `bump <package> from <old-version> to <new-version>`")
+
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
