@@ -389,7 +389,7 @@ tap.test('should throw if the PR title is not valid', async () => {
   stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
 
   await action()
-  sinon.assert.calledWith(stubs.coreStub.setFailed, "Invalid PR name, expected format `bump <package> from <old-version> to <new-version>`")
+  sinon.assert.calledWith(stubs.coreStub.setFailed, "Invalid PR title, expected format `bump <package> from <old-version> to <new-version>`")
 
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
