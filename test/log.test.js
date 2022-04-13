@@ -14,7 +14,7 @@ const log = tap.mock('../src/log', {
 })
 
 tap.afterEach(() => {
-  Object.values(coreStubs).map(stub => stub.resetHistory())
+  sinon.resetHistory()
 })
 
 tap.test('logError should work with numbers', async () => {

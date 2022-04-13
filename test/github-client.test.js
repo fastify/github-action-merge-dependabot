@@ -37,7 +37,7 @@ const TOKEN = 'GITHUB-TOKEN'
 const PR_NUMBER = Math.floor(Math.random() * 10);
 
 tap.afterEach(() => {
-  Object.values(octokitStubs).map(stub => stub.resetHistory())
+  sinon.resetHistory();
 })
 
 tap.test('githubClient', async t => {
