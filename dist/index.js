@@ -9384,6 +9384,10 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
+  if (!from || !to) {
+    return false
+  }
+
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
@@ -9393,7 +9397,7 @@ function parsePrTitle(pullRequest) {
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    throw new Error("Invalid PR title, expected format `bump <package> from <old-version> to <new-version>`")
+    return {}
   }
 
   const [, packageName, oldVersion, newVersion] = match
