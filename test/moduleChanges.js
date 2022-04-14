@@ -93,6 +93,14 @@ index d3dfd3d..bd28161 100644
 -        "dotbot": "aa93350",
 +        "dotbot": "ac5793c",
 `,
+  thisModuleAdded: `
+diff --git a/package.json b/package.json
+index d3dfd3d..bd28161 100644
+--- a/package.json
++++ b/package.json
+@@ -19,9 +19,9 @@
++        "github-action-merge-dependabot": "1.4.0",
+`,
   multiplePackagesMajorMinor: `
 diff --git a/package.json b/package.json
 index d3dfd3d..bd28161 100644
@@ -146,6 +154,15 @@ index d3dfd3d..bd28161 100644
 @@ -19,9 +19,9 @@
 -        "github-action-merge-dependabot": "1.2.3",
 +        "github-action-merge-dependabot": "2.1.0",
+`,
+  thisModuleInvalidVersion: `
+diff --git a/package.json b/package.json
+index d3dfd3d..bd28161 100644
+--- a/package.json
++++ b/package.json
+@@ -19,9 +19,9 @@
+-        "github-action-merge-dependabot": "",
++        "github-action-merge-dependabot": "",
 `,
   noPackageJsonChanges: `
 diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
