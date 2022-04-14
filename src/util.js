@@ -37,3 +37,10 @@ exports.getInputs = () => ({
   TARGET: getTargetInput(core.getInput('target')),
   PR_NUMBER: core.getInput('pr-number'),
 })
+
+exports.getPackageName = (branchName) => {
+  // Get package name from branch
+  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+  return branchName.split('/').pop().split('-').slice(0, -1).join('-')
+}

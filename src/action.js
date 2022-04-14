@@ -9,7 +9,7 @@ const toolkit = require('actions-toolkit')
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const { getInputs } = require('./util')
+const { getInputs, getPackageName } = require('./util')
 const { targetOptions } = require('./getTargetInput')
 const {
   getModuleVersionChanges,
@@ -107,10 +107,7 @@ function parsePrTitle(pullRequest) {
   }
   const [, oldVersion, newVersion] = match
 
-  // Get package name from branch
-  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
-  const packageName = pullRequest.head.ref.split('/').pop().split('-').slice(0, -1).join('-')
+  const packageName = getPackageName(pullRequest.head.ref)
 
   return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }

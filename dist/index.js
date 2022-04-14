@@ -9299,7 +9299,7 @@ const toolkit = __nccwpck_require__(2183)
 const packageInfo = __nccwpck_require__(4147)
 const { githubClient } = __nccwpck_require__(3386)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
-const { getInputs } = __nccwpck_require__(6254)
+const { getInputs, getPackageName } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
 const {
   getModuleVersionChanges,
@@ -9397,10 +9397,7 @@ function parsePrTitle(pullRequest) {
   }
   const [, oldVersion, newVersion] = match
 
-  // Get package name from branch
-  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
-  const packageName = pullRequest.head.ref.split('/').pop().split('-').slice(0, -1).join('-')
+  const packageName = getPackageName(pullRequest.head.ref)
 
   return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }
@@ -9665,6 +9662,13 @@ exports.getInputs = () => ({
   TARGET: getTargetInput(core.getInput('target')),
   PR_NUMBER: core.getInput('pr-number'),
 })
+
+exports.getPackageName = (branchName) => {
+  // Get package name from branch
+  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+  return branchName.split('/').pop().split('-').slice(0, -1).join('-')
+}
 
 
 /***/ }),
