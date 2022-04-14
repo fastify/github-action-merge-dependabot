@@ -94,23 +94,23 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
-  if (!from || !to) {
-    return false
-  }
-
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
 
 function parsePrTitle(pullRequest) {
-  const expression = /bump (\S+) from (\S+) to (\S+)/i
+  const expression = /bump \S+ from (\S+) to (\S+)/i
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    return {}
+    throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
+  const [, oldVersion, newVersion] = match
 
-  const [, packageName, oldVersion, newVersion] = match
+  // Get package name from branch
+  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+  const packageName = pullRequest.head.ref.split('/').pop().split('-').slice(0, -1).join('-')
 
   return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }
