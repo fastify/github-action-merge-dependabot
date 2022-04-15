@@ -9663,11 +9663,21 @@ exports.getInputs = () => ({
   PR_NUMBER: core.getInput('pr-number'),
 })
 
+/**
+ * Get a package name from a branch name.
+ * Dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+ * or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+ */
 exports.getPackageName = (branchName) => {
-  // Get package name from branch
-  // dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
-  // or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
-  return branchName.split('/').pop().split('-').slice(0, -1).join('-')
+  const nameWithVersion = branchName.split('/').pop().split('-')
+  const version = nameWithVersion.pop()
+  const packageName = nameWithVersion.join('-')
+
+  if (!packageName || !version) {
+    throw new Error('Invalid branch name, package name or version not found')
+  }
+
+  return packageName
 }
 
 
