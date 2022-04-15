@@ -9,7 +9,7 @@ const toolkit = require('actions-toolkit')
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const { getInputs } = require('./util')
+const { getInputs, getPackageName } = require('./util')
 const { targetOptions } = require('./getTargetInput')
 const {
   getModuleVersionChanges,
@@ -94,23 +94,20 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
-  if (!from || !to) {
-    return false
-  }
-
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
 
 function parsePrTitle(pullRequest) {
-  const expression = /bump (\S+) from (\S+) to (\S+)/i
+  const expression = /bump \S+ from (\S+) to (\S+)/i
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    return {}
+    throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
+  const [, oldVersion, newVersion] = match
 
-  const [, packageName, oldVersion, newVersion] = match
+  const packageName = getPackageName(pullRequest.head.ref)
 
   return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }

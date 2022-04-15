@@ -9299,7 +9299,7 @@ const toolkit = __nccwpck_require__(2183)
 const packageInfo = __nccwpck_require__(4147)
 const { githubClient } = __nccwpck_require__(3386)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
-const { getInputs } = __nccwpck_require__(6254)
+const { getInputs, getPackageName } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
 const {
   getModuleVersionChanges,
@@ -9384,23 +9384,20 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
-  if (!from || !to) {
-    return false
-  }
-
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
 
 function parsePrTitle(pullRequest) {
-  const expression = /bump (\S+) from (\S+) to (\S+)/i
+  const expression = /bump \S+ from (\S+) to (\S+)/i
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    return {}
+    throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
+  const [, oldVersion, newVersion] = match
 
-  const [, packageName, oldVersion, newVersion] = match
+  const packageName = getPackageName(pullRequest.head.ref)
 
   return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
 }
@@ -9665,6 +9662,23 @@ exports.getInputs = () => ({
   TARGET: getTargetInput(core.getInput('target')),
   PR_NUMBER: core.getInput('pr-number'),
 })
+
+/**
+ * Get a package name from a branch name.
+ * Dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
+ * or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+ */
+exports.getPackageName = (branchName) => {
+  const nameWithVersion = branchName.split('/').pop().split('-')
+  const version = nameWithVersion.pop()
+  const packageName = nameWithVersion.join('-')
+
+  if (!packageName || !version) {
+    throw new Error('Invalid branch name, package name or version not found')
+  }
+
+  return packageName
+}
 
 
 /***/ }),

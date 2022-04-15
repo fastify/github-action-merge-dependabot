@@ -297,7 +297,10 @@ tap.test('should merge major bump using PR title', async () => {
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump actions/checkout from 2 to 3'
+        title: 'build(deps): bump actions/checkout from 2 to 3',
+        head: {
+          ref: 'dependabot/github_actions/actions/checkout-3'
+        }
       }
     },
     inputs: {
@@ -323,7 +326,10 @@ tap.test('should forbid major bump using PR title', async () => {
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump actions/checkout from 2 to 3'
+        title: 'build(deps): bump actions/checkout from 2 to 3',
+        head: {
+          ref: 'dependabot/github_actions/actions/cache-3'
+        }
       }
     },
     inputs: {
@@ -350,7 +356,10 @@ tap.test('should not merge major bump if updating github-action-merge-dependabot
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump github-action-merge-dependabot from 2 to 3'
+        title: 'build(deps): bump github-action-merge-dependabot from 2 to 3 zzz',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3'
+        }
       }
     },
     inputs: {
@@ -376,7 +385,10 @@ tap.test('should throw if the PR title is not valid', async () => {
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'Invalid PR title'
+        title: 'Invalid PR title',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
+        }
       }
     },
     inputs: {
@@ -389,32 +401,8 @@ tap.test('should throw if the PR title is not valid', async () => {
   stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
 
   await action()
-  sinon.assert.called(stubs.approveStub)
-  sinon.assert.called(stubs.mergeStub)
-})
 
-tap.test('should handle a newly added package', async () => {
-  const PR_NUMBER = Math.random()
-
-  const { action, stubs } = buildStubbedAction({
-    payload: {
-      pull_request: {
-        number: PR_NUMBER,
-        user: { login: BOT_NAME },
-        title: 'Invalid PR title'
-      }
-    },
-    inputs: {
-      PR_NUMBER,
-      TARGET: 'any',
-      EXCLUDE_PKGS: ['react'],
-    }
-  })
-
-  stubs.prDiffStub.resolves(diffs.thisModuleAdded)
-
-  await action()
-
-  sinon.assert.called(stubs.approveStub)
-  sinon.assert.called(stubs.mergeStub)
+  sinon.assert.calledWith(stubs.coreStub.setFailed, ("Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`"))
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
 })

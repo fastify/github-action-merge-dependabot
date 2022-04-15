@@ -1,5 +1,6 @@
 'use strict'
 const tap = require('tap')
+const { getPackageName } = require('../src/util')
 
 const coreStubs = {
   'getInput': () => '',
@@ -26,4 +27,16 @@ tap.test('MERGE_METHOD should be correct for valid input', async t => {
     }
   })
   t.equal(getInputs().MERGE_METHOD, 'merge')
+})
+
+tap.test('getPackageName should get package name from branch with repo name', async t => {
+  t.equal(getPackageName("dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"), "github-action-merge-dependabot")
+})
+
+tap.test('getPackageName should get package name from branch', async t => {
+  t.equal(getPackageName("dependabot/npm_and_yarn/pkg-0.0.1"), "pkg")
+})
+
+tap.test('getPackageName should throw an error for invalid branch names', async t => {
+  t.throws(() => getPackageName("invalidbranchname"), new Error('Invalid branch name, package name or version not found'))
 })
