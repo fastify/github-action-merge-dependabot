@@ -30,7 +30,7 @@
     "@actions/github": "^5.0.1",
     "actions-toolkit": "github:nearform/actions-toolkit",
     "gitdiff-parser": "^0.2.2",
-    "semver": "^7.3.6"
+    "semver": "^7.3.7"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.33.3",
