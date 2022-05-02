@@ -264,7 +264,7 @@ tap.test('should review and merge', async () => {
   sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test('should check submodules semver when target is set', async () => {
+tap.test('should check PR diff with commit hash version when target is set', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -280,13 +280,12 @@ tap.test('should check submodules semver when target is set', async () => {
     }
   })
 
-  stubs.prDiffStub.resolves(diffs.submodules)
+  stubs.prDiffStub.resolves(diffs.commitHash)
 
   await action()
 
-  sinon.assert.calledWithExactly(stubs.logStub.logWarning, 'Target specified does not match to PR, skipping.')
-  sinon.assert.notCalled(stubs.approveStub)
-  sinon.assert.notCalled(stubs.mergeStub)
+  sinon.assert.called(stubs.approveStub)
+  sinon.assert.called(stubs.mergeStub)
 })
 
 tap.test('should merge major bump using PR title', async () => {
@@ -403,6 +402,66 @@ tap.test('should throw if the PR title is not valid', async () => {
   await action()
 
   sinon.assert.calledWith(stubs.coreStub.setFailed, ("Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`"))
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
+tap.test('should merge with commit hashes on PR title', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions-toolkit from `044e827` to `cc221b3`',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
+        }
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'major',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
+  sinon.assert.called(stubs.approveStub)
+  sinon.assert.called(stubs.mergeStub)
+})
+
+tap.test('should not merge with unrecognized versions on PR title', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions-toolkit from `000044e827` to `0000cc221b3`',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
+        }
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'major',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.called(stubs.coreStub.setFailed)
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })

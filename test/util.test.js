@@ -1,6 +1,6 @@
 'use strict'
 const tap = require('tap')
-const { getPackageName } = require('../src/util')
+const { isCommitHash, getPackageName } = require('../src/util')
 
 const coreStubs = {
   'getInput': () => '',
@@ -39,4 +39,11 @@ tap.test('getPackageName should get package name from branch', async t => {
 
 tap.test('getPackageName should throw an error for invalid branch names', async t => {
   t.throws(() => getPackageName("invalidbranchname"), new Error('Invalid branch name, package name or version not found'))
+})
+
+tap.test('isCommitHash should detect 7 digit commit hashes properly', async t => {
+  t.ok(isCommitHash('044e827'))
+  t.ok(isCommitHash('cc221b3'))
+  t.notOk(isCommitHash('0000cc221b3'))
+  t.notOk(isCommitHash('cc-21b3'))
 })

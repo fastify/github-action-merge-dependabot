@@ -2,18 +2,12 @@
 
 const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
-const semverValid = require('semver/functions/valid')
 const { parse } = require('gitdiff-parser')
+const { isCommitHash } = require('./util')
 
 const { semanticVersionOrder } = require('./getTargetInput')
-const { logWarning } = require('./log')
 
 const expression = /"([^\s]+)":\s*"([^\s]+)"/
-
-function hasBadChars(version) {
-  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
-  return /^[^^~*-0-9+x]/.test(version)
-}
 
 const checkModuleVersionChanges = (moduleChanges, target) => {
   for (const module in moduleChanges) {
@@ -24,9 +18,12 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
       return false
     }
 
-    if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
-      logWarning(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
-      return false
+    if (isCommitHash(from) && isCommitHash(to)) {
+      return true
+    }
+
+    if (!semverCoerce(from) || !semverCoerce(to)) {
+      throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
     }
 
     const diff = semverDiff(semverCoerce(from), semverCoerce(to))

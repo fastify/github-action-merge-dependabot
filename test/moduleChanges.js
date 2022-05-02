@@ -84,7 +84,7 @@ index d3dfd3d..bd28161 100644
 -        "react": "^17.0.2",
 +        "react": "^17.0.2",
 `,
-  submodules: `
+  commitHash: `
 diff --git a/package.json b/package.json
 index d3dfd3d..bd28161 100644
 --- a/package.json

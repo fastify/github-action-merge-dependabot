@@ -54,3 +54,7 @@ exports.getPackageName = (branchName) => {
 
   return packageName
 }
+
+exports.isCommitHash = function(version) {
+  return /^[\w]{7}$/.test(version)
+}

@@ -9,7 +9,7 @@ const toolkit = require('actions-toolkit')
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const { getInputs, getPackageName } = require('./util')
+const { isCommitHash, getInputs, getPackageName } = require('./util')
 const { targetOptions } = require('./getTargetInput')
 const {
   getModuleVersionChanges,
@@ -94,6 +94,10 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
+  if (isCommitHash(from) && isCommitHash(to))  {
+    return false
+  }
+
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
@@ -105,9 +109,25 @@ function parsePrTitle(pullRequest) {
   if (!match) {
     throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
-  const [, oldVersion, newVersion] = match
+
+  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
 
   const packageName = getPackageName(pullRequest.head.ref)
 
-  return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
+  if (semverCoerce(oldVersion) && semverCoerce(newVersion)) {
+    return {
+      [packageName]: {
+        delete: semverCoerce(oldVersion).raw,
+        insert: semverCoerce(newVersion).raw
+      }
+    }
+  } else  {
+    return {
+      [packageName]: {
+        delete: oldVersion,
+        insert: newVersion
+      }
+    }
+  }
+
 }
