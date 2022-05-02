@@ -406,7 +406,7 @@ tap.test('should throw if the PR title is not valid', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should merge with commit hashes on PR title', async () => {
+tap.test('should merge with commit hashes on PR title with a target', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -436,7 +436,37 @@ tap.test('should merge with commit hashes on PR title', async () => {
   sinon.assert.called(stubs.mergeStub)
 })
 
-tap.test('should not merge with unrecognized versions on PR title', async () => {
+
+tap.test('should merge with commit hashes on PR title without a target', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions-toolkit from `044e827` to `cc221b3`',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
+        }
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
+  sinon.assert.called(stubs.approveStub)
+  sinon.assert.called(stubs.mergeStub)
+})
+
+tap.test('should not merge with unrecognized versions on PR title with a target', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -453,6 +483,35 @@ tap.test('should not merge with unrecognized versions on PR title', async () => 
     inputs: {
       PR_NUMBER,
       TARGET: 'major',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.called(stubs.coreStub.setFailed)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
+tap.test('should not merge with unrecognized versions on PR title without a target', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions-toolkit from `000044e827` to `0000cc221b3`',
+        head: {
+          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
+        }
+      }
+    },
+    inputs: {
+      PR_NUMBER,
       EXCLUDE_PKGS: ['react'],
     }
   })
