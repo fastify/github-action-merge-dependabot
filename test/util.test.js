@@ -41,11 +41,12 @@ tap.test('getPackageName should throw an error for invalid branch names', async 
   t.throws(() => getPackageName("invalidbranchname"), new Error('Invalid branch name, package name or version not found'))
 })
 
-tap.test('isCommitHash should detect 7 digit commit hashes properly', async t => {
+tap.test('isCommitHash should detect variable length SHA1 hashes properly', async t => {
   t.ok(isCommitHash('044e827'))
   t.ok(isCommitHash('cc221b3'))
+  t.ok(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b'))
   t.notOk(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b2')) // Hash larger than 40 chars, the SHA1 hash length
-  t.notOk(isCommitHash('ccx21b3')) // Hash larger than 40 chars, the SHA1 hash length
+  t.notOk(isCommitHash('ccx21b3'))
   t.notOk(isCommitHash('cc-21b3'))
 })
 
