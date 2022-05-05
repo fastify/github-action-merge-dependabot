@@ -288,7 +288,36 @@ tap.test('should check PR diff with commit hash version when target is set', asy
   sinon.assert.called(stubs.mergeStub)
 })
 
-tap.test('should merge major bump using PR title', async () => {
+tap.test('should merge major bump using PR title with proper semver versions', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+        title: 'build(deps): bump actions/checkout from 2.0.0 to 3.0.0',
+        head: {
+          ref: 'dependabot/github_actions/actions/checkout-3'
+        }
+      }
+    },
+    inputs: {
+      PR_NUMBER,
+      TARGET: 'major',
+      EXCLUDE_PKGS: ['react'],
+    }
+  })
+
+  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+
+  await action()
+
+  sinon.assert.called(stubs.approveStub)
+  sinon.assert.called(stubs.mergeStub)
+})
+
+tap.test('should merge major bump using PR title with coerceable semver versions', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -317,7 +346,7 @@ tap.test('should merge major bump using PR title', async () => {
   sinon.assert.called(stubs.mergeStub)
 })
 
-tap.test('should forbid major bump using PR title', async () => {
+tap.test('should forbid major bump using PR title when target is minor', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -445,7 +474,7 @@ tap.test('should merge with commit hashes on PR title without a target', async (
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump actions-toolkit from `044e827` to `cc221b3`',
+        title: 'build(deps): bump actions-toolkit from `cc221b3` to `044e827`',
         head: {
           ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
         }
@@ -474,7 +503,7 @@ tap.test('should not merge with unrecognized versions on PR title with a target'
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump actions-toolkit from `000044e827` to `0000cc221b3`',
+        title: 'build(deps): bump actions-toolkit from `0004x4e827` to `00ccx221b3`',
         head: {
           ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
         }
@@ -504,7 +533,7 @@ tap.test('should not merge with unrecognized versions on PR title without a targ
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'build(deps): bump actions-toolkit from `000044e827` to `0000cc221b3`',
+        title: 'build(deps): bump actions-toolkit from `00-044e827` to `0-00cc221b3`',
         head: {
           ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
         }

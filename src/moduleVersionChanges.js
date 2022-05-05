@@ -3,7 +3,7 @@
 const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
 const { parse } = require('gitdiff-parser')
-const { isCommitHash } = require('./util')
+const { isCommitHash, isValidSemver } = require('./util')
 
 const { semanticVersionOrder } = require('./getTargetInput')
 
@@ -22,7 +22,7 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
       return true
     }
 
-    if (!semverCoerce(from) || !semverCoerce(to)) {
+    if (!isValidSemver(from) || !isValidSemver(to)) {
       throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
     }
 

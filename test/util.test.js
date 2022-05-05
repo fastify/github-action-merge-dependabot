@@ -1,6 +1,6 @@
 'use strict'
 const tap = require('tap')
-const { isCommitHash, getPackageName } = require('../src/util')
+const { isValidSemver, isCommitHash, getPackageName } = require('../src/util')
 
 const coreStubs = {
   'getInput': () => '',
@@ -44,6 +44,14 @@ tap.test('getPackageName should throw an error for invalid branch names', async 
 tap.test('isCommitHash should detect 7 digit commit hashes properly', async t => {
   t.ok(isCommitHash('044e827'))
   t.ok(isCommitHash('cc221b3'))
-  t.notOk(isCommitHash('0000cc221b3'))
+  t.notOk(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b2')) // Hash larger than 40 chars, the SHA1 hash length
+  t.notOk(isCommitHash('ccx21b3')) // Hash larger than 40 chars, the SHA1 hash length
   t.notOk(isCommitHash('cc-21b3'))
+})
+
+tap.test('isSemverValid should detect semver versions appropriately', async t => {
+  t.ok(isValidSemver('2'))
+  t.ok(isValidSemver('2.0.0'))
+  t.notOk(isValidSemver('2.0.0.0'))
+  t.notOk(isValidSemver('044e827'))
 })

@@ -6486,6 +6486,19 @@ module.exports = parse
 
 /***/ }),
 
+/***/ 9601:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const parse = __nccwpck_require__(5925)
+const valid = (version, options) => {
+  const v = parse(version, options)
+  return v ? v.version : null
+}
+module.exports = valid
+
+
+/***/ }),
+
 /***/ 2293:
 /***/ ((module) => {
 
@@ -9286,7 +9299,7 @@ const toolkit = __nccwpck_require__(2183)
 const packageInfo = __nccwpck_require__(4147)
 const { githubClient } = __nccwpck_require__(3386)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
-const { isCommitHash, getInputs, getPackageName } = __nccwpck_require__(6254)
+const { isValidSemver, isCommitHash, getInputs, getPackageName } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
 const {
   getModuleVersionChanges,
@@ -9387,26 +9400,17 @@ function parsePrTitle(pullRequest) {
     throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
 
-  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
-
   const packageName = getPackageName(pullRequest.head.ref)
 
-  if (semverCoerce(oldVersion) && semverCoerce(newVersion)) {
-    return {
-      [packageName]: {
-        delete: semverCoerce(oldVersion).raw,
-        insert: semverCoerce(newVersion).raw
-      }
-    }
-  } else  {
-    return {
-      [packageName]: {
-        delete: oldVersion,
-        insert: newVersion
-      }
+  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
+  const isValid = isValidSemver(oldVersion) && isValidSemver(newVersion)
+
+  return {
+    [packageName]: {
+      delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
+      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion
     }
   }
-
 }
 
 
@@ -9547,7 +9551,7 @@ exports.logWarning = log(warning)
 const semverDiff = __nccwpck_require__(4297)
 const semverCoerce = __nccwpck_require__(3466)
 const { parse } = __nccwpck_require__(153)
-const { isCommitHash } = __nccwpck_require__(6254)
+const { isCommitHash, isValidSemver } = __nccwpck_require__(6254)
 
 const { semanticVersionOrder } = __nccwpck_require__(5013)
 
@@ -9566,7 +9570,7 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
       return true
     }
 
-    if (!semverCoerce(from) || !semverCoerce(to)) {
+    if (!isValidSemver(from) || !isValidSemver(to)) {
       throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
     }
 
@@ -9629,6 +9633,8 @@ module.exports = {
 "use strict";
 
 
+const semverValid = __nccwpck_require__(9601)
+const semverCoerce = __nccwpck_require__(3466)
 const core = __nccwpck_require__(2186)
 
 const { getTargetInput } = __nccwpck_require__(5013)
@@ -9671,6 +9677,8 @@ exports.getInputs = () => ({
  * Get a package name from a branch name.
  * Dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
  * or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+ * @param {String} branchName
+ * @returns Package name extracted from branch
  */
 exports.getPackageName = (branchName) => {
   const nameWithVersion = branchName.split('/').pop().split('-')
@@ -9684,8 +9692,32 @@ exports.getPackageName = (branchName) => {
   return packageName
 }
 
+/**
+ * Checks if the string is a SHA1 commit hash.
+ * Usually github commit hashes are 7 chars long, but in case this change someday
+ * it's checking for the maximum length of a SHA1 hash (40 hexadecimal chars)
+ * @param {String} version
+ * @returns Boolean indicating whether version
+ */
 exports.isCommitHash = function(version) {
-  return /^[\w]{7}$/.test(version)
+  return /^[a-f0-9]{5,40}$/.test(version)
+}
+
+/**
+ * Checks if a version is a valid semver version.
+ * Uses loose: true and replace `v`, `~`, `^` charactes to make function a bit
+ * less restrictive regarding the accepted inputs
+ * @param {String} version
+ * @returns Boolean indicating whether version is valid
+ */
+exports.isValidSemver = function (version) {
+  const isNumber = !isNaN(+version)
+
+  if (isNumber) {
+    return semverValid(semverCoerce(version))
+  }
+
+  return semverValid(version.replace(/[\^~v]/g, ''), { loose: true })
 }
 
 

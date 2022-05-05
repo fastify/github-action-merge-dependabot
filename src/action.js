@@ -9,7 +9,7 @@ const toolkit = require('actions-toolkit')
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const { isCommitHash, getInputs, getPackageName } = require('./util')
+const { isValidSemver, isCommitHash, getInputs, getPackageName } = require('./util')
 const { targetOptions } = require('./getTargetInput')
 const {
   getModuleVersionChanges,
@@ -110,24 +110,15 @@ function parsePrTitle(pullRequest) {
     throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
 
-  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
-
   const packageName = getPackageName(pullRequest.head.ref)
 
-  if (semverCoerce(oldVersion) && semverCoerce(newVersion)) {
-    return {
-      [packageName]: {
-        delete: semverCoerce(oldVersion).raw,
-        insert: semverCoerce(newVersion).raw
-      }
-    }
-  } else  {
-    return {
-      [packageName]: {
-        delete: oldVersion,
-        insert: newVersion
-      }
+  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
+  const isValid = isValidSemver(oldVersion) && isValidSemver(newVersion)
+
+  return {
+    [packageName]: {
+      delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
+      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion
     }
   }
-
 }
