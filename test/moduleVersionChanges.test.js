@@ -97,11 +97,11 @@ tap.test('checkModuleVersionChanges', async t => {
     })
   })
 
-  t.test('submodules', async t => {
-    t.notOk(checkModuleVersionChanges(moduleChanges.submodules, targetOptions.prepatch))
-    t.notOk(checkModuleVersionChanges(moduleChanges.submodules, targetOptions.patch))
-    t.notOk(checkModuleVersionChanges(moduleChanges.submodules, targetOptions.minor))
-    t.notOk(checkModuleVersionChanges(moduleChanges.submodules, targetOptions.major))
+  t.test('commit hash', async t => {
+    t.ok(checkModuleVersionChanges(moduleChanges.commitHash, targetOptions.prepatch))
+    t.ok(checkModuleVersionChanges(moduleChanges.commitHash, targetOptions.patch))
+    t.ok(checkModuleVersionChanges(moduleChanges.commitHash, targetOptions.minor))
+    t.ok(checkModuleVersionChanges(moduleChanges.commitHash, targetOptions.major))
   })
 
   t.test('should return false when', async t => {

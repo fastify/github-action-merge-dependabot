@@ -1,6 +1,6 @@
 'use strict'
 const tap = require('tap')
-const { getPackageName } = require('../src/util')
+const { isValidSemver, isCommitHash, getPackageName } = require('../src/util')
 
 const coreStubs = {
   'getInput': () => '',
@@ -39,4 +39,20 @@ tap.test('getPackageName should get package name from branch', async t => {
 
 tap.test('getPackageName should throw an error for invalid branch names', async t => {
   t.throws(() => getPackageName("invalidbranchname"), new Error('Invalid branch name, package name or version not found'))
+})
+
+tap.test('isCommitHash should detect variable length SHA1 hashes properly', async t => {
+  t.ok(isCommitHash('044e827'))
+  t.ok(isCommitHash('cc221b3'))
+  t.ok(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b'))
+  t.notOk(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b2')) // Hash larger than 40 chars, the SHA1 hash length
+  t.notOk(isCommitHash('ccx21b3'))
+  t.notOk(isCommitHash('cc-21b3'))
+})
+
+tap.test('isSemverValid should detect semver versions appropriately', async t => {
+  t.ok(isValidSemver('2'))
+  t.ok(isValidSemver('2.0.0'))
+  t.notOk(isValidSemver('2.0.0.0'))
+  t.notOk(isValidSemver('044e827'))
 })

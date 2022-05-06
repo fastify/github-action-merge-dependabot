@@ -6311,7 +6311,7 @@ class SemVer {
         if (identifier) {
           // 1.2.0-beta.1 bumps to 1.2.0-beta.2,
           // 1.2.0-beta.fooblz or 1.2.0-beta bumps to 1.2.0-beta.0
-          if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
+          if (this.prerelease[0] === identifier) {
             if (isNaN(this.prerelease[1])) {
               this.prerelease = [identifier, 0]
             }
@@ -9299,7 +9299,7 @@ const toolkit = __nccwpck_require__(2183)
 const packageInfo = __nccwpck_require__(4147)
 const { githubClient } = __nccwpck_require__(3386)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
-const { getInputs, getPackageName } = __nccwpck_require__(6254)
+const { isValidSemver, isCommitHash, getInputs, getPackageName } = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
 const {
   getModuleVersionChanges,
@@ -9384,6 +9384,10 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
+  if (isCommitHash(from) && isCommitHash(to))  {
+    return false
+  }
+
   const diff = semverDiff(semverCoerce(from), semverCoerce(to))
   return diff === targetOptions.major
 }
@@ -9395,11 +9399,18 @@ function parsePrTitle(pullRequest) {
   if (!match) {
     throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
   }
-  const [, oldVersion, newVersion] = match
 
   const packageName = getPackageName(pullRequest.head.ref)
 
-  return { [packageName]: { delete: semverCoerce(oldVersion).raw, insert: semverCoerce(newVersion).raw } }
+  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
+  const isValid = isValidSemver(oldVersion) && isValidSemver(newVersion)
+
+  return {
+    [packageName]: {
+      delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
+      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion
+    }
+  }
 }
 
 
@@ -9539,18 +9550,12 @@ exports.logWarning = log(warning)
 
 const semverDiff = __nccwpck_require__(4297)
 const semverCoerce = __nccwpck_require__(3466)
-const semverValid = __nccwpck_require__(9601)
 const { parse } = __nccwpck_require__(153)
+const { isCommitHash, isValidSemver } = __nccwpck_require__(6254)
 
 const { semanticVersionOrder } = __nccwpck_require__(5013)
-const { logWarning } = __nccwpck_require__(653)
 
 const expression = /"([^\s]+)":\s*"([^\s]+)"/
-
-function hasBadChars(version) {
-  // recognize submodules title likes 'Bump dotbot from `aa93350` to `acaaaac`'
-  return /^[^^~*-0-9+x]/.test(version)
-}
 
 const checkModuleVersionChanges = (moduleChanges, target) => {
   for (const module in moduleChanges) {
@@ -9561,9 +9566,12 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
       return false
     }
 
-    if ((!semverValid(from) && hasBadChars(from)) || (!semverValid(to) && hasBadChars(to))) {
-      logWarning(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
-      return false
+    if (isCommitHash(from) && isCommitHash(to)) {
+      return true
+    }
+
+    if (!isValidSemver(from) || !isValidSemver(to)) {
+      throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
     }
 
     const diff = semverDiff(semverCoerce(from), semverCoerce(to))
@@ -9625,6 +9633,8 @@ module.exports = {
 "use strict";
 
 
+const semverValid = __nccwpck_require__(9601)
+const semverCoerce = __nccwpck_require__(3466)
 const core = __nccwpck_require__(2186)
 
 const { getTargetInput } = __nccwpck_require__(5013)
@@ -9667,6 +9677,8 @@ exports.getInputs = () => ({
  * Get a package name from a branch name.
  * Dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
  * or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
+ * @param {String} branchName
+ * @returns Package name extracted from branch
  */
 exports.getPackageName = (branchName) => {
   const nameWithVersion = branchName.split('/').pop().split('-')
@@ -9678,6 +9690,34 @@ exports.getPackageName = (branchName) => {
   }
 
   return packageName
+}
+
+/**
+ * Checks if the string is a SHA1 commit hash.
+ * Usually github commit hashes are 7 chars long, but in case this change someday
+ * it's checking for the maximum length of a SHA1 hash (40 hexadecimal chars)
+ * @param {String} version
+ * @returns Boolean indicating whether version
+ */
+exports.isCommitHash = function(version) {
+  return /^[a-f0-9]{5,40}$/.test(version)
+}
+
+/**
+ * Checks if a version is a valid semver version.
+ * Uses loose: true and replace `v`, `~`, `^` charactes to make function a bit
+ * less restrictive regarding the accepted inputs
+ * @param {String} version
+ * @returns Boolean indicating whether version is valid
+ */
+exports.isValidSemver = function (version) {
+  const isNumber = !isNaN(+version)
+
+  if (isNumber) {
+    return semverValid(semverCoerce(version))
+  }
+
+  return semverValid(version.replace(/[\^~v]/g, ''), { loose: true })
 }
 
 
@@ -9815,7 +9855,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.4","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.6.0","@actions/github":"^5.0.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.33.4","eslint":"^8.14.0","husky":"^7.0.4","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^13.0.2","tap":"^16.1.0"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.4","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.7.0","@actions/github":"^5.0.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.33.4","eslint":"^8.14.0","husky":"^7.0.4","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^13.0.2","tap":"^16.1.0"}}');
 
 /***/ })
 
