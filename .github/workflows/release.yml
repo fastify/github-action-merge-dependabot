@@ -24,6 +24,5 @@ jobs:
           semver: ${{ github.event.inputs.semver }}
           sync-semver-tags: true
           build-command: |
-            echo 'installing husky hooks..'
             npm ci
-
+            npm run build
