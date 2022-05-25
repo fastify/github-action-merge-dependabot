@@ -1,15 +1,15 @@
 'use strict'
 
-const tap = require('tap');
-const sinon = require('sinon');
+const tap = require('tap')
+const sinon = require('sinon')
 
 const githubContext = {
   repository: {
     owner: {
       login: 'owner-login.',
     },
-    name: 'repository-name'
-  }
+    name: 'repository-name',
+  },
 }
 
 const data = 'octokit-result'
@@ -23,21 +23,21 @@ const octokitStubs = {
 const { githubClient } = tap.mock('../src/github-client', {
   '@actions/github': {
     context: {
-      payload: githubContext
+      payload: githubContext,
     },
     getOctokit: () => ({
       rest: {
-        pulls: octokitStubs
-      }
-    })
-  }
+        pulls: octokitStubs,
+      },
+    }),
+  },
 })
 
 const TOKEN = 'GITHUB-TOKEN'
-const PR_NUMBER = Math.floor(Math.random() * 10);
+const PR_NUMBER = Math.floor(Math.random() * 10)
 
 tap.afterEach(() => {
-  sinon.resetHistory();
+  sinon.resetHistory()
 })
 
 tap.test('githubClient', async t => {
@@ -48,13 +48,16 @@ tap.test('githubClient', async t => {
     sinon.assert.calledWith(octokitStubs.get, {
       owner: githubContext.repository.owner.login,
       repo: githubContext.repository.name,
-      pull_number: PR_NUMBER
+      pull_number: PR_NUMBER,
     })
   })
 
   t.test('approvePullRequest', async () => {
     const comment = 'Test pull request comment'
-    const result = await githubClient(TOKEN).approvePullRequest(PR_NUMBER, comment)
+    const result = await githubClient(TOKEN).approvePullRequest(
+      PR_NUMBER,
+      comment
+    )
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.createReview, {
@@ -62,7 +65,7 @@ tap.test('githubClient', async t => {
       repo: githubContext.repository.name,
       pull_number: PR_NUMBER,
       event: 'APPROVE',
-      body: comment
+      body: comment,
     })
   })
 
@@ -88,8 +91,8 @@ tap.test('githubClient', async t => {
       repo: githubContext.repository.name,
       pull_number: PR_NUMBER,
       mediaType: {
-        format: 'diff'
-      }
+        format: 'diff',
+      },
     })
   })
 })

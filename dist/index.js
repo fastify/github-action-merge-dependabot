@@ -9690,7 +9690,12 @@ const toolkit = __nccwpck_require__(2183)
 const packageInfo = __nccwpck_require__(4147)
 const { githubClient } = __nccwpck_require__(3386)
 const { logInfo, logWarning, logError } = __nccwpck_require__(653)
-const { isValidSemver, isCommitHash, getInputs, getPackageName } = __nccwpck_require__(6254)
+const {
+  isValidSemver,
+  isCommitHash,
+  getInputs,
+  getPackageName,
+} = __nccwpck_require__(6254)
 const { targetOptions } = __nccwpck_require__(5013)
 const {
   getModuleVersionChanges,
@@ -9742,7 +9747,9 @@ module.exports = async function run() {
       }
     }
 
-    const changedExcludedPackages = EXCLUDE_PKGS.filter((pkg) => pkg in moduleChanges)
+    const changedExcludedPackages = EXCLUDE_PKGS.filter(
+      pkg => pkg in moduleChanges
+    )
     if (changedExcludedPackages.length > 0) {
       return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
 ${changedExcludedPackages.join(', ')}. Skipping.`)
@@ -9775,7 +9782,7 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
-  if (isCommitHash(from) && isCommitHash(to))  {
+  if (isCommitHash(from) && isCommitHash(to)) {
     return false
   }
 
@@ -9788,7 +9795,9 @@ function parsePrTitle(pullRequest) {
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
+    throw new Error(
+      'Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`'
+    )
   }
 
   const packageName = getPackageName(pullRequest.head.ref)
@@ -9799,8 +9808,8 @@ function parsePrTitle(pullRequest) {
   return {
     [packageName]: {
       delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
-      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion
-    }
+      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion,
+    },
   }
 }
 
@@ -9821,7 +9830,7 @@ const targetOptions = {
   patch: 'patch',
   prepatch: 'prepatch',
   prerelease: 'prerelease',
-  any: 'any'
+  any: 'any',
 }
 
 const semanticVersionOrder = [
@@ -9832,7 +9841,7 @@ const semanticVersionOrder = [
   targetOptions.minor,
   targetOptions.premajor,
   targetOptions.major,
-  targetOptions.any
+  targetOptions.any,
 ]
 
 const getTargetInput = input => {
@@ -9876,7 +9885,7 @@ function githubClient(githubToken) {
         repo: repoName,
         pull_number: pullRequestNumber,
         event: 'APPROVE',
-        body: approveComment
+        body: approveComment,
       })
       // todo assert
       return data
@@ -9920,10 +9929,10 @@ module.exports = { githubClient }
 
 const { debug, error, info, warning } = __nccwpck_require__(2186)
 
-const stringify = (msg) =>
+const stringify = msg =>
   typeof msg === 'string' ? msg : msg.stack || msg.toString()
 
-const log = (logger) => (message) => logger(stringify(message))
+const log = logger => message => logger(stringify(message))
 
 exports.logDebug = log(debug)
 exports.logError = log(error)
@@ -9962,7 +9971,9 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
     }
 
     if (!isValidSemver(from) || !isValidSemver(to)) {
-      throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
+      throw new Error(
+        `Module "${module}" contains invalid semver versions from: ${from} to: ${to}`
+      )
     }
 
     const diff = semverDiff(semverCoerce(from), semverCoerce(to))
@@ -9977,9 +9988,11 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
   return true
 }
 
-const getModuleVersionChanges = (prDiff) => {
+const getModuleVersionChanges = prDiff => {
   const parsedDiffFiles = parse(prDiff)
-  const packageJsonChanges = parsedDiffFiles.find((file) => file.newPath === 'package.json')
+  const packageJsonChanges = parsedDiffFiles.find(
+    file => file.newPath === 'package.json'
+  )
   if (!packageJsonChanges) {
     return false
   }
@@ -9987,7 +10000,7 @@ const getModuleVersionChanges = (prDiff) => {
   const moduleChanges = {}
   for (const idx in packageJsonChanges.hunks) {
     const changes = packageJsonChanges.hunks[idx].changes.filter(
-      (c) => c.type === 'delete' || c.type === 'insert'
+      c => c.type === 'delete' || c.type === 'insert'
     )
 
     for (const changeIdx in changes) {
@@ -10050,8 +10063,8 @@ const getMergeMethod = () => {
   return mergeMethods[input]
 }
 
-const parseCommaSeparatedValue = (value) => {
-  return value ? value.split(',').map(el => el.trim()) : [];
+const parseCommaSeparatedValue = value => {
+  return value ? value.split(',').map(el => el.trim()) : []
 }
 
 exports.getInputs = () => ({
@@ -10071,7 +10084,7 @@ exports.getInputs = () => ({
  * @param {String} branchName
  * @returns Package name extracted from branch
  */
-exports.getPackageName = (branchName) => {
+exports.getPackageName = branchName => {
   const nameWithVersion = branchName.split('/').pop().split('-')
   const version = nameWithVersion.pop()
   const packageName = nameWithVersion.join('-')
@@ -10090,7 +10103,7 @@ exports.getPackageName = (branchName) => {
  * @param {String} version
  * @returns Boolean indicating whether version
  */
-exports.isCommitHash = function(version) {
+exports.isCommitHash = function (version) {
   return /^[a-f0-9]{5,40}$/.test(version)
 }
 
@@ -10246,7 +10259,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.7","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.8.2","@actions/github":"^5.0.3","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.33.4","eslint":"^8.16.0","husky":"^8.0.1","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^14.0.0","tap":"^16.2.0"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.1.7","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.8.2","@actions/github":"^5.0.3","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.33.4","eslint":"^8.16.0","eslint-config-prettier":"^8.5.0","eslint-plugin-prettier":"^4.0.0","husky":"^8.0.1","prettier":"^2.6.2","proxyquire":"^2.1.3","sinon":"^14.0.0","tap":"^16.2.0"}}');
 
 /***/ })
 

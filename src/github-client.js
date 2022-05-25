@@ -26,7 +26,7 @@ function githubClient(githubToken) {
         repo: repoName,
         pull_number: pullRequestNumber,
         event: 'APPROVE',
-        body: approveComment
+        body: approveComment,
       })
       // todo assert
       return data

@@ -178,7 +178,7 @@ index e790278..678e751 100644
        - uses: actions/setup-node@v3
          with:
            node-version-file: '.nvmrc'
-`
+`,
 }
 
 const moduleChanges = {}
