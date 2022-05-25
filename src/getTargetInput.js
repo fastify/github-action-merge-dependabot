@@ -8,7 +8,7 @@ const targetOptions = {
   patch: 'patch',
   prepatch: 'prepatch',
   prerelease: 'prerelease',
-  any: 'any'
+  any: 'any',
 }
 
 const semanticVersionOrder = [
@@ -19,7 +19,7 @@ const semanticVersionOrder = [
   targetOptions.minor,
   targetOptions.premajor,
   targetOptions.major,
-  targetOptions.any
+  targetOptions.any,
 ]
 
 const getTargetInput = input => {

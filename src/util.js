@@ -26,8 +26,8 @@ const getMergeMethod = () => {
   return mergeMethods[input]
 }
 
-const parseCommaSeparatedValue = (value) => {
-  return value ? value.split(',').map(el => el.trim()) : [];
+const parseCommaSeparatedValue = value => {
+  return value ? value.split(',').map(el => el.trim()) : []
 }
 
 exports.getInputs = () => ({
@@ -47,7 +47,7 @@ exports.getInputs = () => ({
  * @param {String} branchName
  * @returns Package name extracted from branch
  */
-exports.getPackageName = (branchName) => {
+exports.getPackageName = branchName => {
   const nameWithVersion = branchName.split('/').pop().split('-')
   const version = nameWithVersion.pop()
   const packageName = nameWithVersion.join('-')
@@ -66,7 +66,7 @@ exports.getPackageName = (branchName) => {
  * @param {String} version
  * @returns Boolean indicating whether version
  */
-exports.isCommitHash = function(version) {
+exports.isCommitHash = function (version) {
   return /^[a-f0-9]{5,40}$/.test(version)
 }
 

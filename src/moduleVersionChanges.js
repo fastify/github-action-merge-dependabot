@@ -23,7 +23,9 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
     }
 
     if (!isValidSemver(from) || !isValidSemver(to)) {
-      throw new Error(`Module "${module}" contains invalid semver versions from: ${from} to: ${to}`)
+      throw new Error(
+        `Module "${module}" contains invalid semver versions from: ${from} to: ${to}`
+      )
     }
 
     const diff = semverDiff(semverCoerce(from), semverCoerce(to))
@@ -38,9 +40,11 @@ const checkModuleVersionChanges = (moduleChanges, target) => {
   return true
 }
 
-const getModuleVersionChanges = (prDiff) => {
+const getModuleVersionChanges = prDiff => {
   const parsedDiffFiles = parse(prDiff)
-  const packageJsonChanges = parsedDiffFiles.find((file) => file.newPath === 'package.json')
+  const packageJsonChanges = parsedDiffFiles.find(
+    file => file.newPath === 'package.json'
+  )
   if (!packageJsonChanges) {
     return false
   }
@@ -48,7 +52,7 @@ const getModuleVersionChanges = (prDiff) => {
   const moduleChanges = {}
   for (const idx in packageJsonChanges.hunks) {
     const changes = packageJsonChanges.hunks[idx].changes.filter(
-      (c) => c.type === 'delete' || c.type === 'insert'
+      c => c.type === 'delete' || c.type === 'insert'
     )
 
     for (const changeIdx in changes) {

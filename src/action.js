@@ -9,7 +9,12 @@ const toolkit = require('actions-toolkit')
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const { isValidSemver, isCommitHash, getInputs, getPackageName } = require('./util')
+const {
+  isValidSemver,
+  isCommitHash,
+  getInputs,
+  getPackageName,
+} = require('./util')
 const { targetOptions } = require('./getTargetInput')
 const {
   getModuleVersionChanges,
@@ -61,7 +66,9 @@ module.exports = async function run() {
       }
     }
 
-    const changedExcludedPackages = EXCLUDE_PKGS.filter((pkg) => pkg in moduleChanges)
+    const changedExcludedPackages = EXCLUDE_PKGS.filter(
+      pkg => pkg in moduleChanges
+    )
     if (changedExcludedPackages.length > 0) {
       return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
 ${changedExcludedPackages.join(', ')}. Skipping.`)
@@ -94,7 +101,7 @@ function isAMajorReleaseBump(change) {
   const from = change.delete
   const to = change.insert
 
-  if (isCommitHash(from) && isCommitHash(to))  {
+  if (isCommitHash(from) && isCommitHash(to)) {
     return false
   }
 
@@ -107,7 +114,9 @@ function parsePrTitle(pullRequest) {
   const match = expression.exec(pullRequest.title)
 
   if (!match) {
-    throw new Error('Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`')
+    throw new Error(
+      'Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`'
+    )
   }
 
   const packageName = getPackageName(pullRequest.head.ref)
@@ -118,7 +127,7 @@ function parsePrTitle(pullRequest) {
   return {
     [packageName]: {
       delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
-      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion
-    }
+      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion,
+    },
   }
 }

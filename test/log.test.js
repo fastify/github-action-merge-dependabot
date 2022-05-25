@@ -10,7 +10,7 @@ const coreStubs = {
   warning: sinon.stub(),
 }
 const log = tap.mock('../src/log', {
-  '@actions/core': coreStubs
+  '@actions/core': coreStubs,
 })
 
 tap.afterEach(() => {
