@@ -13,6 +13,7 @@ const { diffs } = require('./moduleChanges')
 const actionLog = require('../src/log')
 const actionUtil = require('../src/util')
 const actionGithubClient = require('../src/github-client')
+const verifyCommits = require('../src/verifyCommitSignatures')
 
 const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
@@ -34,14 +35,21 @@ function buildStubbedAction({ payload, inputs }) {
 
   const prStub = sinon.stub()
   const prDiffStub = sinon.stub()
+  const prCommitsStub = sinon.stub()
   const approveStub = sinon.stub()
   const mergeStub = sinon.stub()
+
   const clientStub = sinon.stub(actionGithubClient, 'githubClient').returns({
     getPullRequest: prStub.resolves(),
     approvePullRequest: approveStub.resolves(),
     mergePullRequest: mergeStub.resolves(),
     getPullRequestDiff: prDiffStub.resolves(),
+    getPullRequestCommits: prCommitsStub.resolves([]),
   })
+
+  const verifyCommitsStub = sinon
+    .stub(verifyCommits, 'verifyCommits')
+    .returns(Promise.resolve())
 
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
@@ -63,6 +71,8 @@ function buildStubbedAction({ payload, inputs }) {
       approveStub,
       mergeStub,
       prDiffStub,
+      prCommitsStub,
+      verifyCommitsStub,
     },
   }
 }
@@ -123,6 +133,76 @@ tap.test('should skip non-dependabot PR', async () => {
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
+
+tap.test('should skip PR with non dependabot commit', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        user: {
+          login: BOT_NAME,
+        },
+        number: PR_NUMBER,
+      },
+    },
+    inputs: { PR_NUMBER },
+  })
+
+  stubs.prCommitsStub.resolves([
+    {
+      author: {
+        login: 'not dependabot',
+      },
+    },
+  ])
+
+  await action()
+
+  sinon.assert.calledOnce(stubs.prCommitsStub)
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logWarning,
+    'PR contains non dependabot commits, skipping.'
+  )
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
+tap.test(
+  'should skip PR if dependabot commit signatures cannot be verified',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
+        },
+      },
+      inputs: { PR_NUMBER },
+    })
+
+    stubs.prCommitsStub.resolves([
+      {
+        author: {
+          login: 'dependabot[bot]',
+        },
+      },
+    ])
+
+    stubs.verifyCommitsStub.rejects()
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      'PR contains invalid dependabot commit signatures, skipping.'
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+  }
+)
 
 tap.test('should process dependabot PR and skip PR not in target', async () => {
   const PR_NUMBER = Math.random()

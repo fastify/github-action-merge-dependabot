@@ -54,6 +54,16 @@ function githubClient(githubToken) {
       })
       return pullRequest
     },
+
+    async getPullRequestCommits(pullRequestNumber) {
+      const { data } = await octokit.rest.pulls.listCommits({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+      })
+
+      return data
+    },
   }
 }
 

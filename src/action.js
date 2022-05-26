@@ -20,6 +20,8 @@ const {
   getModuleVersionChanges,
   checkModuleVersionChanges,
 } = require('./moduleVersionChanges')
+const { verifyCommits } = require('./verifyCommitSignatures')
+const { dependabotAuthor } = require('./getDependabotDetails')
 
 const {
   GITHUB_TOKEN,
@@ -47,9 +49,23 @@ module.exports = async function run() {
 
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
-    const isDependabotPR = pr.user.login === 'dependabot[bot]'
+    const isDependabotPR = pr.user.login === dependabotAuthor
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
+    }
+
+    const commits = await client.getPullRequestCommits(pr.number)
+
+    if (!commits.every(commit => commit.author.login === dependabotAuthor)) {
+      return logWarning('PR contains non dependabot commits, skipping.')
+    }
+
+    try {
+      await verifyCommits(commits)
+    } catch {
+      return logWarning(
+        'PR contains invalid dependabot commit signatures, skipping.'
+      )
     }
 
     const prDiff = await client.getPullRequestDiff(pr.number)

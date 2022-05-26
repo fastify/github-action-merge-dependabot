@@ -18,6 +18,7 @@ const octokitStubs = {
   get: sinon.stub().returns(Promise.resolve({ data })),
   createReview: sinon.stub().returns(Promise.resolve({ data })),
   merge: sinon.stub().returns(Promise.resolve({ data })),
+  listCommits: sinon.stub().returns(Promise.resolve({ data })),
 }
 
 const { githubClient } = tap.mock('../src/github-client', {
@@ -93,6 +94,17 @@ tap.test('githubClient', async t => {
       mediaType: {
         format: 'diff',
       },
+    })
+  })
+
+  t.test('getPullRequestCommits', async () => {
+    const result = await githubClient(TOKEN).getPullRequestCommits(PR_NUMBER)
+    tap.equal(result, data)
+
+    sinon.assert.calledWith(octokitStubs.listCommits, {
+      owner: githubContext.repository.owner.login,
+      repo: githubContext.repository.name,
+      pull_number: PR_NUMBER,
     })
   })
 })

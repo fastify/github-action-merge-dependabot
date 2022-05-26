@@ -9701,6 +9701,8 @@ const {
   getModuleVersionChanges,
   checkModuleVersionChanges,
 } = __nccwpck_require__(9488)
+const { verifyCommits } = __nccwpck_require__(3094)
+const { dependabotAuthor } = __nccwpck_require__(500)
 
 const {
   GITHUB_TOKEN,
@@ -9728,9 +9730,23 @@ module.exports = async function run() {
 
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
-    const isDependabotPR = pr.user.login === 'dependabot[bot]'
+    const isDependabotPR = pr.user.login === dependabotAuthor
     if (!isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
+    }
+
+    const commits = await client.getPullRequestCommits(pr.number)
+
+    if (!commits.every(commit => commit.author.login === dependabotAuthor)) {
+      return logWarning('PR contains non dependabot commits, skipping.')
+    }
+
+    try {
+      await verifyCommits(commits)
+    } catch {
+      return logWarning(
+        'PR contains invalid dependabot commit signatures, skipping.'
+      )
     }
 
     const prDiff = await client.getPullRequestDiff(pr.number)
@@ -9811,6 +9827,23 @@ function parsePrTitle(pullRequest) {
       insert: isValid ? semverCoerce(newVersion)?.raw : newVersion,
     },
   }
+}
+
+
+/***/ }),
+
+/***/ 500:
+/***/ ((module) => {
+
+"use strict";
+
+const dependabotAuthor = 'dependabot[bot]'
+
+const dependabotCommitter = 'GitHub'
+
+module.exports = {
+  dependabotAuthor,
+  dependabotCommitter,
 }
 
 
@@ -9912,6 +9945,16 @@ function githubClient(githubToken) {
         },
       })
       return pullRequest
+    },
+
+    async getPullRequestCommits(pullRequestNumber) {
+      const { data } = await octokit.rest.pulls.listCommits({
+        owner,
+        repo: repoName,
+        pull_number: pullRequestNumber,
+      })
+
+      return data
     },
   }
 }
@@ -10122,6 +10165,56 @@ exports.isValidSemver = function (version) {
   }
 
   return semverValid(version.replace(/[\^~v]/g, ''), { loose: true })
+}
+
+
+/***/ }),
+
+/***/ 3094:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+const {
+  dependabotAuthor,
+  dependabotCommitter,
+} = __nccwpck_require__(500)
+
+function verifyCommits(commits) {
+  commits.forEach(function (commit) {
+    const {
+      commit: {
+        verification: { verified },
+        committer,
+        author,
+      },
+      sha,
+    } = commit
+    verifyCommitSignatureCommitterAndAuthor(sha, author, committer, verified)
+  })
+}
+
+function verifyCommitSignatureCommitterAndAuthor(
+  sha,
+  author,
+  committer,
+  verified
+) {
+  if (
+    !verified ||
+    committer.name !== dependabotCommitter ||
+    author.name !== dependabotAuthor
+  ) {
+    throw new Error(
+      `Signature for commit ${sha} could not be verified - Not a dependabot commit`
+    )
+  }
+}
+
+module.exports = {
+  verifyCommits,
+  verifyCommitSignatureCommitterAndAuthor,
 }
 
 
