@@ -154,6 +154,7 @@ curl -X POST \
 
 - Update the action version.
 - Add the new `permissions` configuration into your workflow or, instead, you can set the permissions rules on [the repository](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository#setting-the-permissions-of-the-github_token-for-your-repository) or on [the organization](https://docs.github.com/en/enterprise-server@3.3/admin/policies/enforcing-policies-for-your-enterprise/enforcing-policies-for-github-actions-in-your-enterprise#enforcing-a-policy-for-workflow-permissions-in-your-enterprise).
+- Uninstall the [dependabot-merge-action](https://github.com/apps/dependabot-merge-action) GitHub App from your repos/orgs.
 - If you have customized the `api-url` you can:
   - Remove the `api-url` option from your workflow.
   - Turn off the [`dependabot-merge-action-app`](https://github.com/fastify/dependabot-merge-action-app/) application.
