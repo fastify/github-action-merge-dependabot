@@ -95,7 +95,7 @@ steps:
   - uses: fastify/github-action-merge-dependabot@v3.0.0
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
-      exclude: 'react;fastify'
+      exclude: 'react,fastify'
 ```
 
 ### Approving without merging
