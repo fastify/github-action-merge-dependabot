@@ -11,7 +11,7 @@ This action automatically approves and merges dependabot PRs.
 
 ### `exclude`
 
-_Optional_ A comma separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
+_Optional_ A comma or semicolon separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
 
 ### `approve-only`
 
@@ -95,7 +95,7 @@ steps:
   - uses: fastify/github-action-merge-dependabot@v3.0.0
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
-      exclude: 'react,fastify'
+      exclude: 'react;fastify'
 ```
 
 ### Approving without merging
