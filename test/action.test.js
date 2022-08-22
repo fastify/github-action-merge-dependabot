@@ -150,9 +150,7 @@ tap.test('should skip PR with non dependabot commit', async () => {
 
   stubs.prCommitsStub.resolves([
     {
-      author: {
-        login: 'not dependabot',
-      },
+      author: undefined,
     },
   ])
 
