@@ -10463,7 +10463,7 @@ module.exports = async function run() {
 
     const commits = await client.getPullRequestCommits(pr.number)
 
-    if (!commits.every(commit => commit.author.login === dependabotAuthor)) {
+    if (!commits.every(commit => commit.author?.login === dependabotAuthor)) {
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
