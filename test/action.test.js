@@ -134,36 +134,45 @@ tap.test('should skip non-dependabot PR', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test('should skip PR with non dependabot commit', async () => {
-  const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
-    payload: {
-      pull_request: {
-        user: {
-          login: BOT_NAME,
+const prCommitsStubs = [
+  {
+    author: {
+      login: 'not dependabot',
+    },
+  },
+  {
+    author: undefined,
+  },
+]
+
+for (const prCommitsStub of prCommitsStubs) {
+  tap.test('should skip PR with non dependabot commit', async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
         },
-        number: PR_NUMBER,
       },
-    },
-    inputs: { PR_NUMBER },
+      inputs: { PR_NUMBER },
+    })
+
+    stubs.prCommitsStub.resolves([prCommitsStub])
+
+    await action()
+
+    sinon.assert.calledOnce(stubs.prCommitsStub)
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      'PR contains non dependabot commits, skipping.'
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
   })
-
-  stubs.prCommitsStub.resolves([
-    {
-      author: undefined,
-    },
-  ])
-
-  await action()
-
-  sinon.assert.calledOnce(stubs.prCommitsStub)
-  sinon.assert.calledWithExactly(
-    stubs.logStub.logWarning,
-    'PR contains non dependabot commits, skipping.'
-  )
-  sinon.assert.notCalled(stubs.approveStub)
-  sinon.assert.notCalled(stubs.mergeStub)
-})
+}
 
 tap.test(
   'should skip PR if dependabot commit signatures cannot be verified',
