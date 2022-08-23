@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       semver:
-        description: 'The semver to use'
+        description: "The semver to use"
         required: true
-        default: 'patch'
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
   pull_request:
     types: [closed]
 
