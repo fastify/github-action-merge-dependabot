@@ -25,7 +25,7 @@ jobs:
           node-version: 16
       - uses: nearform/optic-release-automation-action@v3
         with:
-          github-token: ${{ secrets.github_token }}
+          github-token: ${{ github.token }}
           semver: ${{ github.event.inputs.semver }}
           sync-semver-tags: true
           build-command: |
