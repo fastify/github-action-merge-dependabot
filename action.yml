@@ -3,7 +3,8 @@ description: 'Automatically approve and merge dependabot PRs'
 inputs:
   github-token:
     description: 'A GitHub token'
-    required: true
+    required: false
+    default: ${{ github.token }}
   exclude:
     description: 'Packages that you want to manually review before upgrading'
     required: false
