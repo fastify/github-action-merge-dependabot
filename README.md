@@ -7,7 +7,7 @@ This action automatically approves and merges dependabot PRs.
 
 ### `github-token`
 
-**Required** A GitHub token. See below for additional information.
+_Optional_ A GitHub token. See below for additional information.
 
 ### `exclude`
 
@@ -80,8 +80,6 @@ jobs:
 
     steps:
       - uses: fastify/github-action-merge-dependabot@v3.0.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Excluding packages
@@ -94,7 +92,6 @@ permissions:
 steps:
   - uses: fastify/github-action-merge-dependabot@v3.0.0
     with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
       exclude: 'react,fastify'
 ```
 
@@ -106,7 +103,6 @@ permissions:
 steps:
   - uses: fastify/github-action-merge-dependabot@v3.0.0
     with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
       approve-only: true
 ```
 
@@ -134,7 +130,6 @@ jobs:
     steps:
       - uses: fastify/github-action-merge-dependabot@v3.0.0
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           pr-number: ${{ github.event.inputs.pr-number }}
 ```
 
@@ -178,13 +173,11 @@ jobs:
     steps:
 -     - uses: fastify/github-action-merge-dependabot@v2.1.1
 +     - uses: fastify/github-action-merge-dependabot@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Notes
 
-- A GitHub token is automatically provided by Github Actions, which can be accessed using `secrets.GITHUB_TOKEN` and supplied to the action as an input `github-token`.
+- A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token` and supplied to the action as an input `github-token`.
 - Only the [GitHub native Dependabot integration](https://docs.github.com/en/github/administering-a-repository/keeping-your-dependencies-updated-automatically) is supported, the old [Dependabot Preview app](https://github.com/marketplace/dependabot-preview) isn't.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
 - If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.

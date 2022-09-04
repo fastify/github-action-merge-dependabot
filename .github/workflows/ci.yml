@@ -1,5 +1,5 @@
 name: CI
-on: 
+on:
   push:
     branches: main
   pull_request:
@@ -25,5 +25,5 @@ jobs:
     steps:
       - uses: fastify/github-action-merge-dependabot@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           target: minor
