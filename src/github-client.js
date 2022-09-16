@@ -1,8 +1,7 @@
 'use strict'
 
-const github = require('@actions/github')
 
-function githubClient(githubToken) {
+function githubClient(github, githubToken) {
   const payload = github.context.payload
   const octokit = github.getOctokit(githubToken)
 

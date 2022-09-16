@@ -1,7 +1,6 @@
 'use strict'
 
 const core = require('@actions/core')
-const github = require('@actions/github')
 const semverDiff = require('semver/functions/diff')
 const semverCoerce = require('semver/functions/coerce')
 const toolkit = require('actions-toolkit')
@@ -23,21 +22,23 @@ const {
 const { verifyCommits } = require('./verifyCommitSignatures')
 const { dependabotAuthor } = require('./getDependabotDetails')
 
-const {
-  GITHUB_TOKEN,
-  MERGE_METHOD,
-  EXCLUDE_PKGS,
-  MERGE_COMMENT,
-  APPROVE_ONLY,
-  TARGET,
-  PR_NUMBER,
-} = getInputs()
+module.exports = async function run({ github, context, inputs }) {
+  const {
+    GITHUB_TOKEN,
+    MERGE_METHOD,
+    EXCLUDE_PKGS,
+    MERGE_COMMENT,
+    APPROVE_ONLY,
+    TARGET,
+    PR_NUMBER,
+  } = getInputs(inputs)
+      logInfo(`received the following inputs: ${JSON.stringify(inputs)}`)
+      logInfo(`received the following inputs: ${JSON.stringify(inputs)}`)
 
-module.exports = async function run() {
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = github.context.payload
+    const { pull_request } = context.payload
 
     if (!pull_request && !PR_NUMBER) {
       return logError(
@@ -45,7 +46,7 @@ module.exports = async function run() {
       )
     }
 
-    const client = githubClient(GITHUB_TOKEN)
+    const client = githubClient(github, GITHUB_TOKEN)
 
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 

@@ -2,7 +2,6 @@
 
 const semverValid = require('semver/functions/valid')
 const semverCoerce = require('semver/functions/coerce')
-const core = require('@actions/core')
 
 const { getTargetInput } = require('./getTargetInput')
 const { logWarning } = require('./log')
@@ -13,8 +12,8 @@ const mergeMethods = {
   rebase: 'rebase',
 }
 
-const getMergeMethod = () => {
-  const input = core.getInput('merge-method')
+const getMergeMethod = (inputs) => {
+  const input = inputs['merge-method']
 
   if (!input || !mergeMethods[input]) {
     logWarning(
@@ -30,14 +29,14 @@ const parseCommaOrSemicolonSeparatedValue = value => {
   return value ? value.split(/[;,]/).map(el => el.trim()) : []
 }
 
-exports.getInputs = () => ({
-  GITHUB_TOKEN: core.getInput('github-token', { required: true }),
-  MERGE_METHOD: getMergeMethod(),
-  EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(core.getInput('exclude')),
-  MERGE_COMMENT: core.getInput('merge-comment') || '',
-  APPROVE_ONLY: /true/i.test(core.getInput('approve-only')),
-  TARGET: getTargetInput(core.getInput('target')),
-  PR_NUMBER: core.getInput('pr-number'),
+exports.getInputs = (inputs) => ({
+  GITHUB_TOKEN: inputs['github-token'],
+  MERGE_METHOD: getMergeMethod(inputs),
+  EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
+  MERGE_COMMENT: inputs['merge-comment'] || '',
+  APPROVE_ONLY: /true/i.test(inputs['approve-only']),
+  TARGET: getTargetInput(inputs['target']),
+  PR_NUMBER: inputs['pr-number'],
 })
 
 /**
