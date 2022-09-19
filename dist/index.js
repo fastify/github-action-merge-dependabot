@@ -2814,10 +2814,11 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
       return
     }
 
-    // TODO: Improve approve only message?
     await client.approvePullRequest(pr.number, MERGE_COMMENT)
     if (APPROVE_ONLY) {
-      return logInfo('Approving only')
+      return logInfo(
+        'APPROVE_ONLY set, PR was approved but it will not be merged'
+      )
     }
 
     await client.mergePullRequest(pr.number, MERGE_METHOD)

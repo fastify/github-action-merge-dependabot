@@ -283,7 +283,10 @@ tap.test('approve only should not merge', async () => {
 
   await action()
 
-  sinon.assert.calledWithExactly(stubs.logStub.logInfo, 'Approving only')
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'APPROVE_ONLY set, PR was approved but it will not be merged'
+  )
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
