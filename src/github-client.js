@@ -1,8 +1,7 @@
 'use strict'
 
-
-function githubClient(github, githubToken) {
-  const payload = github.context.payload
+function githubClient(github, context, githubToken) {
+  const payload = context.payload
   const octokit = github.getOctokit(githubToken)
 
   const repo = payload.repository

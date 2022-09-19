@@ -2,6 +2,7 @@
 
 const tap = require('tap')
 const sinon = require('sinon')
+const { githubClient } = require('../src/github-client')
 
 const githubContext = {
   repository: {
@@ -20,19 +21,14 @@ const octokitStubs = {
   merge: sinon.stub().returns(Promise.resolve({ data })),
   listCommits: sinon.stub().returns(Promise.resolve({ data })),
 }
-
-const { githubClient } = tap.mock('../src/github-client', {
-  '@actions/github': {
-    context: {
-      payload: githubContext,
+const contextStub = { payload: githubContext }
+const githubStub = {
+  getOctokit: () => ({
+    rest: {
+      pulls: octokitStubs,
     },
-    getOctokit: () => ({
-      rest: {
-        pulls: octokitStubs,
-      },
-    }),
-  },
-})
+  }),
+}
 
 const TOKEN = 'GITHUB-TOKEN'
 const PR_NUMBER = Math.floor(Math.random() * 10)
@@ -43,7 +39,11 @@ tap.afterEach(() => {
 
 tap.test('githubClient', async t => {
   t.test('getPullRequest', async () => {
-    const result = await githubClient(TOKEN).getPullRequest(PR_NUMBER)
+    const result = await githubClient(
+      githubStub,
+      contextStub,
+      TOKEN
+    ).getPullRequest(PR_NUMBER)
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.get, {
@@ -55,10 +55,11 @@ tap.test('githubClient', async t => {
 
   t.test('approvePullRequest', async () => {
     const comment = 'Test pull request comment'
-    const result = await githubClient(TOKEN).approvePullRequest(
-      PR_NUMBER,
-      comment
-    )
+    const result = await githubClient(
+      githubStub,
+      contextStub,
+      TOKEN
+    ).approvePullRequest(PR_NUMBER, comment)
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.createReview, {
@@ -72,7 +73,11 @@ tap.test('githubClient', async t => {
 
   t.test('mergePullRequest', async () => {
     const method = 'squash'
-    const result = await githubClient(TOKEN).mergePullRequest(PR_NUMBER, method)
+    const result = await githubClient(
+      githubStub,
+      contextStub,
+      TOKEN
+    ).mergePullRequest(PR_NUMBER, method)
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.merge, {
@@ -84,7 +89,11 @@ tap.test('githubClient', async t => {
   })
 
   t.test('getPullRequestDiff', async () => {
-    const result = await githubClient(TOKEN).getPullRequestDiff(PR_NUMBER)
+    const result = await githubClient(
+      githubStub,
+      contextStub,
+      TOKEN
+    ).getPullRequestDiff(PR_NUMBER)
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.get, {
@@ -98,7 +107,11 @@ tap.test('githubClient', async t => {
   })
 
   t.test('getPullRequestCommits', async () => {
-    const result = await githubClient(TOKEN).getPullRequestCommits(PR_NUMBER)
+    const result = await githubClient(
+      githubStub,
+      contextStub,
+      TOKEN
+    ).getPullRequestCommits(PR_NUMBER)
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.listCommits, {

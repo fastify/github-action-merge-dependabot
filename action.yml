@@ -1,10 +1,39 @@
 name: 'Github Action Merge Dependabot'
 description: 'Automatically approve and merge dependabot PRs'
 
+inputs:
+  github-token:
+    description: 'A GitHub token'
+    required: false
+    default: ${{ github.token }}
+  exclude:
+    description: 'Packages that you want to manually review before upgrading'
+    required: false
+  approve-only:
+    description: 'If true, the PR is only approved but not merged'
+    required: false
+    default: false
+  merge-method:
+    description: 'The merge method you would like to use (squash, merge, rebase)'
+    required: false
+    default: 'squash'
+  merge-comment:
+    description: "An arbitrary message that you'd like to comment on the PR after it gets auto-merged"
+    required: false
+    default: ''
+  target:
+    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
+    required: false
+    default: 'any'
+  pr-number:
+    description: 'A pull request number, only required if triggered from a workflow_dispatch event'
+    required: false
+
 runs:
   using: 'composite'
   steps:
     - name: Fetch metadata
+      id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1
     - name: Merge/approve PR
       uses: actions/github-script@v6
@@ -13,7 +42,16 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           const script = require('${{ github.action_path }}/dist/index.js')
-          await script({ github, context, inputs: ${{ toJSON(inputs) }} })
+          await script({
+            github,
+            context,
+            inputs: ${{ toJSON(inputs) }}
+            dependabotMetadata: {
+              updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}'',
+              dependencyType:'${{ steps.dependabot-metadata.outputs.depedency-type }}'',
+              dependencyNames: '${{ steps.dependabot-metadata.outputs.depedency-names }}'',
+            }
+          })
 
 branding:
   icon: 'git-pull-request'

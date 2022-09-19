@@ -1,9 +1,6 @@
 'use strict'
 
-const semverValid = require('semver/functions/valid')
-const semverCoerce = require('semver/functions/coerce')
-
-const { getTargetInput } = require('./getTargetInput')
+const { mapUpdateType } = require('./mapUpdateType')
 const { logWarning } = require('./log')
 
 const mergeMethods = {
@@ -12,10 +9,14 @@ const mergeMethods = {
   rebase: 'rebase',
 }
 
-const getMergeMethod = (inputs) => {
+const getMergeMethod = inputs => {
   const input = inputs['merge-method']
 
-  if (!input || !mergeMethods[input]) {
+  if (!input) {
+    return mergeMethods.squash
+  }
+
+  if (!mergeMethods[input]) {
     logWarning(
       'merge-method input is ignored because it is malformed, defaulting to `squash`.'
     )
@@ -29,59 +30,21 @@ const parseCommaOrSemicolonSeparatedValue = value => {
   return value ? value.split(/[;,]/).map(el => el.trim()) : []
 }
 
-exports.getInputs = (inputs) => ({
-  GITHUB_TOKEN: inputs['github-token'],
-  MERGE_METHOD: getMergeMethod(inputs),
-  EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
-  MERGE_COMMENT: inputs['merge-comment'] || '',
-  APPROVE_ONLY: /true/i.test(inputs['approve-only']),
-  TARGET: getTargetInput(inputs['target']),
-  PR_NUMBER: inputs['pr-number'],
-})
+exports.parseCommaOrSemicolonSeparatedValue =
+  parseCommaOrSemicolonSeparatedValue
 
-/**
- * Get a package name from a branch name.
- * Dependabot branch names are in format "dependabot/npm_and_yarn/pkg-0.0.1"
- * or "dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0"
- * @param {String} branchName
- * @returns Package name extracted from branch
- */
-exports.getPackageName = branchName => {
-  const nameWithVersion = branchName.split('/').pop().split('-')
-  const version = nameWithVersion.pop()
-  const packageName = nameWithVersion.join('-')
-
-  if (!packageName || !version) {
-    throw new Error('Invalid branch name, package name or version not found')
+exports.getInputs = inputs => {
+  if (!inputs) {
+    throw new Error('Invalid inputs object passed to getInputs')
   }
 
-  return packageName
-}
-
-/**
- * Checks if the string is a SHA1 commit hash.
- * Usually github commit hashes are 7 chars long, but in case this change someday
- * it's checking for the maximum length of a SHA1 hash (40 hexadecimal chars)
- * @param {String} version
- * @returns Boolean indicating whether version
- */
-exports.isCommitHash = function (version) {
-  return /^[a-f0-9]{5,40}$/.test(version)
-}
-
-/**
- * Checks if a version is a valid semver version.
- * Uses loose: true and replace `v`, `~`, `^` charactes to make function a bit
- * less restrictive regarding the accepted inputs
- * @param {String} version
- * @returns Boolean indicating whether version is valid
- */
-exports.isValidSemver = function (version) {
-  const isNumber = !isNaN(+version)
-
-  if (isNumber) {
-    return semverValid(semverCoerce(version))
+  return {
+    GITHUB_TOKEN: inputs['github-token'],
+    MERGE_METHOD: getMergeMethod(inputs),
+    EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
+    MERGE_COMMENT: inputs['merge-comment'] || '',
+    APPROVE_ONLY: /true/i.test(inputs['approve-only']),
+    TARGET: mapUpdateType(inputs['target']),
+    PR_NUMBER: inputs['pr-number'],
   }
-
-  return semverValid(version.replace(/[\^~v]/g, ''), { loose: true })
 }

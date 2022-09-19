@@ -1,78 +1,102 @@
 'use strict'
 const tap = require('tap')
-const { isValidSemver, isCommitHash, getPackageName } = require('../src/util')
+const {
+  getInputs,
+  parseCommaOrSemicolonSeparatedValue,
+} = require('../src/util')
 
-const coreStubs = {
-  getInput: () => '',
-  debug: msg => msg,
-  error: msg => msg,
-  info: msg => msg,
-  warning: msg => msg,
-}
-
-tap.test('MERGE_METHOD should be squash for invalid input', async t => {
-  const { getInputs } = t.mock('../src/util', {
-    '@actions/core': {
-      ...coreStubs,
-    },
+tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
+  t.test('should split semicolon separated values correctly', async t => {
+    t.same(parseCommaOrSemicolonSeparatedValue('test1;test2;test3'), [
+      'test1',
+      'test2',
+      'test3',
+    ])
+    t.same(parseCommaOrSemicolonSeparatedValue('  test1; test2; test3'), [
+      'test1',
+      'test2',
+      'test3',
+    ])
   })
-  t.equal(getInputs().MERGE_METHOD, 'squash')
-})
-
-tap.test('MERGE_METHOD should be correct for valid input', async t => {
-  const { getInputs } = tap.mock('../src/util', {
-    '@actions/core': {
-      ...coreStubs,
-      getInput: () => 'merge',
-    },
+  t.test('should split comma separated values correctly', async t => {
+    t.same(parseCommaOrSemicolonSeparatedValue('test1,test2,test3'), [
+      'test1',
+      'test2',
+      'test3',
+    ])
+    t.same(parseCommaOrSemicolonSeparatedValue('  test1, test2, test3'), [
+      'test1',
+      'test2',
+      'test3',
+    ])
   })
-  t.equal(getInputs().MERGE_METHOD, 'merge')
 })
 
-tap.test(
-  'getPackageName should get package name from branch with repo name',
-  async t => {
-    t.equal(
-      getPackageName(
-        'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0'
-      ),
-      'github-action-merge-dependabot'
-    )
-  }
-)
-
-tap.test('getPackageName should get package name from branch', async t => {
-  t.equal(getPackageName('dependabot/npm_and_yarn/pkg-0.0.1'), 'pkg')
+tap.test('getInputs', async t => {
+  t.test('should fail if no inputs object is provided', async t => {
+    t.throws(() => getInputs())
+  })
+  t.test(
+    'should return the correct inputs with default value if needed',
+    async t => {
+      t.test('GITHUB_TOKEN', async t => {
+        t.equal(
+          getInputs({ 'github-token': 'test-token' }).GITHUB_TOKEN,
+          'test-token'
+        )
+      })
+      t.test('MERGE_METHOD', async t => {
+        t.equal(getInputs({}).MERGE_METHOD, 'squash')
+        t.equal(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')
+        t.equal(
+          getInputs({ 'merge-method': 'invalid-merge-method' }).MERGE_METHOD,
+          'squash'
+        )
+      })
+      t.test('EXCLUDE_PKGS', async t => {
+        t.same(getInputs({ exclude: 'react,vue' }).EXCLUDE_PKGS, [
+          'react',
+          'vue',
+        ])
+      })
+      t.test('MERGE_COMMENT', async t => {
+        t.equal(getInputs({}).MERGE_COMMENT, '')
+        t.equal(
+          getInputs({ 'merge-comment': 'test-merge-comment' }).MERGE_COMMENT,
+          'test-merge-comment'
+        )
+      })
+      t.test('APPROVE_ONLY', async t => {
+        t.equal(getInputs({}).APPROVE_ONLY, false)
+        t.equal(getInputs({ 'approve-only': 'false' }).APPROVE_ONLY, false)
+        t.equal(getInputs({ 'approve-only': 'False' }).APPROVE_ONLY, false)
+        t.equal(getInputs({ 'approve-only': 'FALSE' }).APPROVE_ONLY, false)
+        t.equal(getInputs({ 'approve-only': 'true' }).APPROVE_ONLY, true)
+        t.equal(getInputs({ 'approve-only': 'True' }).APPROVE_ONLY, true)
+        t.equal(getInputs({ 'approve-only': 'TRUE' }).APPROVE_ONLY, true)
+      })
+      t.test('TARGET', async t => {
+        t.equal(
+          getInputs({ target: 'major' }).TARGET,
+          'version-update:semver-major'
+        )
+        t.equal(
+          getInputs({ target: 'minor' }).TARGET,
+          'version-update:semver-minor'
+        )
+        t.equal(
+          getInputs({ target: 'patch' }).TARGET,
+          'version-update:semver-patch'
+        )
+        t.equal(getInputs({ target: '' }).TARGET, 'version-update:semver-any')
+        t.equal(
+          getInputs({ target: 'any' }).TARGET,
+          'version-update:semver-any'
+        )
+      })
+      t.test('PR_NUMBER', async t => {
+        t.equal(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
+      })
+    }
+  )
 })
-
-tap.test(
-  'getPackageName should throw an error for invalid branch names',
-  async t => {
-    t.throws(
-      () => getPackageName('invalidbranchname'),
-      new Error('Invalid branch name, package name or version not found')
-    )
-  }
-)
-
-tap.test(
-  'isCommitHash should detect variable length SHA1 hashes properly',
-  async t => {
-    t.ok(isCommitHash('044e827'))
-    t.ok(isCommitHash('cc221b3'))
-    t.ok(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b'))
-    t.notOk(isCommitHash('0000cc221b0000cc221b0000cc221b0000cc221b2')) // Hash larger than 40 chars, the SHA1 hash length
-    t.notOk(isCommitHash('ccx21b3'))
-    t.notOk(isCommitHash('cc-21b3'))
-  }
-)
-
-tap.test(
-  'isSemverValid should detect semver versions appropriately',
-  async t => {
-    t.ok(isValidSemver('2'))
-    t.ok(isValidSemver('2.0.0'))
-    t.notOk(isValidSemver('2.0.0.0'))
-    t.notOk(isValidSemver('044e827'))
-  }
-)

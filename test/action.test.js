@@ -6,33 +6,63 @@ const sinon = require('sinon')
 
 // Stubbing modules
 const core = require('@actions/core')
-const github = require('@actions/github')
 const toolkit = require('actions-toolkit')
 
-const { diffs } = require('./moduleChanges')
 const actionLog = require('../src/log')
-const actionUtil = require('../src/util')
 const actionGithubClient = require('../src/github-client')
 const verifyCommits = require('../src/verifyCommitSignatures')
+const { updateTypes } = require('../src/mapUpdateType')
 
-const GITHUB_TOKEN = 'the-token'
 const BOT_NAME = 'dependabot[bot]'
 
-function buildStubbedAction({ payload, inputs }) {
+// TODO: Share this stubs with github-client test
+const data = 'octokit-result'
+const octokitStubs = {
+  get: sinon.stub().returns(Promise.resolve({ data })),
+  createReview: sinon.stub().returns(Promise.resolve({ data })),
+  merge: sinon.stub().returns(Promise.resolve({ data })),
+  listCommits: sinon.stub().returns(Promise.resolve({ data })),
+}
+
+const githubStub = {
+  getOctokit: () => ({
+    rest: {
+      pulls: octokitStubs,
+    },
+  }),
+}
+
+const createDependabotMetadata = (props = {}) => ({
+  updateType: 'update-version:semver-minor',
+  dependencyType: 'direct:development',
+  dependencyNames: 'react',
+  ...props,
+})
+
+function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
   const coreStub = sinon.stub(core)
   const toolkitStub = sinon
     .stub(toolkit, 'logActionRefWarning')
     .get(() => sinon.stub())
 
-  const githubStub = sinon.stub(github, 'context').get(() => {
-    return { payload }
-  })
+  const contextStub = {
+    payload: {
+      pull_request: {
+        user: {
+          login: 'pr-user-login',
+        },
+      },
+      repository: {
+        owner: {
+          login: 'owner-login.',
+        },
+        name: 'repository-name',
+      },
+    },
+    ...{ payload },
+  }
 
   const logStub = sinon.stub(actionLog)
-  const utilStub = sinon
-    .stub(actionUtil, 'getInputs')
-    .returns({ GITHUB_TOKEN, ...inputs })
-
   const prStub = sinon.stub()
   const prDiffStub = sinon.stub()
   const prCommitsStub = sinon.stub()
@@ -54,23 +84,25 @@ function buildStubbedAction({ payload, inputs }) {
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
     'actions-toolkit': toolkitStub,
-    '@actions/github': githubStub,
     './log': logStub,
-    './util': utilStub,
     './github-client': clientStub,
   })
-
   return {
-    action,
+    action: props =>
+      action({
+        github: githubStub,
+        context: contextStub,
+        inputs: inputs || {},
+        dependabotMetadata: createDependabotMetadata(dependabotMetadata),
+        ...props,
+      }),
     stubs: {
       coreStub,
       githubStub,
       logStub,
-      utilStub,
       prStub,
       approveStub,
       mergeStub,
-      prDiffStub,
       prCommitsStub,
       verifyCommitsStub,
     },
@@ -101,7 +133,7 @@ tap.test(
     const PR_NUMBER = Math.random()
     const { action, stubs } = buildStubbedAction({
       payload: { 'not a pull_request': {} },
-      inputs: { PR_NUMBER },
+      inputs: { 'pr-number': PR_NUMBER },
     })
 
     await action()
@@ -114,7 +146,7 @@ tap.test('should skip non-dependabot PR', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
-    inputs: { PR_NUMBER },
+    inputs: { 'pr-number': PR_NUMBER },
   })
 
   stubs.prStub.resolves({
@@ -157,7 +189,6 @@ for (const prCommitsStub of prCommitsStubs) {
           number: PR_NUMBER,
         },
       },
-      inputs: { PR_NUMBER },
     })
 
     stubs.prCommitsStub.resolves([prCommitsStub])
@@ -187,7 +218,6 @@ tap.test(
           number: PR_NUMBER,
         },
       },
-      inputs: { PR_NUMBER },
     })
 
     stubs.prCommitsStub.resolves([
@@ -211,32 +241,6 @@ tap.test(
   }
 )
 
-tap.test('should process dependabot PR and skip PR not in target', async () => {
-  const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
-    payload: {
-      pull_request: {
-        user: {
-          login: BOT_NAME,
-        },
-        number: PR_NUMBER,
-      },
-    },
-    inputs: { PR_NUMBER, TARGET: 'minor' },
-  })
-
-  stubs.prDiffStub.resolves(diffs.major)
-
-  await action()
-
-  sinon.assert.calledWithExactly(
-    stubs.logStub.logWarning,
-    'Target specified does not match to PR, skipping.'
-  )
-  sinon.assert.notCalled(stubs.approveStub)
-  sinon.assert.notCalled(stubs.mergeStub)
-})
-
 tap.test('should ignore excluded package', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
@@ -246,10 +250,8 @@ tap.test('should ignore excluded package', async () => {
         user: { login: BOT_NAME },
       },
     },
-    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: ['react'] },
+    inputs: { 'pr-number': PR_NUMBER, target: 'any', exclude: 'react' },
   })
-
-  stubs.prDiffStub.resolves(diffs.major)
 
   await action()
 
@@ -265,15 +267,17 @@ tap.test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
-    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [], APPROVE_ONLY: true },
+    inputs: {
+      'pr-number': PR_NUMBER,
+      target: 'any',
+      'approve-only': true,
+    },
   })
 
   stubs.prStub.resolves({
     number: PR_NUMBER,
     user: { login: BOT_NAME },
   })
-
-  stubs.prDiffStub.resolves(diffs.major)
 
   stubs.approveStub.resolves({ data: true })
 
@@ -292,10 +296,8 @@ tap.test('should review and merge', async () => {
         user: { login: BOT_NAME },
       },
     },
-    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [] },
+    inputs: { 'pr-number': PR_NUMBER, target: 'any' },
   })
-
-  stubs.prDiffStub.resolves(diffs.major)
 
   await action()
 
@@ -318,10 +320,8 @@ tap.test(
           user: { login: BOT_NAME },
         },
       },
-      inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [] },
+      inputs: { 'pr-number': PR_NUMBER, target: 'any' },
     })
-
-    stubs.prDiffStub.resolves(diffs.thisModuleMinor)
 
     await action()
 
@@ -345,10 +345,12 @@ tap.test(
           user: { login: BOT_NAME },
         },
       },
-      inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [] },
+      inputs: { 'pr-number': PR_NUMBER, target: 'any' },
+      dependabotMetadata: {
+        updateType: updateTypes.major,
+        dependencyNames: 'github-action-merge-dependabot',
+      },
     })
-
-    stubs.prDiffStub.resolves(diffs.thisModuleMajor)
 
     await action()
 
@@ -367,10 +369,8 @@ tap.test('should review and merge', async () => {
         user: { login: BOT_NAME },
       },
     },
-    inputs: { PR_NUMBER, TARGET: 'any', EXCLUDE_PKGS: [] },
+    inputs: { 'pr-number': PR_NUMBER, target: 'any' },
   })
-
-  stubs.prDiffStub.resolves(diffs.major)
 
   await action()
 
@@ -378,167 +378,12 @@ tap.test('should review and merge', async () => {
     stubs.logStub.logInfo,
     'Dependabot merge completed'
   )
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
 })
 
-tap.test(
-  'should check PR diff with commit hash version when target is set',
-  async () => {
-    const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'minor',
-        EXCLUDE_PKGS: [],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.commitHash)
-
-    await action()
-
-    sinon.assert.called(stubs.approveStub)
-    sinon.assert.called(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should merge major bump using PR title with proper semver versions',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title: 'build(deps): bump actions/checkout from 2.0.0 to 3.0.0',
-          head: {
-            ref: 'dependabot/github_actions/actions/checkout-3',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'major',
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.called(stubs.approveStub)
-    sinon.assert.called(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should merge major bump using PR title with coerceable semver versions',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title: 'build(deps): bump actions/checkout from 2 to 3',
-          head: {
-            ref: 'dependabot/github_actions/actions/checkout-3',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'major',
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.called(stubs.approveStub)
-    sinon.assert.called(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should forbid major bump using PR title when target is minor',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title: 'build(deps): bump actions/checkout from 2 to 3',
-          head: {
-            ref: 'dependabot/github_actions/actions/cache-3',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'minor',
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.notCalled(stubs.approveStub)
-    sinon.assert.notCalled(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should not merge major bump if updating github-action-merge-dependabot',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title:
-            'build(deps): bump github-action-merge-dependabot from 2 to 3 zzz',
-          head: {
-            ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-3',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'any',
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.notCalled(stubs.approveStub)
-    sinon.assert.notCalled(stubs.mergeStub)
-  }
-)
-
-tap.test('should throw if the PR title is not valid', async () => {
+tap.test('should forbid major when target is minor', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -546,161 +391,75 @@ tap.test('should throw if the PR title is not valid', async () => {
       pull_request: {
         number: PR_NUMBER,
         user: { login: BOT_NAME },
-        title: 'Invalid PR title',
-        head: {
-          ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0',
-        },
       },
     },
     inputs: {
       PR_NUMBER,
-      TARGET: 'major',
-      EXCLUDE_PKGS: ['react'],
+      target: 'minor',
+      exclude: 'react',
     },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: updateTypes.major,
+    }),
   })
-
-  stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
 
   await action()
 
-  sinon.assert.calledWith(
-    stubs.coreStub.setFailed,
-    'Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`'
-  )
+  sinon.assert.called(stubs.coreStub.setFailed)
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
 
-tap.test(
-  'should merge with commit hashes on PR title with a target',
-  async () => {
-    const PR_NUMBER = Math.random()
+tap.test('should forbid minor when target is patch', async () => {
+  const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title:
-            'build(deps): bump actions-toolkit from `044e827` to `cc221b3`',
-          head: {
-            ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0',
-          },
-        },
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
       },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'major',
-        EXCLUDE_PKGS: ['react'],
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'patch',
+      exclude: 'react',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: updateTypes.minor,
+    }),
+  })
+
+  await action()
+
+  sinon.assert.called(stubs.coreStub.setFailed)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
+
+tap.test('should forbid minor when target is patch', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
       },
-    })
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'patch',
+      exclude: 'react',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: updateTypes.minor,
+    }),
+  })
 
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
+  await action()
 
-    await action()
-
-    sinon.assert.notCalled(stubs.coreStub.setFailed)
-    sinon.assert.called(stubs.approveStub)
-    sinon.assert.called(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should merge with commit hashes on PR title without a target',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title:
-            'build(deps): bump actions-toolkit from `cc221b3` to `044e827`',
-          head: {
-            ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.notCalled(stubs.coreStub.setFailed)
-    sinon.assert.called(stubs.approveStub)
-    sinon.assert.called(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should not merge with unrecognized versions on PR title with a target',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title:
-            'build(deps): bump actions-toolkit from `0004x4e827` to `00ccx221b3`',
-          head: {
-            ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        TARGET: 'major',
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.called(stubs.coreStub.setFailed)
-    sinon.assert.notCalled(stubs.approveStub)
-    sinon.assert.notCalled(stubs.mergeStub)
-  }
-)
-
-tap.test(
-  'should not merge with unrecognized versions on PR title without a target',
-  async () => {
-    const PR_NUMBER = Math.random()
-
-    const { action, stubs } = buildStubbedAction({
-      payload: {
-        pull_request: {
-          number: PR_NUMBER,
-          user: { login: BOT_NAME },
-          title:
-            'build(deps): bump actions-toolkit from `00-044e827` to `0-00cc221b3`',
-          head: {
-            ref: 'dependabot/github_actions/fastify/github-action-merge-dependabot-2.6.0',
-          },
-        },
-      },
-      inputs: {
-        PR_NUMBER,
-        EXCLUDE_PKGS: ['react'],
-      },
-    })
-
-    stubs.prDiffStub.resolves(diffs.noPackageJsonChanges)
-
-    await action()
-
-    sinon.assert.called(stubs.coreStub.setFailed)
-    sinon.assert.notCalled(stubs.approveStub)
-    sinon.assert.notCalled(stubs.mergeStub)
-  }
-)
+  sinon.assert.called(stubs.coreStub.setFailed)
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+})
