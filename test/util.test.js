@@ -39,12 +39,6 @@ tap.test('getInputs', async t => {
   t.test(
     'should return the correct inputs with default value if needed',
     async t => {
-      t.test('GITHUB_TOKEN', async t => {
-        t.equal(
-          getInputs({ 'github-token': 'test-token' }).GITHUB_TOKEN,
-          'test-token'
-        )
-      })
       t.test('MERGE_METHOD', async t => {
         t.equal(getInputs({}).MERGE_METHOD, 'squash')
         t.equal(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')

@@ -39,7 +39,6 @@ exports.getInputs = inputs => {
   }
 
   return {
-    GITHUB_TOKEN: inputs['github-token'],
     MERGE_METHOD: getMergeMethod(inputs),
     EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
     MERGE_COMMENT: inputs['merge-comment'] || '',
