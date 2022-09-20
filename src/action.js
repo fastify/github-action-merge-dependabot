@@ -12,12 +12,7 @@ const { dependabotAuthor } = require('./getDependabotDetails')
 const { updateTypes } = require('./mapUpdateType')
 const { updateTypesPriority } = require('./mapUpdateType')
 
-module.exports = async function run({
-  github,
-  context,
-  inputs,
-  dependabotMetadata,
-}) {
+module.exports = async function run({ context, inputs, dependabotMetadata }) {
   const { updateType } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
     dependabotMetadata.dependencyNames
@@ -44,7 +39,7 @@ module.exports = async function run({
       )
     }
 
-    const client = githubClient(github, context, GITHUB_TOKEN)
+    const client = githubClient(context, GITHUB_TOKEN)
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor

@@ -43,7 +43,6 @@ runs:
         script: |
           const script = require('${{ github.action_path }}/dist/index.js')
           await script({
-            github,
             context,
             inputs: ${{ toJSON(inputs) }}
             dependabotMetadata: {
