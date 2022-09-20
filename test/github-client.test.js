@@ -23,11 +23,9 @@ const octokitStubs = {
 }
 const contextStub = { payload: githubContext }
 const githubStub = {
-  getOctokit: () => ({
-    rest: {
-      pulls: octokitStubs,
-    },
-  }),
+  rest: {
+    pulls: octokitStubs,
+  },
 }
 
 const TOKEN = 'GITHUB-TOKEN'
