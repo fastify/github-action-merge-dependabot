@@ -45,7 +45,7 @@ runs:
           await script({
             github,
             context,
-            inputs: ${{ toJSON(inputs) }}
+            inputs: ${{ toJSON(inputs) }},
             dependabotMetadata: {
               updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}'',
               dependencyType:'${{ steps.dependabot-metadata.outputs.depedency-type }}'',
