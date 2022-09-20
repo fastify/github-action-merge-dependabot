@@ -47,9 +47,9 @@ runs:
             context,
             inputs: ${{ toJSON(inputs) }},
             dependabotMetadata: {
-              updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}'',
-              dependencyType:'${{ steps.dependabot-metadata.outputs.depedency-type }}'',
-              dependencyNames: '${{ steps.dependabot-metadata.outputs.depedency-names }}'',
+              updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}',
+              dependencyType:'${{ steps.dependabot-metadata.outputs.dependency-type }}',
+              dependencyNames: '${{ steps.dependabot-metadata.outputs.dependency-names }}',
             }
           })
 
