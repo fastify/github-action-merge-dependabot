@@ -35,9 +35,10 @@ runs:
     - name: Fetch metadata
       id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1
+      if: ${{ github.actor == 'dependabot[bot]' }}
     - name: Merge/approve PR
       uses: actions/github-script@v6
-      if: ${{ github.event_name == 'pull_request' }}
+      if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
       with:
         github-token: ${{ inputs.github-token }}
         script: |

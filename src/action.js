@@ -71,7 +71,7 @@ module.exports = async function run({
     ) {
       core.setFailed(
         `Semver bump is higher than allowed in TARGET.
-Tried to do a ${updateType} update but the max allowed is ${TARGET} `
+Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`
       )
       return
     }
