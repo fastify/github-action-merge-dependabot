@@ -28,7 +28,6 @@ const githubStub = {
   },
 }
 
-const TOKEN = 'GITHUB-TOKEN'
 const PR_NUMBER = Math.floor(Math.random() * 10)
 
 tap.afterEach(() => {
@@ -37,11 +36,9 @@ tap.afterEach(() => {
 
 tap.test('githubClient', async t => {
   t.test('getPullRequest', async () => {
-    const result = await githubClient(
-      githubStub,
-      contextStub,
-      TOKEN
-    ).getPullRequest(PR_NUMBER)
+    const result = await githubClient(githubStub, contextStub).getPullRequest(
+      PR_NUMBER
+    )
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.get, {
@@ -55,8 +52,7 @@ tap.test('githubClient', async t => {
     const comment = 'Test pull request comment'
     const result = await githubClient(
       githubStub,
-      contextStub,
-      TOKEN
+      contextStub
     ).approvePullRequest(PR_NUMBER, comment)
     tap.equal(result, data)
 
@@ -71,11 +67,10 @@ tap.test('githubClient', async t => {
 
   t.test('mergePullRequest', async () => {
     const method = 'squash'
-    const result = await githubClient(
-      githubStub,
-      contextStub,
-      TOKEN
-    ).mergePullRequest(PR_NUMBER, method)
+    const result = await githubClient(githubStub, contextStub).mergePullRequest(
+      PR_NUMBER,
+      method
+    )
     tap.equal(result, data)
 
     sinon.assert.calledWith(octokitStubs.merge, {
@@ -89,8 +84,7 @@ tap.test('githubClient', async t => {
   t.test('getPullRequestDiff', async () => {
     const result = await githubClient(
       githubStub,
-      contextStub,
-      TOKEN
+      contextStub
     ).getPullRequestDiff(PR_NUMBER)
     tap.equal(result, data)
 
@@ -107,8 +101,7 @@ tap.test('githubClient', async t => {
   t.test('getPullRequestCommits', async () => {
     const result = await githubClient(
       githubStub,
-      contextStub,
-      TOKEN
+      contextStub
     ).getPullRequestCommits(PR_NUMBER)
     tap.equal(result, data)
 
