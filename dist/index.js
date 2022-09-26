@@ -1721,8 +1721,9 @@ exports.context = new Context.Context();
  * @param     token    the repo PAT or GITHUB_TOKEN
  * @param     options  other options to set
  */
-function getOctokit(token, options) {
-    return new utils_1.GitHub(utils_1.getOctokitOptions(token, options));
+function getOctokit(token, options, ...additionalPlugins) {
+    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
+    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
 }
 exports.getOctokit = getOctokit;
 //# sourceMappingURL=github.js.map
@@ -11086,7 +11087,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.3.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.0.3","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.34.0","eslint":"^8.23.1","eslint-config-prettier":"^8.5.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.1","prettier":"^2.7.1","proxyquire":"^2.1.3","sinon":"^14.0.0","tap":"^16.3.0"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.3.2","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.1.0","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.7"},"devDependencies":{"@vercel/ncc":"^0.34.0","eslint":"^8.24.0","eslint-config-prettier":"^8.5.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.1","prettier":"^2.7.1","proxyquire":"^2.1.3","sinon":"^14.0.0","tap":"^16.3.0"}}');
 
 /***/ })
 
