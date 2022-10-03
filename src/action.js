@@ -1,43 +1,41 @@
 'use strict'
 
 const core = require('@actions/core')
-const github = require('@actions/github')
-const semverDiff = require('semver/functions/diff')
-const semverCoerce = require('semver/functions/coerce')
 const toolkit = require('actions-toolkit')
 
 const packageInfo = require('../package.json')
 const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
-const {
-  isValidSemver,
-  isCommitHash,
-  getInputs,
-  getPackageName,
-} = require('./util')
-const { targetOptions } = require('./getTargetInput')
-const {
-  getModuleVersionChanges,
-  checkModuleVersionChanges,
-} = require('./moduleVersionChanges')
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = require('./util')
 const { verifyCommits } = require('./verifyCommitSignatures')
 const { dependabotAuthor } = require('./getDependabotDetails')
+const { updateTypes } = require('./mapUpdateType')
+const { updateTypesPriority } = require('./mapUpdateType')
 
-const {
-  GITHUB_TOKEN,
-  MERGE_METHOD,
-  EXCLUDE_PKGS,
-  MERGE_COMMENT,
-  APPROVE_ONLY,
-  TARGET,
-  PR_NUMBER,
-} = getInputs()
+module.exports = async function run({
+  github,
+  context,
+  inputs,
+  dependabotMetadata,
+}) {
+  const { updateType } = dependabotMetadata
+  const dependencyNames = parseCommaOrSemicolonSeparatedValue(
+    dependabotMetadata.dependencyNames
+  )
 
-module.exports = async function run() {
+  const {
+    MERGE_METHOD,
+    EXCLUDE_PKGS,
+    MERGE_COMMENT,
+    APPROVE_ONLY,
+    TARGET,
+    PR_NUMBER,
+  } = getInputs(inputs)
+
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = github.context.payload
+    const { pull_request } = context.payload
 
     if (!pull_request && !PR_NUMBER) {
       return logError(
@@ -45,8 +43,7 @@ module.exports = async function run() {
       )
     }
 
-    const client = githubClient(GITHUB_TOKEN)
-
+    const client = githubClient(github, context)
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
@@ -55,7 +52,6 @@ module.exports = async function run() {
     }
 
     const commits = await client.getPullRequestCommits(pr.number)
-
     if (!commits.every(commit => commit.author?.login === dependabotAuthor)) {
       return logWarning('PR contains non dependabot commits, skipping.')
     }
@@ -68,32 +64,33 @@ module.exports = async function run() {
       )
     }
 
-    const prDiff = await client.getPullRequestDiff(pr.number)
-
-    // Get changed modules from diff if available or from PR title as fallback
-    const moduleChanges = getModuleVersionChanges(prDiff) || parsePrTitle(pr)
-
-    if (TARGET !== targetOptions.any) {
-      logInfo(`Checking if the changes in the PR can be merged`)
-
-      const isTargetMatchToPR = checkModuleVersionChanges(moduleChanges, TARGET)
-      if (!isTargetMatchToPR) {
-        return logWarning('Target specified does not match to PR, skipping.')
-      }
+    if (
+      TARGET !== updateTypes.any &&
+      updateTypesPriority.indexOf(updateType) >
+        updateTypesPriority.indexOf(TARGET)
+    ) {
+      core.setFailed(
+        `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`
+      )
+      return
     }
 
     const changedExcludedPackages = EXCLUDE_PKGS.filter(
-      pkg => pkg in moduleChanges
+      pkg => dependencyNames.indexOf(pkg) > -1
     )
+
+    // TODO: Improve error message for excluded packages?
     if (changedExcludedPackages.length > 0) {
       return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
 ${changedExcludedPackages.join(', ')}. Skipping.`)
     }
 
-    const thisModuleChanges = moduleChanges[packageInfo.name]
-    if (thisModuleChanges && isAMajorReleaseBump(thisModuleChanges)) {
-      const version = moduleChanges[packageInfo.name].insert
-      const upgradeMessage = `Cannot automerge ${packageInfo.name} ${version} major release.
+    if (
+      dependencyNames.indexOf(packageInfo.name) > -1 &&
+      updateType === updateTypes.major
+    ) {
+      const upgradeMessage = `Cannot automerge ${packageInfo.name} major release.
     Read how to upgrade it manually:
     https://github.com/fastify/${packageInfo.name}#how-to-upgrade-from-2x-to-new-3x`
 
@@ -103,47 +100,14 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
 
     await client.approvePullRequest(pr.number, MERGE_COMMENT)
     if (APPROVE_ONLY) {
-      return logInfo('Approving only')
+      return logInfo(
+        'APPROVE_ONLY set, PR was approved but it will not be merged'
+      )
     }
 
     await client.mergePullRequest(pr.number, MERGE_METHOD)
     logInfo('Dependabot merge completed')
   } catch (error) {
     core.setFailed(error.message)
-  }
-}
-
-function isAMajorReleaseBump(change) {
-  const from = change.delete
-  const to = change.insert
-
-  if (isCommitHash(from) && isCommitHash(to)) {
-    return false
-  }
-
-  const diff = semverDiff(semverCoerce(from), semverCoerce(to))
-  return diff === targetOptions.major
-}
-
-function parsePrTitle(pullRequest) {
-  const expression = /bump \S+ from (\S+) to (\S+)/i
-  const match = expression.exec(pullRequest.title)
-
-  if (!match) {
-    throw new Error(
-      'Error while parsing PR title, expected: `bump <package> from <old-version> to <new-version>`'
-    )
-  }
-
-  const packageName = getPackageName(pullRequest.head.ref)
-
-  const [, oldVersion, newVersion] = match.map(t => t.replace(/`/g, ''))
-  const isValid = isValidSemver(oldVersion) && isValidSemver(newVersion)
-
-  return {
-    [packageName]: {
-      delete: isValid ? semverCoerce(oldVersion)?.raw : oldVersion,
-      insert: isValid ? semverCoerce(newVersion)?.raw : newVersion,
-    },
   }
 }

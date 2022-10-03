@@ -1,5 +1,6 @@
 name: 'Github Action Merge Dependabot'
 description: 'Automatically approve and merge dependabot PRs'
+
 inputs:
   github-token:
     description: 'A GitHub token'
@@ -27,9 +28,32 @@ inputs:
   pr-number:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
+
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - name: Fetch metadata
+      id: dependabot-metadata
+      uses: dependabot/fetch-metadata@v1
+      if: ${{ github.actor == 'dependabot[bot]' }}
+    - name: Merge/approve PR
+      uses: actions/github-script@v6
+      if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const script = require('${{ github.action_path }}/dist/index.js')
+          await script({
+            github,
+            context,
+            inputs: ${{ toJSON(inputs) }},
+            dependabotMetadata: {
+              updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}',
+              dependencyType:'${{ steps.dependabot-metadata.outputs.dependency-type }}',
+              dependencyNames: '${{ steps.dependabot-metadata.outputs.dependency-names }}',
+            }
+          })
+
 branding:
   icon: 'git-pull-request'
   color: 'gray-dark'

@@ -1,4 +1,5 @@
 'use strict'
 
 const run = require('./action')
-run()
+
+module.exports = run
