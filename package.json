@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/fastify/github-action-merge-dependabot#readme",
   "dependencies": {
-    "@actions/core": "^1.9.1",
+    "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.0",
     "actions-toolkit": "github:nearform/actions-toolkit",
     "gitdiff-parser": "^0.2.2",
