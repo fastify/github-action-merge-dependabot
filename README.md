@@ -42,6 +42,10 @@ An example of a non-semantic version is a commit hash when using git submodules.
 
 _Optional_ A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event)
 
+### `compatibility-score`
+
+_Optional_ A minimum [Compatibility score](https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores) needed for the PR to be merged.
+
 ## Usage
 
 Configure this action in your workflows providing the inputs described above.
