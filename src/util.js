@@ -45,5 +45,6 @@ exports.getInputs = inputs => {
     APPROVE_ONLY: /true/i.test(inputs['approve-only']),
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
+    COMPATIBILITY_SCORE: inputs['compatibility-score'],
   }
 }

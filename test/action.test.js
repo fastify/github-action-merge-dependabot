@@ -466,3 +466,96 @@ tap.test('should forbid minor when target is patch', async () => {
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
+
+tap.test(
+  'should not allow merge with compatibility score lower than target score',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'compatibility-score': 90,
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.minor,
+        compatibilityScore: 80,
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.coreStub.setFailed,
+      `Compatibility score is lower than allowed. Expected at least 90 but received 80`
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+  }
+)
+
+tap.test(
+  'should allow merge with compatibility score higher than target score',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'compatibility-score': 90,
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.minor,
+        compatibilityScore: 91,
+      }),
+    })
+
+    await action()
+
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.called(stubs.approveStub)
+    sinon.assert.called(stubs.mergeStub)
+  }
+)
+
+tap.test(
+  'should allow merge when compatScore is equal to targetScore',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'compatibility-score': 90,
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.minor,
+        compatibilityScore: 90,
+      }),
+    })
+
+    await action()
+
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.called(stubs.approveStub)
+    sinon.assert.called(stubs.mergeStub)
+  }
+)

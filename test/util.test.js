@@ -91,6 +91,16 @@ tap.test('getInputs', async t => {
       t.test('PR_NUMBER', async t => {
         t.equal(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
       })
+      t.test('COMPATIBILITY_SCORE', async t => {
+        t.equal(
+          getInputs({ 'compatibility-score': '10' }).COMPATIBILITY_SCORE,
+          '10'
+        )
+        t.equal(
+          getInputs({ 'compatibility-score': '10' }).COMPATIBILITY_SCORE,
+          '10'
+        )
+      })
     }
   )
 })

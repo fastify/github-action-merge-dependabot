@@ -30,6 +30,7 @@ module.exports = async function run({
     APPROVE_ONLY,
     TARGET,
     PR_NUMBER,
+    COMPATIBILITY_SCORE,
   } = getInputs(inputs)
 
   try {
@@ -62,6 +63,20 @@ module.exports = async function run({
       return logWarning(
         'PR contains invalid dependabot commit signatures, skipping.'
       )
+    }
+
+    const targetScore = +COMPATIBILITY_SCORE
+    const compatScore = +dependabotMetadata.compatibilityScore
+
+    if (
+      !isNaN(targetScore) &&
+      !isNaN(compatScore) &&
+      compatScore < targetScore
+    ) {
+      core.setFailed(
+        `Compatibility score is lower than allowed. Expected at least ${targetScore} but received ${compatScore}`
+      )
+      return
     }
 
     if (
