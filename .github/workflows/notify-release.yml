@@ -1,6 +1,8 @@
 name: notify-release
 on:
   workflow_dispatch:
+  release:
+    types: [published]
   schedule:
     - cron: '30 8 * * *'
 jobs:
