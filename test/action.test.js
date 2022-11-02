@@ -68,11 +68,13 @@ function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
   const prCommitsStub = sinon.stub()
   const approveStub = sinon.stub()
   const mergeStub = sinon.stub()
+  const enableAutoMergeStub = sinon.stub()
 
   const clientStub = sinon.stub(actionGithubClient, 'githubClient').returns({
     getPullRequest: prStub.resolves(),
     approvePullRequest: approveStub.resolves(),
     mergePullRequest: mergeStub.resolves(),
+    enableAutoMergePullRequest: enableAutoMergeStub.resolves(),
     getPullRequestDiff: prDiffStub.resolves(),
     getPullRequestCommits: prCommitsStub.resolves([]),
   })
@@ -103,6 +105,7 @@ function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
       prStub,
       approveStub,
       mergeStub,
+      enableAutoMergeStub,
       prCommitsStub,
       verifyCommitsStub,
     },
@@ -384,6 +387,35 @@ tap.test('should review and merge', async () => {
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
+})
+
+tap.test('should review and enable github auto-merge', async () => {
+  const PR_NUMBER = Math.random()
+  const PR_NODE_ID = Math.random()
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        node_id: PR_NODE_ID,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      'pr-number': PR_NUMBER,
+      target: 'any',
+      'use-github-auto-merge': true,
+    },
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge'
+  )
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.enableAutoMergeStub)
 })
 
 tap.test('should forbid major when target is minor', async () => {
