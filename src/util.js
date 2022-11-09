@@ -43,6 +43,7 @@ exports.getInputs = inputs => {
     EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
     MERGE_COMMENT: inputs['merge-comment'] || '',
     APPROVE_ONLY: /true/i.test(inputs['approve-only']),
+    USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
   }

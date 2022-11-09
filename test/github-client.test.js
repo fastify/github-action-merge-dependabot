@@ -26,9 +26,11 @@ const githubStub = {
   rest: {
     pulls: octokitStubs,
   },
+  graphql: sinon.stub().returns(Promise.resolve({ data })),
 }
 
 const PR_NUMBER = Math.floor(Math.random() * 10)
+const PR_NODE_ID = Math.floor(Math.random() * 10)
 
 tap.afterEach(() => {
   sinon.resetHistory()
@@ -78,6 +80,37 @@ tap.test('githubClient', async t => {
       repo: githubContext.repository.name,
       pull_number: PR_NUMBER,
       merge_method: method,
+    })
+  })
+
+  t.test('enableAutoMergePullRequest', async () => {
+    const method = 'squash'
+    const result = await githubClient(
+      githubStub,
+      contextStub
+    ).enableAutoMergePullRequest(PR_NODE_ID, method)
+    tap.equal(result, data)
+
+    const query = `
+mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+  enablePullRequestAutoMerge(
+    input: { pullRequestId: $pullRequestId, mergeMethod: $mergeMethod }
+  ) {
+    pullRequest {
+      autoMergeRequest {
+        enabledAt
+        enabledBy {
+          login
+        }
+      }
+    }
+  }
+}
+`
+
+    sinon.assert.calledWith(githubStub.graphql, query, {
+      pullRequestId: PR_NODE_ID,
+      mergeMethod: method.toUpperCase(),
     })
   })
 

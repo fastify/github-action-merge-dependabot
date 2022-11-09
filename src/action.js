@@ -28,6 +28,7 @@ module.exports = async function run({
     EXCLUDE_PKGS,
     MERGE_COMMENT,
     APPROVE_ONLY,
+    USE_GITHUB_AUTO_MERGE,
     TARGET,
     PR_NUMBER,
   } = getInputs(inputs)
@@ -103,6 +104,11 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
       return logInfo(
         'APPROVE_ONLY set, PR was approved but it will not be merged'
       )
+    }
+
+    if (USE_GITHUB_AUTO_MERGE) {
+      await client.enableAutoMergePullRequest(pr.node_id, MERGE_METHOD)
+      return logInfo('USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge')
     }
 
     await client.mergePullRequest(pr.number, MERGE_METHOD)

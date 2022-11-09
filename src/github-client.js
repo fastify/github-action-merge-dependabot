@@ -40,6 +40,30 @@ function githubClient(github, context) {
       return data
     },
 
+    async enableAutoMergePullRequest(pullRequestId, mergeMethod) {
+      const query = `
+mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
+  enablePullRequestAutoMerge(
+    input: { pullRequestId: $pullRequestId, mergeMethod: $mergeMethod }
+  ) {
+    pullRequest {
+      autoMergeRequest {
+        enabledAt
+        enabledBy {
+          login
+        }
+      }
+    }
+  }
+}
+`
+      const { data } = await github.graphql(query, {
+        pullRequestId,
+        mergeMethod: mergeMethod.toUpperCase(),
+      })
+      return data
+    },
+
     async getPullRequestDiff(pullRequestNumber) {
       const { data: pullRequest } = await github.rest.pulls.get({
         owner,
