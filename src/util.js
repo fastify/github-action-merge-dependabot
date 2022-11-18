@@ -46,5 +46,6 @@ exports.getInputs = inputs => {
     USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
+    COMPATIBILITY_SCORE: inputs['compatibility-score'],
   }
 }

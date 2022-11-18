@@ -32,6 +32,9 @@ inputs:
   pr-number:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
+  compatibility-score:
+    description: 'The minimum compatibility score required for the PR to be merged (0-100)'
+    required: false
 
 runs:
   using: 'composite'
@@ -40,6 +43,8 @@ runs:
       id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1
       if: ${{ github.actor == 'dependabot[bot]' }}
+      with:
+        compat-lookup: true
     - name: Merge/approve PR
       uses: actions/github-script@v6
       if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
@@ -55,6 +60,7 @@ runs:
               updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}',
               dependencyType:'${{ steps.dependabot-metadata.outputs.dependency-type }}',
               dependencyNames: '${{ steps.dependabot-metadata.outputs.dependency-names }}',
+              compatibilityScore: '${{ steps.dependabot-metadata.outputs.compatibility-score }}',
             }
           })
 
