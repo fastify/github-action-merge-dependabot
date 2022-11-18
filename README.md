@@ -74,7 +74,11 @@ Error: Resource not accessible by integration
 
 ```yml
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
@@ -91,7 +95,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: fastify/github-action-merge-dependabot@v3.0.0
+      - uses: fastify/github-action-merge-dependabot@v3
 ```
 
 ### Excluding packages
@@ -102,7 +106,7 @@ permissions:
   contents: write
 
 steps:
-  - uses: fastify/github-action-merge-dependabot@v3.0.0
+  - uses: fastify/github-action-merge-dependabot@v3
     with:
       exclude: 'react,fastify'
 ```
@@ -113,7 +117,7 @@ steps:
 permissions:
   pull-requests: write
 steps:
-  - uses: fastify/github-action-merge-dependabot@v3.0.0
+  - uses: fastify/github-action-merge-dependabot@v3
     with:
       approve-only: true
 ```
@@ -140,7 +144,7 @@ jobs:
       pull-requests: write
       contents: write
     steps:
-      - uses: fastify/github-action-merge-dependabot@v3.0.0
+      - uses: fastify/github-action-merge-dependabot@v3
         with:
           pr-number: ${{ github.event.inputs.pr-number }}
 ```
