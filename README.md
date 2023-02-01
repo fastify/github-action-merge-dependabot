@@ -57,7 +57,10 @@ _Optional_ A pull request number, only required if triggered from a workflow_dis
 ## Usage
 
 Configure this action in your workflows providing the inputs described above.
-Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
+Note that this action requires a GitHub token with additional permissions. You must either:
+
+1. Use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules and under "Settings > Actions > General" check "Allow GitHub Actions to create and approve pull requests".
+2. Use a custom token [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/) with these permissions configured.
 
 The permissions required are:
 
