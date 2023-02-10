@@ -31,6 +31,7 @@ module.exports = async function run({
     USE_GITHUB_AUTO_MERGE,
     TARGET,
     PR_NUMBER,
+    SKIP_COMMIT_VERIFICATION,
   } = getInputs(inputs)
 
   try {
@@ -57,12 +58,14 @@ module.exports = async function run({
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
-    try {
-      await verifyCommits(commits)
-    } catch {
-      return logWarning(
-        'PR contains invalid dependabot commit signatures, skipping.'
-      )
+    if (!SKIP_COMMIT_VERIFICATION) {
+      try {
+        await verifyCommits(commits)
+      } catch {
+        return logWarning(
+          'PR contains invalid dependabot commit signatures, skipping.'
+        )
+      }
     }
 
     if (

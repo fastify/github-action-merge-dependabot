@@ -56,7 +56,7 @@ _Optional_ A pull request number, only required if triggered from a workflow_dis
 
 ### `skip-commit-verification`
 
-_Optional_ If true, then the [dependabot/fetch-metadata](https://github.com/dependabot/fetch-metadata) action will not expect the commits to have a verification signature. It is required to set this to true in GitHub Enterprise Server.
+_Optional_ If true, then the action will not expect the commits to have a verification signature. It is required to set this to true in GitHub Enterprise Server.
 
 ## Usage
 
