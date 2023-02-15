@@ -79,9 +79,7 @@ function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
     getPullRequestCommits: prCommitsStub.resolves([]),
   })
 
-  const verifyCommitsStub = sinon
-    .stub(verifyCommits, 'verifyCommits')
-    .returns(Promise.resolve())
+  const verifyCommitsStub = sinon.stub(verifyCommits, 'verifyCommits')
 
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
@@ -231,7 +229,7 @@ tap.test(
       },
     ])
 
-    stubs.verifyCommitsStub.rejects()
+    stubs.verifyCommitsStub.throws()
 
     await action()
 
@@ -269,8 +267,6 @@ tap.test(
         },
       },
     ])
-
-    stubs.verifyCommitsStub.rejects()
 
     await action()
 

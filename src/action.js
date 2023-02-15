@@ -60,7 +60,7 @@ module.exports = async function run({
 
     if (!SKIP_COMMIT_VERIFICATION) {
       try {
-        await verifyCommits(commits)
+        verifyCommits(commits)
       } catch {
         return logWarning(
           'PR contains invalid dependabot commit signatures, skipping.'
