@@ -2782,6 +2782,7 @@ module.exports = async function run({
     USE_GITHUB_AUTO_MERGE,
     TARGET,
     PR_NUMBER,
+    SKIP_COMMIT_VERIFICATION,
   } = getInputs(inputs)
 
   try {
@@ -2808,12 +2809,14 @@ module.exports = async function run({
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
-    try {
-      await verifyCommits(commits)
-    } catch {
-      return logWarning(
-        'PR contains invalid dependabot commit signatures, skipping.'
-      )
+    if (!SKIP_COMMIT_VERIFICATION) {
+      try {
+        verifyCommits(commits)
+      } catch {
+        return logWarning(
+          'PR contains invalid dependabot commit signatures, skipping.'
+        )
+      }
     }
 
     if (
@@ -3108,6 +3111,7 @@ exports.getInputs = inputs => {
     USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
+    SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
   }
 }
 

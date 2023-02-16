@@ -32,6 +32,15 @@ tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
   })
 })
 
+const BOOLEAN_INPUTS = [
+  { input: 'approve-only', key: 'APPROVE_ONLY' },
+  { input: 'use-github-auto-merge', key: 'USE_GITHUB_AUTO_MERGE' },
+  {
+    input: 'skip-commit-verification',
+    key: 'SKIP_COMMIT_VERIFICATION',
+  },
+]
+
 tap.test('getInputs', async t => {
   t.test('should fail if no inputs object is provided', async t => {
     t.throws(() => getInputs())
@@ -60,14 +69,16 @@ tap.test('getInputs', async t => {
           'test-merge-comment'
         )
       })
-      t.test('APPROVE_ONLY', async t => {
-        t.equal(getInputs({}).APPROVE_ONLY, false)
-        t.equal(getInputs({ 'approve-only': 'false' }).APPROVE_ONLY, false)
-        t.equal(getInputs({ 'approve-only': 'False' }).APPROVE_ONLY, false)
-        t.equal(getInputs({ 'approve-only': 'FALSE' }).APPROVE_ONLY, false)
-        t.equal(getInputs({ 'approve-only': 'true' }).APPROVE_ONLY, true)
-        t.equal(getInputs({ 'approve-only': 'True' }).APPROVE_ONLY, true)
-        t.equal(getInputs({ 'approve-only': 'TRUE' }).APPROVE_ONLY, true)
+      t.test('BOOLEAN INPUTS', async t => {
+        BOOLEAN_INPUTS.forEach(({ input, key }) => {
+          t.equal(getInputs({})[key], false)
+          t.equal(getInputs({ [input]: 'false' })[key], false)
+          t.equal(getInputs({ [input]: 'False' })[key], false)
+          t.equal(getInputs({ [input]: 'FALSE' })[key], false)
+          t.equal(getInputs({ [input]: 'true' })[key], true)
+          t.equal(getInputs({ [input]: 'True' })[key], true)
+          t.equal(getInputs({ [input]: 'TRUE' })[key], true)
+        })
       })
       t.test('TARGET', async t => {
         t.equal(

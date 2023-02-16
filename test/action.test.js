@@ -79,9 +79,7 @@ function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
     getPullRequestCommits: prCommitsStub.resolves([]),
   })
 
-  const verifyCommitsStub = sinon
-    .stub(verifyCommits, 'verifyCommits')
-    .returns(Promise.resolve())
+  const verifyCommitsStub = sinon.stub(verifyCommits, 'verifyCommits')
 
   const action = proxyquire('../src/action', {
     '@actions/core': coreStub,
@@ -231,7 +229,7 @@ tap.test(
       },
     ])
 
-    stubs.verifyCommitsStub.rejects()
+    stubs.verifyCommitsStub.throws()
 
     await action()
 
@@ -241,6 +239,44 @@ tap.test(
     )
     sinon.assert.notCalled(stubs.approveStub)
     sinon.assert.notCalled(stubs.mergeStub)
+  }
+)
+
+tap.test(
+  'should review and merge even if commit signatures cannot be verified with skip-commit-verification',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
+        },
+      },
+      inputs: {
+        'skip-commit-verification': true,
+      },
+    })
+
+    stubs.prCommitsStub.resolves([
+      {
+        author: {
+          login: 'dependabot[bot]',
+        },
+      },
+    ])
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      'Dependabot merge completed'
+    )
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
   }
 )
 
