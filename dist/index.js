@@ -2415,6 +2415,8 @@ exports.checkBypass = checkBypass;
 
 
 const core = __nccwpck_require__(186)
+const newOrg = 'nearform-actions'
+const oldOrg = 'nearform'
 
 /**
  * Displays warning message if the action reference is pinned to master/main
@@ -2442,19 +2444,37 @@ function logActionRefWarning() {
  */
 function logRepoWarning() {
   const actionRepo = process.env.GITHUB_ACTION_REPOSITORY
-  const [repoOrg, repoName] = actionRepo.split('/')
-  const newOrg = 'nearform-actions'
+  const actionPath = process.env.GITHUB_ACTION_PATH
 
-  if (repoOrg != newOrg) {
-    core.warning(
-      `The '${repoName}' action, no longer exists under the '${repoOrg}' organisation.\n` +
-        `Please update it to '${newOrg}', you can do this\n` +
-        `by updating your Github Workflow file from:\n\n` +
-        `    uses: '${repoOrg}/${repoName}'\n\n` +
-        `to:\n\n` +
-        `    uses: '${newOrg}/${repoName}'\n\n`
-    )
+  // Handle composite actions
+  if (actionPath && actionPath.includes('/nearform/')) {
+    const [actionRepoName, actionRepoVersion] = actionPath
+      .split('/nearform/')[1]
+      .split('/')
+
+    return warning(actionRepoName, actionRepoVersion)
   }
+
+  const [repoOrg, repoName] = actionRepo.split('/')
+
+  if (repoOrg === oldOrg) {
+    return warning(repoName)
+  }
+}
+
+/**
+ * Simple function to avoid the repetition of the message
+ */
+function warning(repoName, repoVersion) {
+  const nameWithVersion = repoVersion ? `${repoName}@${repoVersion}` : repoName
+  return core.warning(
+    `The '${repoName}' action, no longer exists under the '${oldOrg}' organisation.\n` +
+      `Please update it to '${newOrg}', you can do this\n` +
+      `by updating your Github Workflow file from:\n\n` +
+      `    uses: '${oldOrg}/${nameWithVersion}'\n\n` +
+      `to:\n\n` +
+      `    uses: '${newOrg}/${nameWithVersion}'\n\n`
+  )
 }
 
 module.exports = {
@@ -3260,7 +3280,7 @@ module.exports = require("util");
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.6.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.1.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.2.2","semver":"^7.3.8"},"devDependencies":{"@vercel/ncc":"^0.36.1","eslint":"^8.34.0","eslint-config-prettier":"^8.6.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.3","prettier":"^2.8.4","proxyquire":"^2.1.3","sinon":"^15.0.1","tap":"^16.3.4"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.6.2","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.1.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.3.0","semver":"^7.3.8"},"devDependencies":{"@vercel/ncc":"^0.36.1","eslint":"^8.36.0","eslint-config-prettier":"^8.7.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.3","prettier":"^2.8.4","proxyquire":"^2.1.3","sinon":"^15.0.2","tap":"^16.3.4"}}');
 
 /***/ })
 
