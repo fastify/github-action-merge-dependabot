@@ -17,7 +17,6 @@ This action automatically approves and merges dependabot PRs.
 | `target`  | ❌       | `any`                 | A flag to only auto-merge updates based on Semantic Versioning.<br />Possible options are: `major, premajor, minor, preminor, patch, prepatch, prerelease, any`.<br /><br />For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.<br />If you set a value other than `any`, PRs that are not semantic version compliant are skipped. An example of a non-semantic version is a commit hash when using git submodules.|
 | `pr-number`  | ❌       | | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event). |
 | `skip-commit-verification`  | ❌       |  | If true, then the action will not expect the commits to have a verification signature. It is required to set this to true in GitHub Enterprise Server. |
- 
 
 ## Usage
 
