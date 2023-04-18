@@ -5,58 +5,19 @@ This action automatically approves and merges dependabot PRs.
 
 ## Inputs
 
-### `github-token`
 
-_Optional_ A GitHub token. See below for additional information.
-
-### `exclude`
-
-_Optional_ A comma or semicolon separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.
-
-### `approve-only`
-
-_Optional_ If `true`, the PR is only approved but not merged. Defaults to `false`.
-
-### `merge-method`
-
-_Optional_ The merge method you would like to use (squash, merge, rebase). Default to `squash` merge.
-
-### `merge-comment`
-
-_Optional_ An arbitrary message that you'd like to comment on the PR after it gets auto-merged. This is only useful when you're recieving too much of noise in email and would like to filter mails for PRs that got automatically merged.
-
-### `use-github-auto-merge`
-
-_Optional_ If `true`, the PR is marked as auto-merge and will be merged by GitHub when status checks are satisfied. Default to `false`.
-
-_NOTE_ This feature only works when all of the following conditions are met.
-
-- The repository enables auto-merge.
-- The pull request base must have a branch protection rule.
-- The pull request's status checks are not yet satisfied.
-
-Refer to [the official document](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) about GitHub auto-merge.
-
-### `target`
-
-_Optional_ A flag to only auto-merge updates based on Semantic Versioning. Defaults to `any`.
-
-Possible options are:
-
-`major, premajor, minor, preminor, patch, prepatch, prerelease, any`.
-
-For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.
-
-If you set a value other than `any`, PRs that are not semantic version compliant are skipped.
-An example of a non-semantic version is a commit hash when using git submodules.
-
-### `pr-number`
-
-_Optional_ A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event)
-
-### `skip-commit-verification`
-
-_Optional_ If true, then the action will not expect the commits to have a verification signature. It is required to set this to true in GitHub Enterprise Server.
+| input           | required | default                  | description                                           |
+|-----------------|----------|--------------------------|-------------------------------------------------------|
+| `github-token`  | ❌       |                          | A GitHub token. See below for additional information. |
+| `exclude`       | ❌       |                          | A comma or semicolon separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.    |
+| `approve-only`  | ❌       | `false`                  | If `true`, the PR is only approved but not merged. |
+| `merge-method`  | ❌       | `squash`                 | The merge method you would like to use (squash, merge, rebase). |
+| `merge-comment` | ❌       |                          | An arbitrary message that you'd like to comment on the PR after it gets auto-merged. This is only useful when you're receiving too much of noise in email and would like to filter mails for PRs that got automatically merged. |
+| `use-github-auto-merge`  | ❌       | `false`                 | If `true`, the PR is marked as auto-merge and will be merged by GitHub when status checks are satisfied.<br /><br />_NOTE_: This feature only works when all of the following conditions are met.<br />- The repository enables auto-merge. <br />- The pull request base must have a branch protection rule. <br />- The pull request's status checks are not yet satisfied.<br /></br>Refer to [the official document](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) about GitHub auto-merge. |
+| `target`  | ❌       | `any`                 | A flag to only auto-merge updates based on Semantic Versioning.<br />Possible options are: `major, premajor, minor, preminor, patch, prepatch, prerelease, any`.<br /><br />For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.<br />If you set a value other than `any`, PRs that are not semantic version compliant are skipped. An example of a non-semantic version is a commit hash when using git submodules.|
+| `pr-number`  | ❌       | | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a seperate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event). |
+| `skip-commit-verification`  | ❌       |  | If true, then the action will not expect the commits to have a verification signature. It is required to set this to true in GitHub Enterprise Server. |
+ 
 
 ## Usage
 
