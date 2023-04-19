@@ -2,7 +2,21 @@
 
 This action automatically approves and merges dependabot PRs.
 
-[![license][license-img]][license-url]
+## Usage
+
+Configure this action in your workflows providing the inputs described below.
+Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
+
+The permissions required are:
+
+- [`pull-requests`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#pull-requests): it is needed to approve PRs.
+- [`contents`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see [this example](#approving-without-merging) below.
+
+If some of the required permissions are missing, the action will fail with the error message:
+
+```
+Error: Resource not accessible by integration
+```
 
 ## Inputs
 
@@ -18,23 +32,9 @@ This action automatically approves and merges dependabot PRs.
 | `pr-number`                | ❌       |                          | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a separate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event). |
 | `skip-commit-verification` | ❌       | `false`                  | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server. |
 
-## Usage
+## Examples
 
-Configure this action in your workflows providing the inputs described above.
-Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
-
-The permissions required are:
-
-- [`pull-requests`](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps#permission-on-pull-requests): it is needed to approve PRs.
-- [`contents`](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps#permission-on-contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see the example below.
-
-If some of the required permissions are missing, the action will fail with the error message:
-
-```
-Error: Resource not accessible by integration
-```
-
-### Basic example
+### Basic
 
 ```yml
 name: CI
@@ -158,7 +158,6 @@ jobs:
 ## Notes
 
 - A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token` and supplied to the action as an input `github-token`.
-- Only the [GitHub native Dependabot integration](https://docs.github.com/en/github/administering-a-repository/keeping-your-dependencies-updated-automatically) is supported, the old [Dependabot Preview app](https://github.com/marketplace/dependabot-preview) isn't.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
 - If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
 
