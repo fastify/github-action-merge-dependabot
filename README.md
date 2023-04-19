@@ -157,7 +157,7 @@ jobs:
 
 ## Notes
 
-- A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token` and supplied to the action as an input `github-token`.
+- A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token`. If you want to provide a token that's not the default one you can used the `github-token` input.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
 - If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
 
