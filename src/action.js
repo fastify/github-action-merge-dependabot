@@ -32,6 +32,7 @@ module.exports = async function run({
     TARGET,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
+    SKIP_VERIFICATION,
   } = getInputs(inputs)
 
   try {
@@ -49,16 +50,16 @@ module.exports = async function run({
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
-    if (!isDependabotPR) {
+    if (!isDependabotPR && !SKIP_VERIFICATION) {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
     const commits = await client.getPullRequestCommits(pr.number)
-    if (!commits.every(commit => commit.author?.login === dependabotAuthor)) {
+    if (!commits.every(commit => commit.author?.login === dependabotAuthor) && !SKIP_VERIFICATION) {
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
-    if (!SKIP_COMMIT_VERIFICATION) {
+    if (!SKIP_COMMIT_VERIFICATION && !SKIP_VERIFICATION) {
       try {
         verifyCommits(commits)
       } catch {

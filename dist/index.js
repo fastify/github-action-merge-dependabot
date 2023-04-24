@@ -2803,6 +2803,7 @@ module.exports = async function run({
     TARGET,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
+    SKIP_VERIFICATION,
   } = getInputs(inputs)
 
   try {
@@ -2820,16 +2821,16 @@ module.exports = async function run({
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
-    if (!isDependabotPR) {
+    if (!isDependabotPR && !SKIP_VERIFICATION) {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
     const commits = await client.getPullRequestCommits(pr.number)
-    if (!commits.every(commit => commit.author?.login === dependabotAuthor)) {
+    if (!commits.every(commit => commit.author?.login === dependabotAuthor) && !SKIP_VERIFICATION) {
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
-    if (!SKIP_COMMIT_VERIFICATION) {
+    if (!SKIP_COMMIT_VERIFICATION && !SKIP_VERIFICATION) {
       try {
         verifyCommits(commits)
       } catch {
@@ -3132,6 +3133,7 @@ exports.getInputs = inputs => {
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
+    SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
   }
 }
 
@@ -3280,7 +3282,7 @@ module.exports = require("util");
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.6.4","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.1.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.3.1","semver":"^7.4.0"},"devDependencies":{"@vercel/ncc":"^0.36.1","eslint":"^8.38.0","eslint-config-prettier":"^8.8.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.3","prettier":"^2.8.7","proxyquire":"^2.1.3","sinon":"^15.0.3","tap":"^16.3.4"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.6.4","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","test":"tap test/**.test.js","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.9.1","@actions/github":"^5.1.1","actions-toolkit":"github:nearform/actions-toolkit","gitdiff-parser":"^0.3.1","semver":"^7.5.0"},"devDependencies":{"@vercel/ncc":"^0.36.1","eslint":"^8.39.0","eslint-config-prettier":"^8.8.0","eslint-plugin-prettier":"^4.2.1","husky":"^8.0.3","prettier":"^2.8.8","proxyquire":"^2.1.3","sinon":"^15.0.4","tap":"^16.3.4"}}');
 
 /***/ })
 

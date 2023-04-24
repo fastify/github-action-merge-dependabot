@@ -39,6 +39,10 @@ const BOOLEAN_INPUTS = [
     input: 'skip-commit-verification',
     key: 'SKIP_COMMIT_VERIFICATION',
   },
+  {
+    input: 'skip-verification',
+    key: 'SKIP_VERIFICATION',
+  },
 ]
 
 tap.test('getInputs', async t => {

@@ -206,6 +206,38 @@ for (const prCommitsStub of prCommitsStubs) {
   })
 }
 
+for (const prCommitsStub of prCommitsStubs) {
+  tap.test('should NOT skip PR with non dependabot commit when skip-verification is enabled', async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
+        },
+      },
+      inputs: {
+        'skip-verification': true,
+      },
+    })
+    stubs.prCommitsStub.resolves([prCommitsStub])
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+        stubs.logStub.logInfo,
+        'Dependabot merge completed'
+    )
+    sinon.assert.calledOnce(stubs.prCommitsStub)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
+  })
+}
+
+
+
 tap.test(
   'should skip PR if dependabot commit signatures cannot be verified',
   async () => {
@@ -278,6 +310,82 @@ tap.test(
     sinon.assert.calledOnce(stubs.approveStub)
     sinon.assert.calledOnce(stubs.mergeStub)
   }
+)
+
+tap.test(
+    'should review and merge even if commit signatures cannot be verified when skip-verification is enabled',
+    async () => {
+      const PR_NUMBER = Math.random()
+      const { action, stubs } = buildStubbedAction({
+        payload: {
+          pull_request: {
+            user: {
+              login: BOT_NAME,
+            },
+            number: PR_NUMBER,
+          },
+        },
+        inputs: {
+          'skip-verification': true,
+        },
+      })
+
+      stubs.prCommitsStub.resolves([
+        {
+          author: {
+            login: 'dependabot[bot]',
+          },
+        },
+      ])
+
+      await action()
+
+      sinon.assert.calledWithExactly(
+          stubs.logStub.logInfo,
+          'Dependabot merge completed'
+      )
+      sinon.assert.notCalled(stubs.coreStub.setFailed)
+      sinon.assert.calledOnce(stubs.approveStub)
+      sinon.assert.calledOnce(stubs.mergeStub)
+    }
+)
+
+tap.test(
+    'should review and merge even the user is not dependabot when skip-verification is enabled',
+    async () => {
+      const PR_NUMBER = Math.random()
+      const { action, stubs } = buildStubbedAction({
+        payload: {
+          pull_request: {
+            user: {
+              login: BOT_NAME,
+            },
+            number: PR_NUMBER,
+          },
+        },
+        inputs: {
+          'skip-verification': true,
+        },
+      })
+
+      stubs.prCommitsStub.resolves([
+        {
+          author: {
+            login: 'myCustomUser',
+          },
+        },
+      ])
+
+      await action()
+
+      sinon.assert.calledWithExactly(
+          stubs.logStub.logInfo,
+          'Dependabot merge completed'
+      )
+      sinon.assert.notCalled(stubs.coreStub.setFailed)
+      sinon.assert.calledOnce(stubs.approveStub)
+      sinon.assert.calledOnce(stubs.mergeStub)
+    }
 )
 
 tap.test('should ignore excluded package', async () => {
