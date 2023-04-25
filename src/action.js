@@ -50,7 +50,7 @@ module.exports = async function run({
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
-    if (!isDependabotPR && !SKIP_VERIFICATION) {
+    if (!SKIP_VERIFICATION && !isDependabotPR) {
       return logWarning('Not a dependabot PR, skipping.')
     }
 
