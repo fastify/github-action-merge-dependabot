@@ -47,5 +47,6 @@ exports.getInputs = inputs => {
     TARGET: mapUpdateType(inputs['target']),
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
+    SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
   }
 }
