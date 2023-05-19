@@ -587,7 +587,7 @@ tap.test('should forbid major when target is minor', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-      `Semver bump is higher than allowed in TARGET.
+    `Semver bump is higher than allowed in TARGET.
 Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.minor}'`
   )
   sinon.assert.notCalled(stubs.approveStub)
@@ -616,10 +616,9 @@ tap.test('should forbid minor when target is patch', async () => {
 
   await action()
 
-
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-      `Semver bump is higher than allowed in TARGET.
+    `Semver bump is higher than allowed in TARGET.
 Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateTypes.patch}'`
   )
   sinon.assert.notCalled(stubs.approveStub)
