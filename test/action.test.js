@@ -585,7 +585,11 @@ tap.test('should forbid major when target is minor', async () => {
 
   await action()
 
-  sinon.assert.called(stubs.coreStub.setFailed)
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logWarning,
+    `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.minor}'`
+  )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
@@ -612,34 +616,11 @@ tap.test('should forbid minor when target is patch', async () => {
 
   await action()
 
-  sinon.assert.called(stubs.coreStub.setFailed)
-  sinon.assert.notCalled(stubs.approveStub)
-  sinon.assert.notCalled(stubs.mergeStub)
-})
-
-tap.test('should forbid minor when target is patch', async () => {
-  const PR_NUMBER = Math.random()
-
-  const { action, stubs } = buildStubbedAction({
-    payload: {
-      pull_request: {
-        number: PR_NUMBER,
-        user: { login: BOT_NAME },
-      },
-    },
-    inputs: {
-      PR_NUMBER,
-      target: 'patch',
-      exclude: 'react',
-    },
-    dependabotMetadata: createDependabotMetadata({
-      updateType: updateTypes.minor,
-    }),
-  })
-
-  await action()
-
-  sinon.assert.called(stubs.coreStub.setFailed)
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logWarning,
+    `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateTypes.patch}'`
+  )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
 })
