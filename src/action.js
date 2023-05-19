@@ -77,7 +77,7 @@ module.exports = async function run({
       updateTypesPriority.indexOf(updateType) >
         updateTypesPriority.indexOf(TARGET)
     ) {
-      logInfo(`Semver bump is higher than allowed in TARGET.
+      logWarning(`Semver bump is higher than allowed in TARGET.
 Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
       return
     }
