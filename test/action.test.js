@@ -12,7 +12,6 @@ const actionLog = require('../src/log')
 const actionGithubClient = require('../src/github-client')
 const verifyCommits = require('../src/verifyCommitSignatures')
 const { updateTypes } = require('../src/mapUpdateType')
-const { FINISH_STATUS } = require('../src/action')
 const { MERGE_STATUS } = require('../src/util')
 
 const BOT_NAME = 'dependabot[bot]'
