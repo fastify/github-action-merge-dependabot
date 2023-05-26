@@ -8,6 +8,7 @@ const { githubClient } = require('./github-client')
 const { logInfo, logWarning, logError } = require('./log')
 const {
   MERGE_STATUS,
+  MERGE_STATUS_KEY,
   getInputs,
   parseCommaOrSemicolonSeparatedValue,
 } = require('./util')
@@ -45,7 +46,7 @@ module.exports = async function run({
     const { pull_request } = context.payload
 
     if (!pull_request && !PR_NUMBER) {
-      core.setOutput('merge_status', MERGE_STATUS.skippedNotADependabotPr)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
         'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
@@ -56,7 +57,7 @@ module.exports = async function run({
 
     const isDependabotPR = pr.user.login === dependabotAuthor
     if (!SKIP_VERIFICATION && !isDependabotPR) {
-      core.setOutput('merge_status', MERGE_STATUS.skippedNotADependabotPr)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logWarning('Not a dependabot PR, skipping.')
     }
 
@@ -65,7 +66,7 @@ module.exports = async function run({
       !SKIP_VERIFICATION &&
       !commits.every(commit => commit.author?.login === dependabotAuthor)
     ) {
-      core.setOutput('merge_status', MERGE_STATUS.skippedNotADependabotPr)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logWarning('PR contains non dependabot commits, skipping.')
     }
 
@@ -74,7 +75,7 @@ module.exports = async function run({
         verifyCommits(commits)
       } catch {
         core.setOutput(
-          'merge_status',
+          MERGE_STATUS_KEY,
           MERGE_STATUS.skippedCommitVerificationFailed
         )
         return logWarning(
@@ -88,7 +89,7 @@ module.exports = async function run({
       updateTypesPriority.indexOf(updateType) >
         updateTypesPriority.indexOf(TARGET)
     ) {
-      core.setOutput('merge_status', MERGE_STATUS.skippedBumpHigherThanTarget)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)
       logWarning(`Semver bump is higher than allowed in TARGET.
 Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
       return
@@ -100,7 +101,7 @@ Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
 
     // TODO: Improve error message for excluded packages?
     if (changedExcludedPackages.length > 0) {
-      core.setOutput('merge_status', MERGE_STATUS.skippedPackageExcluded)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedPackageExcluded)
       return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
 ${changedExcludedPackages.join(', ')}. Skipping.`)
     }
@@ -113,14 +114,14 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     Read how to upgrade it manually:
     https://github.com/fastify/${packageInfo.name}#how-to-upgrade-from-2x-to-new-3x`
 
-      core.setOutput('merge_status', MERGE_STATUS.skippedCannotUpdateMajor)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedCannotUpdateMajor)
       core.setFailed(upgradeMessage)
       return
     }
 
     await client.approvePullRequest(pr.number, MERGE_COMMENT)
     if (APPROVE_ONLY) {
-      core.setOutput('merge_status', MERGE_STATUS.approved)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.approved)
       return logInfo(
         'APPROVE_ONLY set, PR was approved but it will not be merged'
       )
@@ -132,10 +133,10 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     }
 
     await client.mergePullRequest(pr.number, MERGE_METHOD)
-    core.setOutput('merge_status', MERGE_STATUS.merged)
+    core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.merged)
     logInfo('Dependabot merge completed')
   } catch (error) {
     core.setFailed(error.message)
-    core.setOutput('merge_status', MERGE_STATUS.mergeFailed)
+    core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.mergeFailed)
   }
 }

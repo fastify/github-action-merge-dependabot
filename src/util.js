@@ -61,3 +61,5 @@ exports.MERGE_STATUS = {
   skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
   skippedPackageExcluded: 'skipped:packaged_excluded',
 }
+
+exports.MERGE_STATUS_KEY = 'merge_status'

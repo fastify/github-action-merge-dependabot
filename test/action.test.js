@@ -12,7 +12,7 @@ const actionLog = require('../src/log')
 const actionGithubClient = require('../src/github-client')
 const verifyCommits = require('../src/verifyCommitSignatures')
 const { updateTypes } = require('../src/mapUpdateType')
-const { MERGE_STATUS } = require('../src/util')
+const { MERGE_STATUS, MERGE_STATUS_KEY } = require('../src/util')
 
 const BOT_NAME = 'dependabot[bot]'
 
@@ -125,7 +125,7 @@ tap.test('should not run if a pull request number is missing', async () => {
 
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.skippedNotADependabotPr
   )
 })
@@ -169,7 +169,7 @@ tap.test('should skip non-dependabot PR', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.skippedNotADependabotPr
   )
 })
@@ -213,7 +213,7 @@ for (const prCommitsStub of prCommitsStubs) {
 
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.skippedNotADependabotPr
     )
   })
@@ -251,7 +251,7 @@ for (const prCommitsStub of prCommitsStubs) {
 
       sinon.assert.calledWith(
         stubs.coreStub.setOutput,
-        'merge_status',
+        MERGE_STATUS_KEY,
         MERGE_STATUS.merged
       )
     }
@@ -293,7 +293,7 @@ tap.test(
     sinon.assert.notCalled(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.skippedCommitVerificationFailed
     )
   }
@@ -336,7 +336,7 @@ tap.test(
     sinon.assert.calledOnce(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.merged
     )
   }
@@ -380,7 +380,7 @@ tap.test(
 
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.merged
     )
   }
@@ -423,7 +423,7 @@ tap.test(
     sinon.assert.calledOnce(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.merged
     )
   }
@@ -451,7 +451,7 @@ tap.test('should ignore excluded package', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.skippedPackageExcluded
   )
 })
@@ -483,7 +483,7 @@ tap.test('approve only should not merge', async () => {
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.approved
   )
 })
@@ -510,7 +510,7 @@ tap.test('should review and merge', async () => {
   sinon.assert.calledOnce(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.merged
   )
 })
@@ -539,7 +539,7 @@ tap.test(
     sinon.assert.calledOnce(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.merged
     )
   }
@@ -570,7 +570,7 @@ tap.test(
     sinon.assert.notCalled(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
-      'merge_status',
+      MERGE_STATUS_KEY,
       MERGE_STATUS.skippedCannotUpdateMajor
     )
   }
@@ -599,7 +599,7 @@ tap.test('should review and merge', async () => {
   sinon.assert.calledOnce(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.merged
   )
 })
@@ -664,7 +664,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.skippedBumpHigherThanTarget
   )
 })
@@ -700,7 +700,7 @@ Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateType
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
-    'merge_status',
+    MERGE_STATUS_KEY,
     MERGE_STATUS.skippedBumpHigherThanTarget
   )
 })
