@@ -33,6 +33,12 @@ Error: Resource not accessible by integration
 | `skip-commit-verification` | No       | `false`             | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `skip-verification`        | No       | `false`             | If true, the action will not validate the user or the commit verification status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
+## Output
+
+| outputs       | Description   |
+|---------------|---------------|
+| merge_status        | The result status of the merge. It can be one of the following: `approved`, `merged`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded`|
+
 ## Examples
 
 ### Basic example
