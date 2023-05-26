@@ -50,3 +50,14 @@ exports.getInputs = inputs => {
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
   }
 }
+
+exports.MERGE_STATUS = {
+  approved: 'approved',
+  merged: 'merged',
+  mergeFailed: 'merge_failed',
+  skippedCommitVerificationFailed: 'skipped:commit_verification_failed',
+  skippedNotADependabotPr: 'skipped:not_a_dependabot_pr',
+  skippedCannotUpdateMajor: 'skipped:cannot_update_major',
+  skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
+  skippedPackageExcluded: 'skipped:packaged_excluded',
+}
