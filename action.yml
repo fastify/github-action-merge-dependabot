@@ -47,19 +47,11 @@ runs:
     - name: Fetch metadata
       id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1
-      if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         skip-commit-verification: ${{ inputs.skip-commit-verification }}
         skip-verification :  ${{ inputs.skip-verification }}
-    - name: Warn if action skipped
-      uses: actions/github-script@v6
-      if: github.event_name == 'pull_request' && (github.actor != 'dependabot[bot]' || inputs.skip-verification == 'true')
-      with:
-        script: |
-          core.warning(`Expected author 'dependabot[bot]' but received '${context.actor}'. Skipping`)
     - name: Merge/approve PR
       uses: actions/github-script@v6
-      if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         github-token: ${{ inputs.github-token }}
         script: |
