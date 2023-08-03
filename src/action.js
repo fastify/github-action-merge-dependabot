@@ -86,7 +86,7 @@ module.exports = async function run({
 
     if (
       TARGET !== updateTypes.any &&
-      updateTypesPriority.indexOf(updateType) >
+      updateTypesPriority.indexOf(updateType) <
         updateTypesPriority.indexOf(TARGET)
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)

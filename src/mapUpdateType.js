@@ -9,10 +9,10 @@ const updateTypes = {
 }
 
 const updateTypesPriority = [
-  updateTypes.patch,
-  updateTypes.minor,
-  updateTypes.major,
   updateTypes.any,
+  updateTypes.major,
+  updateTypes.minor,
+  updateTypes.patch,
 ]
 
 const mapUpdateType = input => {
