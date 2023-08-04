@@ -86,6 +86,15 @@ module.exports = async function run({
 
     if (
       TARGET !== updateTypes.any &&
+      updateTypesPriority.indexOf(updateType) < 0
+    ) {
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedInvalidVersion)
+      logWarning(`Semver bump '${updateType}' is invalid!`)
+      return
+    }
+
+    if (
+      TARGET !== updateTypes.any &&
       updateTypesPriority.indexOf(updateType) >
         updateTypesPriority.indexOf(TARGET)
     ) {
