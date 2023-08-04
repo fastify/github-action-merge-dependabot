@@ -2857,7 +2857,16 @@ module.exports = async function run({
 
     if (
       TARGET !== updateTypes.any &&
-      updateTypesPriority.indexOf(updateType) <
+      updateTypesPriority.indexOf(updateType) < 0
+    ) {
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedInvalidVersion)
+      logWarning(`Semver bump '${updateType}' is invalid!`)
+      return
+    }
+
+    if (
+      TARGET !== updateTypes.any &&
+      updateTypesPriority.indexOf(updateType) >
         updateTypesPriority.indexOf(TARGET)
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)
@@ -3080,10 +3089,10 @@ const updateTypes = {
 }
 
 const updateTypesPriority = [
-  updateTypes.any,
-  updateTypes.major,
-  updateTypes.minor,
   updateTypes.patch,
+  updateTypes.minor,
+  updateTypes.major,
+  updateTypes.any,
 ]
 
 const mapUpdateType = input => {
@@ -3165,6 +3174,7 @@ exports.MERGE_STATUS = {
   skippedCannotUpdateMajor: 'skipped:cannot_update_major',
   skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
   skippedPackageExcluded: 'skipped:packaged_excluded',
+  skippedInvalidVersion: 'skipped:invalid_semver',
 }
 
 exports.MERGE_STATUS_KEY = 'merge_status'

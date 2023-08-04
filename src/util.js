@@ -60,6 +60,7 @@ exports.MERGE_STATUS = {
   skippedCannotUpdateMajor: 'skipped:cannot_update_major',
   skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
   skippedPackageExcluded: 'skipped:packaged_excluded',
+  skippedInvalidVersion: 'skipped:invalid_semver',
 }
 
 exports.MERGE_STATUS_KEY = 'merge_status'

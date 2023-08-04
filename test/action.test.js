@@ -704,3 +704,73 @@ Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateType
     MERGE_STATUS.skippedBumpHigherThanTarget
   )
 })
+
+tap.test('should forbid when update type is missing', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'minor',
+      exclude: 'react',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: null,
+    }),
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logWarning,
+    `Semver bump 'null' is invalid!`
+  )
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.skippedInvalidVersion
+  )
+})
+
+tap.test('should forbid when update type is not valid', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'minor',
+      exclude: 'react',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: 'semver:invalid',
+    }),
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logWarning,
+    `Semver bump 'semver:invalid' is invalid!`
+  )
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.skippedInvalidVersion
+  )
+})
