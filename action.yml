@@ -40,6 +40,14 @@ inputs:
     type: boolean
     description: 'If true, the action will not validate the user or the commit verification status'
     default: false
+  event-name:
+    type: string
+    description:
+    default: pull_request
+    options:
+    - pull_request
+    - pull_request_target
+
 
 runs:
   using: 'composite'
@@ -47,7 +55,7 @@ runs:
     - name: Fetch metadata
       id: dependabot-metadata
       uses: dependabot/fetch-metadata@v1
-      if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
+      if: github.event_name == '${{ inputs.event-name }}' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         skip-commit-verification: ${{ inputs.skip-commit-verification }}
         skip-verification :  ${{ inputs.skip-verification }}
