@@ -43,12 +43,22 @@ module.exports = async function run({
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = context.payload
+    const {
+      payload: { pull_request },
+      eventName,
+    } = context
 
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
         'This action must be used in the context of a Pull Request or with a Pull Request number'
+      )
+    }
+
+    if (eventName !== 'pull_request') {
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedUnsupportedTrigger)
+      return logError(
+        'This action must be used exclusively for "pull_request" events only. For further information, please refer to the related issue: https://github.com/fastify/github-action-merge-dependabot/issues/355.'
       )
     }
 

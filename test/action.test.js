@@ -40,13 +40,14 @@ const createDependabotMetadata = (props = {}) => ({
   ...props,
 })
 
-function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
+function buildStubbedAction({ context, payload, inputs, dependabotMetadata }) {
   const coreStub = sinon.stub(core)
   const toolkitStub = sinon
     .stub(toolkit, 'logActionRefWarning')
     .get(() => sinon.stub())
 
   const contextStub = {
+    eventName: 'pull_request',
     payload: {
       pull_request: {
         user: {
@@ -61,6 +62,7 @@ function buildStubbedAction({ payload, inputs, dependabotMetadata }) {
       },
     },
     ...{ payload },
+    ...context,
   }
 
   const logStub = sinon.stub(actionLog)
@@ -129,6 +131,35 @@ tap.test('should not run if a pull request number is missing', async () => {
     MERGE_STATUS.skippedNotADependabotPr
   )
 })
+
+tap.test(
+  'should not run if not triggered by a pull_request event',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      context: {
+        eventName: 'pull_request_target',
+      },
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
+        },
+      },
+    })
+    await action()
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedUnsupportedTrigger
+    )
+  }
+)
 
 tap.test(
   'should retrieve PR info when trigger by non pull_request events',

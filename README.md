@@ -37,7 +37,7 @@ Error: Resource not accessible by integration
 
 | outputs       | Description   |
 |---------------|---------------|
-| merge_status        | The result status of the merge. It can be one of the following: `approved`, `merged`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded`|
+| merge_status        | The result status of the merge. It can be one of the following: `approved`, `merged`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded`, `skipped:unsuopported_trigger`|
 
 ## Examples
 
@@ -167,6 +167,7 @@ jobs:
 - A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token`. If you want to provide a token that's not the default one you can used the `github-token` input.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
 - If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
+- This action must be used exclusively for `pull_request` triggers. Further details can be found in [this issue](https://github.com/fastify/github-action-merge-dependabot/issues/355).
 
 ## Acknowledgements
 
