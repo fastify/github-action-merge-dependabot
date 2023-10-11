@@ -23,7 +23,7 @@ function verifyCommitSignatureCommitterAndAuthor(
   sha,
   author,
   committer,
-  verified
+  verified,
 ) {
   if (
     !verified ||
@@ -31,7 +31,7 @@ function verifyCommitSignatureCommitterAndAuthor(
     author.name !== dependabotAuthor
   ) {
     throw new Error(
-      `Signature for commit ${sha} could not be verified - Not a dependabot commit`
+      `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
     )
   }
 }
