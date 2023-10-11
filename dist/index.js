@@ -2809,6 +2809,7 @@ module.exports = async function run({
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
+    SKIP_TRIGGER_VERIFICATION,
   } = getInputs(inputs)
 
   try {
@@ -2826,7 +2827,7 @@ module.exports = async function run({
       )
     }
 
-    if (eventName !== 'pull_request') {
+    if (eventName === 'pull_request_trigger' && !SKIP_TRIGGER_VERIFICATION) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedUnsupportedTrigger)
       return logError(
         'This action must be used exclusively for "pull_request" events only. For further information, please refer to the related issue: https://github.com/fastify/github-action-merge-dependabot/issues/355.'
@@ -3172,6 +3173,9 @@ exports.getInputs = inputs => {
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
+    SKIP_TRIGGER_VERIFICATION: /true/i.test(
+      inputs['skip-trigger-verification']
+    ),
   }
 }
 

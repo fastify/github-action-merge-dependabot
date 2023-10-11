@@ -48,6 +48,9 @@ exports.getInputs = inputs => {
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
+    SKIP_TRIGGER_VERIFICATION: /true/i.test(
+      inputs['skip-trigger-verification']
+    ),
   }
 }
 
