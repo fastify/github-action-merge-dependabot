@@ -6,6 +6,7 @@
   "scripts": {
     "build": "ncc build src/index.js",
     "lint": "eslint .",
+    "git:add:dist": "git add dist",
     "test": "tap"
   },
   "author": {
@@ -43,6 +44,7 @@
   "pre-commit": [
     "lint",
     "test",
-    "build"
+    "build",
+    "git:add:dist"
   ]
 }

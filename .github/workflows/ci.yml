@@ -16,8 +16,26 @@ jobs:
       - run: npm run lint
       - run: npm run test
 
+  dist-integrity:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout repo
+      uses: actions/checkout@v4
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+    - name: Build action
+      run: |
+        npm ci &&
+        npm run build
+    - name: Dist Integrity Check
+      run: |
+        git diff --quiet dist
+
   automerge:
-    needs: build
+    needs:
+      - build
+      - dist-integrity
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
