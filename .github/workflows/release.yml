@@ -22,8 +22,8 @@ jobs:
       - name: Setting action build runtime
         uses: actions/setup-node@v3
         with:
-          node-version: 16
-      - uses: nearform/optic-release-automation-action@v4
+          node-version: 20
+      - uses: nearform-actions/optic-release-automation-action@v4
         with:
           github-token: ${{ github.token }}
           semver: ${{ github.event.inputs.semver }}

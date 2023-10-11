@@ -9,7 +9,7 @@ const coreStubs = {
   info: sinon.stub(),
   warning: sinon.stub(),
 }
-const log = tap.mock('../src/log', {
+const log = tap.mockRequire('../src/log', {
   '@actions/core': coreStubs,
 })
 

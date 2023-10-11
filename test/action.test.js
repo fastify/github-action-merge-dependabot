@@ -774,3 +774,38 @@ tap.test('should forbid when update type is not valid', async () => {
     MERGE_STATUS.skippedInvalidVersion,
   )
 })
+
+tap.test('should allow minor when target is major', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'major',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: updateTypes.minor,
+    }),
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'Dependabot merge completed'
+  )
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.merged
+  )
+})

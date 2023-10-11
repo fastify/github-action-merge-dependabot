@@ -1,9 +1,16 @@
 'use strict'
 const tap = require('tap')
-const {
-  getInputs,
-  parseCommaOrSemicolonSeparatedValue,
-} = require('../src/util')
+const sinon = require('sinon')
+
+const logWarningStub = sinon.stub()
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = tap.mockRequire(
+  '../src/util',
+  {
+    '../src/log.js': {
+      logWarning: logWarningStub,
+    },
+  }
+)
 
 tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
   t.test('should split semicolon separated values correctly', async t => {
@@ -55,9 +62,15 @@ tap.test('getInputs', async t => {
       t.test('MERGE_METHOD', async t => {
         t.equal(getInputs({}).MERGE_METHOD, 'squash')
         t.equal(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')
+        t.equal(logWarningStub.callCount, 0)
         t.equal(
           getInputs({ 'merge-method': 'invalid-merge-method' }).MERGE_METHOD,
           'squash',
+        )
+        t.equal(logWarningStub.callCount, 1)
+        t.equal(
+          logWarningStub.firstCall.args[0],
+          'merge-method input is ignored because it is malformed, defaulting to `squash`.'
         )
       })
       t.test('EXCLUDE_PKGS', async t => {
