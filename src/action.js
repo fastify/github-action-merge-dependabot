@@ -25,7 +25,7 @@ module.exports = async function run({
 }) {
   const { updateType } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
-    dependabotMetadata.dependencyNames
+    dependabotMetadata.dependencyNames,
   )
 
   const {
@@ -48,7 +48,7 @@ module.exports = async function run({
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
-        'This action must be used in the context of a Pull Request or with a Pull Request number'
+        'This action must be used in the context of a Pull Request or with a Pull Request number',
       )
     }
 
@@ -76,10 +76,10 @@ module.exports = async function run({
       } catch {
         core.setOutput(
           MERGE_STATUS_KEY,
-          MERGE_STATUS.skippedCommitVerificationFailed
+          MERGE_STATUS.skippedCommitVerificationFailed,
         )
         return logWarning(
-          'PR contains invalid dependabot commit signatures, skipping.'
+          'PR contains invalid dependabot commit signatures, skipping.',
         )
       }
     }
@@ -105,7 +105,7 @@ Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
     }
 
     const changedExcludedPackages = EXCLUDE_PKGS.filter(
-      pkg => dependencyNames.indexOf(pkg) > -1
+      pkg => dependencyNames.indexOf(pkg) > -1,
     )
 
     // TODO: Improve error message for excluded packages?
@@ -132,7 +132,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     if (APPROVE_ONLY) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.approved)
       return logInfo(
-        'APPROVE_ONLY set, PR was approved but it will not be merged'
+        'APPROVE_ONLY set, PR was approved but it will not be merged',
       )
     }
 

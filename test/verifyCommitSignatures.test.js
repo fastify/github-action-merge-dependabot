@@ -82,11 +82,11 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
             sha,
             author,
             committer,
-            verified
+            verified,
           ),
         new Error(
-          `Signature for commit ${sha} could not be verified - Not a dependabot commit`
-        )
+          `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+        ),
       )
     })
 
@@ -105,11 +105,11 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
             sha,
             author,
             committer,
-            verified
+            verified,
           ),
         new Error(
-          `Signature for commit ${sha} could not be verified - Not a dependabot commit`
-        )
+          `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+        ),
       )
     })
 
@@ -128,11 +128,11 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
             sha,
             author,
             committer,
-            verified
+            verified,
           ),
         new Error(
-          `Signature for commit ${sha} could not be verified - Not a dependabot commit`
-        )
+          `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+        ),
       )
     })
 
@@ -153,13 +153,13 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
               sha,
               author,
               committer,
-              verified
+              verified,
             ),
           new Error(
-            `Signature for commit ${sha} could not be verified - Not a dependabot commit`
-          )
+            `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+          ),
         )
-      }
+      },
     )
   })
 
@@ -181,11 +181,11 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
               sha,
               author,
               committer,
-              verified
+              verified,
             ),
-          {}
+          {},
         )
-      }
+      },
     )
   })
 })
@@ -196,8 +196,8 @@ tap.test('VerifyCommits', async t => {
       t.throws(
         () => verifyCommits(prCommitsValidAndInvalid),
         new Error(
-          `Signature for commit sha could not be verified - Not a dependabot commit`
-        )
+          `Signature for commit sha could not be verified - Not a dependabot commit`,
+        ),
       )
     })
 
@@ -205,8 +205,8 @@ tap.test('VerifyCommits', async t => {
       t.throws(
         () => verifyCommits(prCommitsInvalid),
         new Error(
-          `Signature for commit sha could not be verified - Not a dependabot commit`
-        )
+          `Signature for commit sha could not be verified - Not a dependabot commit`,
+        ),
       )
     })
   })
