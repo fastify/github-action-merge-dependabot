@@ -56,6 +56,9 @@ module.exports = async function run({
       )
     }
 
+    logInfo(`eventName: ${eventName}`)
+    logInfo(`skipTriggerVerification: ${SKIP_TRIGGER_VERIFICATION}`)
+
     if (eventName === 'pull_request_trigger' && !SKIP_TRIGGER_VERIFICATION) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedUnsupportedTrigger)
       return logError(

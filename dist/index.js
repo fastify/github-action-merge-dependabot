@@ -2827,7 +2827,7 @@ module.exports = async function run({
       )
     }
 
-    if (eventName === 'pull_request_trigger' && !SKIP_TRIGGER_VERIFICATION) {
+    if (eventName === 'pull_request_target' && !SKIP_TRIGGER_VERIFICATION) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedUnsupportedTrigger)
       return logError(
         'This action must be used exclusively for "pull_request" events only. For further information, please refer to the related issue: https://github.com/fastify/github-action-merge-dependabot/issues/355.'
