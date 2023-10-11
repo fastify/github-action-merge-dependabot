@@ -162,6 +162,51 @@ tap.test(
 )
 
 tap.test(
+  'should not run if not triggered by a pull_request event but skip-trigger-verification is enabled',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = buildStubbedAction({
+      context: {
+        eventName: 'pull_request_target',
+      },
+      inputs: {
+        'skip-trigger-verification': true,
+      },
+      payload: {
+        pull_request: {
+          user: {
+            login: BOT_NAME,
+          },
+          number: PR_NUMBER,
+        },
+      },
+    })
+    stubs.prCommitsStub.resolves([
+      {
+        author: {
+          login: 'dependabot[bot]',
+        },
+      },
+    ])
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      'Dependabot merge completed'
+    )
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.merged
+    )
+  }
+)
+
+tap.test(
   'should retrieve PR info when trigger by non pull_request events',
   async () => {
     const PR_NUMBER = Math.random()
