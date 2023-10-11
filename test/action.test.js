@@ -798,7 +798,7 @@ tap.test('should allow minor when target is major', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'Dependabot merge completed'
+    'Dependabot merge completed',
   )
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
@@ -806,6 +806,6 @@ tap.test('should allow minor when target is major', async () => {
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.merged
+    MERGE_STATUS.merged,
   )
 })

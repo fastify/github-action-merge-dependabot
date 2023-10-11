@@ -9,7 +9,7 @@ const { getInputs, parseCommaOrSemicolonSeparatedValue } = tap.mockRequire(
     '../src/log.js': {
       logWarning: logWarningStub,
     },
-  }
+  },
 )
 
 tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
@@ -70,7 +70,7 @@ tap.test('getInputs', async t => {
         t.equal(logWarningStub.callCount, 1)
         t.equal(
           logWarningStub.firstCall.args[0],
-          'merge-method input is ignored because it is malformed, defaulting to `squash`.'
+          'merge-method input is ignored because it is malformed, defaulting to `squash`.',
         )
       })
       t.test('EXCLUDE_PKGS', async t => {
