@@ -13,6 +13,6 @@ tap.test('mapUpdateType', async t => {
       t.equal(mapUpdateType('bad_input'), updateTypes.any)
       t.equal(mapUpdateType(), updateTypes.any)
       t.equal(mapUpdateType('any'), updateTypes.any)
-    }
+    },
   )
 })

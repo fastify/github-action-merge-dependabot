@@ -18,7 +18,7 @@ const getMergeMethod = inputs => {
 
   if (!mergeMethods[input]) {
     logWarning(
-      'merge-method input is ignored because it is malformed, defaulting to `squash`.'
+      'merge-method input is ignored because it is malformed, defaulting to `squash`.',
     )
     return mergeMethods.squash
   }
