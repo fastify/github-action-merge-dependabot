@@ -1,9 +1,16 @@
 'use strict'
 const tap = require('tap')
-const {
-  getInputs,
-  parseCommaOrSemicolonSeparatedValue,
-} = require('../src/util')
+const sinon = require('sinon')
+
+const logWarningStub = sinon.stub()
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = tap.mockRequire(
+  '../src/util',
+  {
+    '../src/log.js': {
+      logWarning: logWarningStub,
+    },
+  },
+)
 
 tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
   t.test('should split semicolon separated values correctly', async t => {
@@ -55,9 +62,15 @@ tap.test('getInputs', async t => {
       t.test('MERGE_METHOD', async t => {
         t.equal(getInputs({}).MERGE_METHOD, 'squash')
         t.equal(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')
+        t.equal(logWarningStub.callCount, 0)
         t.equal(
           getInputs({ 'merge-method': 'invalid-merge-method' }).MERGE_METHOD,
-          'squash'
+          'squash',
+        )
+        t.equal(logWarningStub.callCount, 1)
+        t.equal(
+          logWarningStub.firstCall.args[0],
+          'merge-method input is ignored because it is malformed, defaulting to `squash`.',
         )
       })
       t.test('EXCLUDE_PKGS', async t => {
@@ -70,7 +83,7 @@ tap.test('getInputs', async t => {
         t.equal(getInputs({}).MERGE_COMMENT, '')
         t.equal(
           getInputs({ 'merge-comment': 'test-merge-comment' }).MERGE_COMMENT,
-          'test-merge-comment'
+          'test-merge-comment',
         )
       })
       t.test('BOOLEAN INPUTS', async t => {
@@ -87,25 +100,25 @@ tap.test('getInputs', async t => {
       t.test('TARGET', async t => {
         t.equal(
           getInputs({ target: 'major' }).TARGET,
-          'version-update:semver-major'
+          'version-update:semver-major',
         )
         t.equal(
           getInputs({ target: 'minor' }).TARGET,
-          'version-update:semver-minor'
+          'version-update:semver-minor',
         )
         t.equal(
           getInputs({ target: 'patch' }).TARGET,
-          'version-update:semver-patch'
+          'version-update:semver-patch',
         )
         t.equal(getInputs({ target: '' }).TARGET, 'version-update:semver-any')
         t.equal(
           getInputs({ target: 'any' }).TARGET,
-          'version-update:semver-any'
+          'version-update:semver-any',
         )
       })
       t.test('PR_NUMBER', async t => {
         t.equal(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
       })
-    }
+    },
   )
 })

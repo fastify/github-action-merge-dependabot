@@ -126,7 +126,7 @@ tap.test('should not run if a pull request number is missing', async () => {
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedNotADependabotPr
+    MERGE_STATUS.skippedNotADependabotPr,
   )
 })
 
@@ -142,7 +142,7 @@ tap.test(
     await action()
 
     sinon.assert.calledOnce(stubs.prStub)
-  }
+  },
 )
 
 tap.test('should skip non-dependabot PR', async () => {
@@ -163,14 +163,14 @@ tap.test('should skip non-dependabot PR', async () => {
   sinon.assert.calledOnce(stubs.prStub)
   sinon.assert.calledWithExactly(
     stubs.logStub.logWarning,
-    'Not a dependabot PR, skipping.'
+    'Not a dependabot PR, skipping.',
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedNotADependabotPr
+    MERGE_STATUS.skippedNotADependabotPr,
   )
 })
 
@@ -206,7 +206,7 @@ for (const prCommitsStub of prCommitsStubs) {
     sinon.assert.calledOnce(stubs.prCommitsStub)
     sinon.assert.calledWithExactly(
       stubs.logStub.logWarning,
-      'PR contains non dependabot commits, skipping.'
+      'PR contains non dependabot commits, skipping.',
     )
     sinon.assert.notCalled(stubs.approveStub)
     sinon.assert.notCalled(stubs.mergeStub)
@@ -214,7 +214,7 @@ for (const prCommitsStub of prCommitsStubs) {
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.skippedNotADependabotPr
+      MERGE_STATUS.skippedNotADependabotPr,
     )
   })
 }
@@ -243,7 +243,7 @@ for (const prCommitsStub of prCommitsStubs) {
 
       sinon.assert.calledWithExactly(
         stubs.logStub.logInfo,
-        'Dependabot merge completed'
+        'Dependabot merge completed',
       )
       sinon.assert.calledOnce(stubs.prCommitsStub)
       sinon.assert.calledOnce(stubs.approveStub)
@@ -252,9 +252,9 @@ for (const prCommitsStub of prCommitsStubs) {
       sinon.assert.calledWith(
         stubs.coreStub.setOutput,
         MERGE_STATUS_KEY,
-        MERGE_STATUS.merged
+        MERGE_STATUS.merged,
       )
-    }
+    },
   )
 }
 
@@ -287,16 +287,16 @@ tap.test(
 
     sinon.assert.calledWithExactly(
       stubs.logStub.logWarning,
-      'PR contains invalid dependabot commit signatures, skipping.'
+      'PR contains invalid dependabot commit signatures, skipping.',
     )
     sinon.assert.notCalled(stubs.approveStub)
     sinon.assert.notCalled(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.skippedCommitVerificationFailed
+      MERGE_STATUS.skippedCommitVerificationFailed,
     )
-  }
+  },
 )
 
 tap.test(
@@ -329,7 +329,7 @@ tap.test(
 
     sinon.assert.calledWithExactly(
       stubs.logStub.logInfo,
-      'Dependabot merge completed'
+      'Dependabot merge completed',
     )
     sinon.assert.notCalled(stubs.coreStub.setFailed)
     sinon.assert.calledOnce(stubs.approveStub)
@@ -337,9 +337,9 @@ tap.test(
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.merged
+      MERGE_STATUS.merged,
     )
-  }
+  },
 )
 
 tap.test(
@@ -372,7 +372,7 @@ tap.test(
 
     sinon.assert.calledWithExactly(
       stubs.logStub.logInfo,
-      'Dependabot merge completed'
+      'Dependabot merge completed',
     )
     sinon.assert.notCalled(stubs.coreStub.setFailed)
     sinon.assert.calledOnce(stubs.approveStub)
@@ -381,9 +381,9 @@ tap.test(
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.merged
+      MERGE_STATUS.merged,
     )
-  }
+  },
 )
 
 tap.test(
@@ -416,7 +416,7 @@ tap.test(
 
     sinon.assert.calledWithExactly(
       stubs.logStub.logInfo,
-      'Dependabot merge completed'
+      'Dependabot merge completed',
     )
     sinon.assert.notCalled(stubs.coreStub.setFailed)
     sinon.assert.calledOnce(stubs.approveStub)
@@ -424,9 +424,9 @@ tap.test(
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.merged
+      MERGE_STATUS.merged,
     )
-  }
+  },
 )
 
 tap.test('should ignore excluded package', async () => {
@@ -445,14 +445,14 @@ tap.test('should ignore excluded package', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    '1 package(s) excluded: react. Skipping.'
+    '1 package(s) excluded: react. Skipping.',
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedPackageExcluded
+    MERGE_STATUS.skippedPackageExcluded,
   )
 })
 
@@ -478,13 +478,13 @@ tap.test('approve only should not merge', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'APPROVE_ONLY set, PR was approved but it will not be merged'
+    'APPROVE_ONLY set, PR was approved but it will not be merged',
   )
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.approved
+    MERGE_STATUS.approved,
   )
 })
 
@@ -504,14 +504,14 @@ tap.test('should review and merge', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'Dependabot merge completed'
+    'Dependabot merge completed',
   )
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.merged
+    MERGE_STATUS.merged,
   )
 })
 
@@ -533,16 +533,16 @@ tap.test(
 
     sinon.assert.calledWithExactly(
       stubs.logStub.logInfo,
-      'Dependabot merge completed'
+      'Dependabot merge completed',
     )
     sinon.assert.calledOnce(stubs.approveStub)
     sinon.assert.calledOnce(stubs.mergeStub)
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.merged
+      MERGE_STATUS.merged,
     )
-  }
+  },
 )
 
 tap.test(
@@ -571,9 +571,9 @@ tap.test(
     sinon.assert.calledWith(
       stubs.coreStub.setOutput,
       MERGE_STATUS_KEY,
-      MERGE_STATUS.skippedCannotUpdateMajor
+      MERGE_STATUS.skippedCannotUpdateMajor,
     )
-  }
+  },
 )
 
 tap.test('should review and merge', async () => {
@@ -592,7 +592,7 @@ tap.test('should review and merge', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'Dependabot merge completed'
+    'Dependabot merge completed',
   )
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
@@ -600,7 +600,7 @@ tap.test('should review and merge', async () => {
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.merged
+    MERGE_STATUS.merged,
   )
 })
 
@@ -626,7 +626,7 @@ tap.test('should review and enable github auto-merge', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge'
+    'USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge',
   )
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
@@ -658,14 +658,14 @@ tap.test('should forbid major when target is minor', async () => {
   sinon.assert.calledWithExactly(
     stubs.logStub.logWarning,
     `Semver bump is higher than allowed in TARGET.
-Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.minor}'`
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.minor}'`,
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedBumpHigherThanTarget
+    MERGE_STATUS.skippedBumpHigherThanTarget,
   )
 })
 
@@ -694,14 +694,14 @@ tap.test('should forbid minor when target is patch', async () => {
   sinon.assert.calledWithExactly(
     stubs.logStub.logWarning,
     `Semver bump is higher than allowed in TARGET.
-Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateTypes.patch}'`
+Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateTypes.patch}'`,
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedBumpHigherThanTarget
+    MERGE_STATUS.skippedBumpHigherThanTarget,
   )
 })
 
@@ -729,14 +729,14 @@ tap.test('should forbid when update type is missing', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logWarning,
-    `Semver bump 'null' is invalid!`
+    `Semver bump 'null' is invalid!`,
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedInvalidVersion
+    MERGE_STATUS.skippedInvalidVersion,
   )
 })
 
@@ -764,14 +764,14 @@ tap.test('should forbid when update type is not valid', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logWarning,
-    `Semver bump 'semver:invalid' is invalid!`
+    `Semver bump 'semver:invalid' is invalid!`,
   )
   sinon.assert.notCalled(stubs.approveStub)
   sinon.assert.notCalled(stubs.mergeStub)
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.skippedInvalidVersion
+    MERGE_STATUS.skippedInvalidVersion,
   )
 })
 
@@ -798,7 +798,7 @@ tap.test('should allow minor when target is major', async () => {
 
   sinon.assert.calledWithExactly(
     stubs.logStub.logInfo,
-    'Dependabot merge completed'
+    'Dependabot merge completed',
   )
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
@@ -806,6 +806,6 @@ tap.test('should allow minor when target is major', async () => {
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.merged
+    MERGE_STATUS.merged,
   )
 })
