@@ -4,7 +4,7 @@
   "description": "A GitHub action to automatically merge and approve Dependabot pull requests",
   "main": "src/index.js",
   "scripts": {
-    "build": "ncc build src/index.js",
+    "build": "esbuild --bundle --platform=node --target=node20 --outfile=dist/index.js src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "tap",
@@ -31,7 +31,7 @@
     "actions-toolkit": "github:nearform/actions-toolkit"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.0",
+    "esbuild": "^0.19.4",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
