@@ -2796,7 +2796,7 @@ module.exports = async function run({
 }) {
   const { updateType } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
-    dependabotMetadata.dependencyNames
+    dependabotMetadata.dependencyNames,
   )
 
   const {
@@ -2819,7 +2819,7 @@ module.exports = async function run({
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
-        'This action must be used in the context of a Pull Request or with a Pull Request number'
+        'This action must be used in the context of a Pull Request or with a Pull Request number',
       )
     }
 
@@ -2847,10 +2847,10 @@ module.exports = async function run({
       } catch {
         core.setOutput(
           MERGE_STATUS_KEY,
-          MERGE_STATUS.skippedCommitVerificationFailed
+          MERGE_STATUS.skippedCommitVerificationFailed,
         )
         return logWarning(
-          'PR contains invalid dependabot commit signatures, skipping.'
+          'PR contains invalid dependabot commit signatures, skipping.',
         )
       }
     }
@@ -2876,7 +2876,7 @@ Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
     }
 
     const changedExcludedPackages = EXCLUDE_PKGS.filter(
-      pkg => dependencyNames.indexOf(pkg) > -1
+      pkg => dependencyNames.indexOf(pkg) > -1,
     )
 
     // TODO: Improve error message for excluded packages?
@@ -2903,7 +2903,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     if (APPROVE_ONLY) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.approved)
       return logInfo(
-        'APPROVE_ONLY set, PR was approved but it will not be merged'
+        'APPROVE_ONLY set, PR was approved but it will not be merged',
       )
     }
 
@@ -3132,7 +3132,7 @@ const getMergeMethod = inputs => {
 
   if (!mergeMethods[input]) {
     logWarning(
-      'merge-method input is ignored because it is malformed, defaulting to `squash`.'
+      'merge-method input is ignored because it is malformed, defaulting to `squash`.',
     )
     return mergeMethods.squash
   }
@@ -3211,7 +3211,7 @@ function verifyCommitSignatureCommitterAndAuthor(
   sha,
   author,
   committer,
-  verified
+  verified,
 ) {
   if (
     !verified ||
@@ -3219,7 +3219,7 @@ function verifyCommitSignatureCommitterAndAuthor(
     author.name !== dependabotAuthor
   ) {
     throw new Error(
-      `Signature for commit ${sha} could not be verified - Not a dependabot commit`
+      `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
     )
   }
 }
@@ -3324,7 +3324,7 @@ module.exports = require("util");
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.9.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","git:add:dist":"git add dist","test":"tap"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.10.1","@actions/github":"^5.1.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@fastify/pre-commit":"^2.0.2","@vercel/ncc":"^0.38.0","eslint":"^8.51.0","eslint-config-prettier":"^9.0.0","eslint-plugin-prettier":"^4.2.1","prettier":"^2.8.8","proxyquire":"^2.1.3","sinon":"^16.1.0","tap":"^18.4.5"},"pre-commit":["lint","test","build","git:add:dist"]}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.9.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","git:add:dist":"git add dist","test":"tap"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.10.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@fastify/pre-commit":"^2.0.2","@vercel/ncc":"^0.38.0","eslint":"^8.51.0","eslint-config-prettier":"^9.0.0","eslint-plugin-prettier":"^5.0.1","prettier":"^3.0.3","proxyquire":"^2.1.3","sinon":"^16.1.0","tap":"^18.4.5"},"pre-commit":["lint","test","build","git:add:dist"]}');
 
 /***/ })
 
