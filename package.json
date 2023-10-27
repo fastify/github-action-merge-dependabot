@@ -3,6 +3,7 @@
   "version": "3.9.1",
   "description": "A GitHub action to automatically merge and approve Dependabot pull requests",
   "main": "src/index.js",
+  "type": "commonjs",
   "scripts": {
     "build": "ncc build src/index.js",
     "lint": "eslint .",
