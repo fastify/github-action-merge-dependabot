@@ -32,6 +32,7 @@ Error: Resource not accessible by integration
 | `pr-number`                | No       |                     | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a separate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event) example.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `skip-commit-verification` | No       | `false`             | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `skip-verification`        | No       | `false`             | If true, the action will not validate the user or the commit verification status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `event-name`        | No       | `pull_request`             | Allows customizing the `github.event_name` that is used to sanity check the build and make sure its part of a Pull Request. Default is `pull_request`. Allowed values: `pull_request`, `pull_request_target`.|
 
 ## Output
 
@@ -129,6 +130,21 @@ curl -X POST \
   -H "Authorization: token {token}" \
   https://api.github.com/repos/{owner}/{reponame}/actions/workflows/{workflow}/dispatches \
   -d '{"ref":"{ref}", "inputs":{ "pr-number": "{number}"}}'
+```
+
+### Trigger action from a `pull_request_target` instead of `pull_request` event
+
+[trigger_doc]: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+[security_blog]: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
+The action by default verifies that the [trigger][trigger_doc] is a `pull_request` event - which is the most secure and safest way to run your builds. If necessary, you can use the `event-name` property to reconfigure this verification check to support `pull_request_target` events. Make sure that you understand the [security risks][security_blog] of this behavior first. Additionally, ensure that your `checkout` action is configured properly to check out and test the right branch:
+
+```yaml
+- name: Checkout
+  uses: actions/checkout@v3
+  with:
+    ref: ${{ github.event.pull_request.head.ref }}
+    repository: ${{ github.event.pull_request.head.repo.full_name }}
 ```
 
 
