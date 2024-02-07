@@ -43,9 +43,7 @@ module.exports = async function run({
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = context.payload
-    core.setOutput(MERGE_STATUS_KEY, "Random_output_merge_key")
-    core.setOutput("Random_Key", "Random_output")
+    const { pull_request } = context.payload    
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
@@ -57,9 +55,12 @@ module.exports = async function run({
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
-    if (!SKIP_VERIFICATION && !isDependabotPR) {
+    core.setOutput(MERGE_STATUS_KEY, "Random_output_merge_key")
+    core.setOutput("Random_Key", "Random_output")
+    if (!SKIP_VERIFICATION && !isDependabotPR) {      
+      core.setOutput("Random_Key_test", "Random_output_2")
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
-      return logWarning('Not a dependabot PR, skipping.')
+      return logWarning('Not a dependabot PR, skipping test.')
     }
 
     const commits = await client.getPullRequestCommits(pr.number)
