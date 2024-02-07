@@ -44,7 +44,8 @@ module.exports = async function run({
     toolkit.logActionRefWarning()
 
     const { pull_request } = context.payload
-
+    core.setOutput(MERGE_STATUS_KEY, "Random_output_merge_key")
+    core.setOutput("Random_Key", "Random_output")
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
