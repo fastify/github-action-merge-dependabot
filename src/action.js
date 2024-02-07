@@ -54,13 +54,10 @@ module.exports = async function run({
     const client = githubClient(github, context)
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
-    const isDependabotPR = pr.user.login === dependabotAuthor
-    core.setOutput(MERGE_STATUS_KEY, "Random_output_merge_key")
-    core.setOutput("Random_Key", "Random_output")
-    if (!SKIP_VERIFICATION && !isDependabotPR) {      
-      core.setOutput("Random_Key_test", "Random_output_2")
+    const isDependabotPR = pr.user.login === dependabotAuthor    
+    if (!SKIP_VERIFICATION && !isDependabotPR) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
-      return logWarning('Not a dependabot PR, skipping test.')
+      return logWarning('Not a dependabot PR, skipping.')
     }
 
     const commits = await client.getPullRequestCommits(pr.number)

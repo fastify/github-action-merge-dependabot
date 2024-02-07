@@ -18,12 +18,14 @@ jobs:
 
   automerge:
     needs: build
+    id: auto_merge
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: write
     steps:
       - uses: fastify/github-action-merge-dependabot@main
+        id: auto_merge
         with:
           github-token: ${{ github.token }}
           target: minor
