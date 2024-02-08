@@ -2903,7 +2903,6 @@ module.exports = async function run({
     toolkit.logActionRefWarning()
 
     const { pull_request } = context.payload
-
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
@@ -2997,6 +2996,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
 
     if (USE_GITHUB_AUTO_MERGE) {
       await client.enableAutoMergePullRequest(pr.node_id, MERGE_METHOD)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.autoMerge)
       return logInfo('USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge')
     }
 
@@ -3256,6 +3256,7 @@ exports.getInputs = inputs => {
 exports.MERGE_STATUS = {
   approved: 'approved',
   merged: 'merged',
+  autoMerge: 'auto_merge',
   mergeFailed: 'merge_failed',
   skippedCommitVerificationFailed: 'skipped:commit_verification_failed',
   skippedNotADependabotPr: 'skipped:not_a_dependabot_pr',

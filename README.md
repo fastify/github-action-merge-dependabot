@@ -37,7 +37,7 @@ Error: Resource not accessible by integration
 
 | outputs      | Description                                                                                                                                                                                                                                                              |
 |---------------|---------------|
-| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded` |
+| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded` |
 
 ## Examples
 

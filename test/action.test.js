@@ -631,6 +631,11 @@ tap.test('should review and enable github auto-merge', async () => {
   sinon.assert.notCalled(stubs.coreStub.setFailed)
   sinon.assert.calledOnce(stubs.approveStub)
   sinon.assert.calledOnce(stubs.enableAutoMergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.merged,
+  )
 })
 
 tap.test('should forbid major when target is minor', async () => {
