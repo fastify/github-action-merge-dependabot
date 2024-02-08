@@ -2870,6 +2870,7 @@ const {
   MERGE_STATUS_KEY,
   getInputs,
   parseCommaOrSemicolonSeparatedValue,
+  getTarget,
 } = __nccwpck_require__(483)
 const { verifyCommits } = __nccwpck_require__(425)
 const { dependabotAuthor } = __nccwpck_require__(663)
@@ -2900,19 +2901,6 @@ module.exports = async function run({
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
   } = getInputs(inputs)
-
-  let target = TARGET
-  if (
-    dependabotMetadata.dependencyType === 'direct:development' &&
-    TARGET_DEV
-  ) {
-    target = TARGET_DEV
-  } else if (
-    dependabotMetadata.dependencyType === 'direct:production' &&
-    TARGET_PROD
-  ) {
-    target = TARGET_PROD
-  }
 
   try {
     toolkit.logActionRefWarning()
@@ -2957,6 +2945,11 @@ module.exports = async function run({
         )
       }
     }
+
+    const target = getTarget(
+      { TARGET, TARGET_DEV, TARGET_PROD },
+      dependabotMetadata,
+    )
 
     if (
       target !== updateTypes.any &&
@@ -3271,6 +3264,18 @@ exports.getInputs = inputs => {
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
   }
+}
+
+exports.getTarget = (
+  { TARGET, TARGET_DEV, TARGET_PROD },
+  { dependencyType },
+) => {
+  if (dependencyType === 'direct:development' && TARGET_DEV) {
+    return TARGET_DEV
+  } else if (dependencyType === 'direct:production' && TARGET_PROD) {
+    return TARGET_PROD
+  }
+  return TARGET
 }
 
 exports.MERGE_STATUS = {

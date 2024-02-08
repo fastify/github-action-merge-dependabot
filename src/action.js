@@ -11,6 +11,7 @@ const {
   MERGE_STATUS_KEY,
   getInputs,
   parseCommaOrSemicolonSeparatedValue,
+  getTarget,
 } = require('./util')
 const { verifyCommits } = require('./verifyCommitSignatures')
 const { dependabotAuthor } = require('./getDependabotDetails')
@@ -41,19 +42,6 @@ module.exports = async function run({
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
   } = getInputs(inputs)
-
-  let target = TARGET
-  if (
-    dependabotMetadata.dependencyType === 'direct:development' &&
-    TARGET_DEV
-  ) {
-    target = TARGET_DEV
-  } else if (
-    dependabotMetadata.dependencyType === 'direct:production' &&
-    TARGET_PROD
-  ) {
-    target = TARGET_PROD
-  }
 
   try {
     toolkit.logActionRefWarning()
@@ -98,6 +86,11 @@ module.exports = async function run({
         )
       }
     }
+
+    const target = getTarget(
+      { TARGET, TARGET_DEV, TARGET_PROD },
+      dependabotMetadata,
+    )
 
     if (
       target !== updateTypes.any &&

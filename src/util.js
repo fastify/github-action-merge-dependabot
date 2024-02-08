@@ -56,6 +56,18 @@ exports.getInputs = inputs => {
   }
 }
 
+exports.getTarget = (
+  { TARGET, TARGET_DEV, TARGET_PROD },
+  { dependencyType },
+) => {
+  if (dependencyType === 'direct:development' && TARGET_DEV) {
+    return TARGET_DEV
+  } else if (dependencyType === 'direct:production' && TARGET_PROD) {
+    return TARGET_PROD
+  }
+  return TARGET
+}
+
 exports.MERGE_STATUS = {
   approved: 'approved',
   merged: 'merged',
