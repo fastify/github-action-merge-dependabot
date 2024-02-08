@@ -137,7 +137,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
 
     if (USE_GITHUB_AUTO_MERGE) {
       await client.enableAutoMergePullRequest(pr.node_id, MERGE_METHOD)
-      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.merged)
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.autoMerge)
       return logInfo('USE_GITHUB_AUTO_MERGE set, PR was marked as auto-merge')
     }
 
