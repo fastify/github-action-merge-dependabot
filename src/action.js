@@ -43,7 +43,7 @@ module.exports = async function run({
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = context.payload    
+    const { pull_request } = context.payload
     if (!pull_request && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
@@ -54,7 +54,7 @@ module.exports = async function run({
     const client = githubClient(github, context)
     const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
 
-    const isDependabotPR = pr.user.login === dependabotAuthor    
+    const isDependabotPR = pr.user.login === dependabotAuthor
     if (!SKIP_VERIFICATION && !isDependabotPR) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logWarning('Not a dependabot PR, skipping.')
