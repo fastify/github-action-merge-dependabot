@@ -35,18 +35,24 @@ module.exports = async function run({
     APPROVE_ONLY,
     USE_GITHUB_AUTO_MERGE,
     TARGET,
-    DEV_TARGET,
-    PROD_TARGET,
+    TARGET_DEV,
+    TARGET_PROD,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
   } = getInputs(inputs)
 
   let target = TARGET
-  if (dependabotMetadata.dependencyType === 'direct:development') {
-    target = DEV_TARGET
-  } else if (dependabotMetadata.dependencyType === 'direct:production') {
-    target = PROD_TARGET
+  if (
+    dependabotMetadata.dependencyType === 'direct:development' &&
+    TARGET_DEV
+  ) {
+    target = TARGET_DEV
+  } else if (
+    dependabotMetadata.dependencyType === 'direct:production' &&
+    TARGET_PROD
+  ) {
+    target = TARGET_PROD
   }
 
   try {
@@ -108,7 +114,6 @@ module.exports = async function run({
         updateTypesPriority.indexOf(target)
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)
-      // TODO: Improve error message for higher than target - specify which target
       logWarning(`Semver bump is higher than allowed in TARGET.
 Tried to do a '${updateType}' update but the max allowed is '${target}'`)
       return

@@ -45,8 +45,11 @@ exports.getInputs = inputs => {
     APPROVE_ONLY: /true/i.test(inputs['approve-only']),
     USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
     TARGET: mapUpdateType(inputs['target']),
-    DEV_TARGET: mapUpdateType(inputs['development-target']),
-    PROD_TARGET: mapUpdateType(inputs['production-target']),
+    TARGET_DEV:
+      inputs['target-development'] &&
+      mapUpdateType(inputs['target-development']),
+    TARGET_PROD:
+      inputs['target-production'] && mapUpdateType(inputs['target-production']),
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
