@@ -35,10 +35,19 @@ module.exports = async function run({
     APPROVE_ONLY,
     USE_GITHUB_AUTO_MERGE,
     TARGET,
+    DEV_TARGET,
+    PROD_TARGET,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
   } = getInputs(inputs)
+
+  let target = TARGET
+  if (dependabotMetadata.dependencyType === 'direct:development') {
+    target = DEV_TARGET
+  } else if (dependabotMetadata.dependencyType === 'direct:production') {
+    target = PROD_TARGET
+  }
 
   try {
     toolkit.logActionRefWarning()
@@ -85,7 +94,7 @@ module.exports = async function run({
     }
 
     if (
-      TARGET !== updateTypes.any &&
+      target !== updateTypes.any &&
       updateTypesPriority.indexOf(updateType) < 0
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedInvalidVersion)
@@ -94,13 +103,14 @@ module.exports = async function run({
     }
 
     if (
-      TARGET !== updateTypes.any &&
+      target !== updateTypes.any &&
       updateTypesPriority.indexOf(updateType) >
-        updateTypesPriority.indexOf(TARGET)
+        updateTypesPriority.indexOf(target)
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)
+      // TODO: Improve error message for higher than target - specify which target
       logWarning(`Semver bump is higher than allowed in TARGET.
-Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
+Tried to do a '${updateType}' update but the max allowed is '${target}'`)
       return
     }
 

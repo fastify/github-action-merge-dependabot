@@ -26,7 +26,15 @@ inputs:
     required: false
     default: false
   target:
-    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
+    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning for both dev and production dependencies'
+    required: false
+    default: 'any'
+  development-target:
+    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning when dependency is a dev dependency'
+    required: false
+    default: 'any'
+  production-target:
+    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning when dependency is a production dependency'
     required: false
     default: 'any'
   pr-number:
