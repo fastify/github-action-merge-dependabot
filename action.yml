@@ -26,9 +26,15 @@ inputs:
     required: false
     default: false
   target:
-    description: 'Auto-merge on major, minor, patch updates based on Semantic Versioning'
+    description: 'Auto-merge on updates based on Semantic Versioning'
     required: false
     default: 'any'
+  target-development:
+    description: 'Auto-merge on updates based on Semantic Versioning for development dependencies'
+    required: false
+  target-production:
+    description: 'Auto-merge on updates based on Semantic Versioning for production dependencies'
+    required: false
   pr-number:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
