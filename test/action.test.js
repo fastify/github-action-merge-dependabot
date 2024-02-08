@@ -634,7 +634,7 @@ tap.test('should review and enable github auto-merge', async () => {
   sinon.assert.calledWith(
     stubs.coreStub.setOutput,
     MERGE_STATUS_KEY,
-    MERGE_STATUS.merged,
+    MERGE_STATUS.autoMerge,
   )
 })
 
