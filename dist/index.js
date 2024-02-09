@@ -2870,6 +2870,7 @@ const {
   MERGE_STATUS_KEY,
   getInputs,
   parseCommaOrSemicolonSeparatedValue,
+  getTarget,
 } = __nccwpck_require__(483)
 const { verifyCommits } = __nccwpck_require__(425)
 const { dependabotAuthor } = __nccwpck_require__(663)
@@ -2894,6 +2895,8 @@ module.exports = async function run({
     APPROVE_ONLY,
     USE_GITHUB_AUTO_MERGE,
     TARGET,
+    TARGET_DEV,
+    TARGET_PROD,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
@@ -2942,8 +2945,13 @@ module.exports = async function run({
       }
     }
 
+    const target = getTarget(
+      { TARGET, TARGET_DEV, TARGET_PROD },
+      dependabotMetadata,
+    )
+
     if (
-      TARGET !== updateTypes.any &&
+      target !== updateTypes.any &&
       updateTypesPriority.indexOf(updateType) < 0
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedInvalidVersion)
@@ -2952,13 +2960,13 @@ module.exports = async function run({
     }
 
     if (
-      TARGET !== updateTypes.any &&
+      target !== updateTypes.any &&
       updateTypesPriority.indexOf(updateType) >
-        updateTypesPriority.indexOf(TARGET)
+        updateTypesPriority.indexOf(target)
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedBumpHigherThanTarget)
       logWarning(`Semver bump is higher than allowed in TARGET.
-Tried to do a '${updateType}' update but the max allowed is '${TARGET}'`)
+Tried to do a '${updateType}' update but the max allowed is '${target}'`)
       return
     }
 
@@ -3247,10 +3255,27 @@ exports.getInputs = inputs => {
     APPROVE_ONLY: /true/i.test(inputs['approve-only']),
     USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
     TARGET: mapUpdateType(inputs['target']),
+    TARGET_DEV:
+      inputs['target-development'] &&
+      mapUpdateType(inputs['target-development']),
+    TARGET_PROD:
+      inputs['target-production'] && mapUpdateType(inputs['target-production']),
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
   }
+}
+
+exports.getTarget = (
+  { TARGET, TARGET_DEV, TARGET_PROD },
+  { dependencyType },
+) => {
+  if (dependencyType === 'direct:development' && TARGET_DEV) {
+    return TARGET_DEV
+  } else if (dependencyType === 'direct:production' && TARGET_PROD) {
+    return TARGET_PROD
+  }
+  return TARGET
 }
 
 exports.MERGE_STATUS = {
@@ -3325,7 +3350,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.9.1","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.10.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.1","eslint":"^8.56.0","eslint-config-prettier":"^9.1.0","eslint-plugin-prettier":"^5.1.3","husky":"^8.0.3","prettier":"^3.2.5","proxyquire":"^2.1.3","sinon":"^17.0.1","tap":"^18.7.0"}}');
+module.exports = JSON.parse('{"name":"github-action-merge-dependabot","version":"3.10.0","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.10.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.1","eslint":"^8.56.0","eslint-config-prettier":"^9.1.0","eslint-plugin-prettier":"^5.1.3","husky":"^8.0.3","prettier":"^3.2.5","proxyquire":"^2.1.3","sinon":"^17.0.1","tap":"^18.7.0"}}');
 
 /***/ })
 

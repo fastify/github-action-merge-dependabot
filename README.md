@@ -21,7 +21,7 @@ Error: Resource not accessible by integration
 ## Inputs
 
 | input                      | required | default             | description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|----------------------------|----------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -------------------------- | -------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `github-token`             | No       | `${{github.token}}` | A GitHub token.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `exclude`                  | No       |                     | A comma or semicolon separated value of packages that you don't want to auto-merge and would like to manually review to decide whether to upgrade or not.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `approve-only`             | No       | `false`             | If `true`, the PR is only approved but not merged.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -29,14 +29,16 @@ Error: Resource not accessible by integration
 | `merge-comment`            | No       | `''`                | An arbitrary message that you'd like to comment on the PR after it gets auto-merged. This is only useful when you're receiving too much of noise in email and would like to filter mails for PRs that got automatically merged.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `use-github-auto-merge`    | No       | `false`             | If `true`, the PR is marked as auto-merge and will be merged by GitHub when status checks are satisfied.<br /><br />_NOTE_: This feature only works when all of the following conditions are met.<br />- The repository enables auto-merge. <br />- The pull request base must have a branch protection rule. <br />- The pull request's status checks are not yet satisfied.<br /></br>Refer to [the official document](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) about GitHub auto-merge.                                                                                                                                                                       |
 | `target`                   | No       | `any`               | A flag to only auto-merge updates based on Semantic Versioning.<br />Possible options are: `major, premajor, minor, preminor, patch, prepatch, prerelease, any`.<br /><br />The value of this flag allows for updates for all the matching versions **and lower** with the respect for priority. This means, for example, if the `target` is set to `major` and the update is made to `minor` version the auto-merge will be triggered.<br /><br />For more details on how semantic version difference is calculated please see [semver](https://www.npmjs.com/package/semver) package.<br /><br />If you set a value other than `any`, PRs that are not semantic version compliant are skipped. An example of a non-semantic version is a commit hash when using git submodules. |
+| `target-development`       | No       |                     | Same as `target` but specifies semver for `development` dependencies only. If present, then it overrides the value in `target` for `development` dependencies.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `target-production`        | No       |                     | Same as `target` but specifies semver for `production` dependencies only. If present, then it overrides the value in `target` for `production` dependencies.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `pr-number`                | No       |                     | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a separate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event) example.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `skip-commit-verification` | No       | `false`             | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `skip-verification`        | No       | `false`             | If true, the action will not validate the user or the commit verification status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ## Output
 
-| outputs      | Description                                                                                                                                                                                                                                                              |
-|---------------|---------------|
+| outputs      | Description                                                                                                                                                                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded` |
 
 ## Examples
@@ -93,6 +95,27 @@ steps:
       approve-only: true
 ```
 
+### Specifying target versions
+
+#### Specifying target for all packages
+
+```yml
+steps:
+  - uses: fastify/github-action-merge-dependabot@v3
+    with:
+      target: 'minor'
+```
+
+#### Specifying target for development and production packages separately
+
+```yml
+steps:
+  - uses: fastify/github-action-merge-dependabot@v3
+    with:
+      target-development: 'major'
+      target-production: 'minor'
+```
+
 ### Trigger action from workflow_dispatch event
 
 If you need to trigger this action manually, you can use the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
@@ -131,7 +154,6 @@ curl -X POST \
   -d '{"ref":"{ref}", "inputs":{ "pr-number": "{number}"}}'
 ```
 
-
 ## How to upgrade from `2.x` to new `3.x`
 
 - Update the action version.
@@ -140,7 +162,6 @@ curl -X POST \
 - If you have customized the `api-url` you can:
   - Remove the `api-url` option from your workflow.
   - Turn off the [`dependabot-merge-action-app`](https://github.com/fastify/dependabot-merge-action-app/) application.
-
 
 Migration example:
 

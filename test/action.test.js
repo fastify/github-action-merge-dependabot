@@ -814,3 +814,163 @@ tap.test('should allow minor when target is major', async () => {
     MERGE_STATUS.merged,
   )
 })
+
+tap.test(
+  'should pick target-development version for dev package update',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        target: 'minor',
+        'target-development': 'major',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'direct:development',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      'Dependabot merge completed',
+    )
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.merged,
+    )
+  },
+)
+
+tap.test(
+  'should pick target-production version for production package update',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'target-development': 'major',
+        'target-production': 'minor',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'direct:production',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.minor}'`,
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedBumpHigherThanTarget,
+    )
+  },
+)
+
+tap.test(
+  'should pick target version for production package update if target-production is not set',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'target-development': 'major',
+        target: 'patch',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'direct:production',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.patch}'`,
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedBumpHigherThanTarget,
+    )
+  },
+)
+
+tap.test(
+  'should pick target version for development package update if target-development is not set',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
+        'target-production': 'major',
+        target: 'patch',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'direct:development',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.patch}'`,
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedBumpHigherThanTarget,
+    )
+  },
+)
