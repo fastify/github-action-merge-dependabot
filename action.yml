@@ -47,6 +47,11 @@ inputs:
     description: 'If true, the action will not validate the user or the commit verification status'
     default: false
 
+outputs:
+  merge_status:
+    description: 'Merge status'
+    value: ${{ steps.approver.outputs.merge_status }}
+
 runs:
   using: 'composite'
   steps:
@@ -56,9 +61,10 @@ runs:
       if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         skip-commit-verification: ${{ inputs.skip-commit-verification }}
-        skip-verification :  ${{ inputs.skip-verification }}
+        skip-verification: ${{ inputs.skip-verification }}
     - name: Merge/approve PR
       uses: actions/github-script@v7
+      id: approver
       with:
         github-token: ${{ inputs.github-token }}
         script: |
