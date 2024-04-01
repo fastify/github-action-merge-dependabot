@@ -57,7 +57,7 @@ runs:
   steps:
     - name: Fetch metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@v1
+      uses: dependabot/fetch-metadata@v2
       if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         skip-commit-verification: ${{ inputs.skip-commit-verification }}
