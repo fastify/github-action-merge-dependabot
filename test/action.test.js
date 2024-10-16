@@ -974,3 +974,43 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
     )
   },
 )
+
+tap.test('should pick "npm_and_yarn group" updates', async () => {
+  const PR_NUMBER = Math.random()
+
+  const { action, stubs } = buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      PR_NUMBER,
+      target: 'minor',
+      'target-development': '',
+      'target-production': '',
+      'pr-number': '',
+    },
+    dependabotMetadata: createDependabotMetadata({
+      updateType: null,
+      dependencyType: 'indirect',
+      dependencyGroup: 'npm_and_yarn',
+    }),
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'Dependabot merge completed',
+  )
+  sinon.assert.notCalled(stubs.coreStub.setFailed)
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.merged,
+  )
+})

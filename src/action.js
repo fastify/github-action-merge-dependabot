@@ -24,7 +24,7 @@ module.exports = async function run({
   inputs,
   dependabotMetadata,
 }) {
-  const { updateType } = dependabotMetadata
+  const { updateType, dependencyGroup } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
     dependabotMetadata.dependencyNames,
   )
@@ -93,7 +93,8 @@ module.exports = async function run({
 
     if (
       target !== updateTypes.any &&
-      updateTypesPriority.indexOf(updateType) < 0
+      updateTypesPriority.indexOf(updateType) < 0 &&
+      dependencyGroup !== 'npm_and_yarn'
     ) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedInvalidVersion)
       logWarning(`Semver bump '${updateType}' is invalid!`)
