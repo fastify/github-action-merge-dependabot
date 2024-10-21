@@ -38,6 +38,7 @@ module.exports = async function run({
     TARGET,
     TARGET_DEV,
     TARGET_PROD,
+    TARGET_INDIRECT,
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
@@ -87,7 +88,7 @@ module.exports = async function run({
     }
 
     const target = getTarget(
-      { TARGET, TARGET_DEV, TARGET_PROD },
+      { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
       dependabotMetadata,
     )
 

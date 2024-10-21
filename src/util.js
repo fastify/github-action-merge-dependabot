@@ -50,6 +50,8 @@ exports.getInputs = inputs => {
       mapUpdateType(inputs['target-development']),
     TARGET_PROD:
       inputs['target-production'] && mapUpdateType(inputs['target-production']),
+    TARGET_INDIRECT:
+      inputs['target-indirect'] && mapUpdateType(inputs['target-indirect']),
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
@@ -57,13 +59,17 @@ exports.getInputs = inputs => {
 }
 
 exports.getTarget = (
-  { TARGET, TARGET_DEV, TARGET_PROD },
+  { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
   { dependencyType },
 ) => {
   if (dependencyType === 'direct:development' && TARGET_DEV) {
     return TARGET_DEV
-  } else if (dependencyType === 'direct:production' && TARGET_PROD) {
+  }
+  if (dependencyType === 'direct:production' && TARGET_PROD) {
     return TARGET_PROD
+  }
+  if (dependencyType === 'indirect' && TARGET_INDIRECT) {
+    return TARGET_INDIRECT
   }
   return TARGET
 }

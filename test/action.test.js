@@ -896,6 +896,87 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
 )
 
 tap.test(
+  'should pick target-indirect version for indirect package update',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        'pr-number': PR_NUMBER,
+        target: 'patch',
+        'target-indirect': 'major',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'indirect',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      'Dependabot merge completed',
+    )
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.merged,
+    )
+  },
+)
+
+// https://github.com/dependabot/dependabot-core/issues/4893
+tap.test(
+  'should merge if target-indirect is any and update-type metadata is not set',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        'pr-number': PR_NUMBER,
+        target: 'patch',
+        'target-indirect': 'any',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: '',
+        dependencyType: 'indirect',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      'Dependabot merge completed',
+    )
+    sinon.assert.notCalled(stubs.coreStub.setFailed)
+    sinon.assert.calledOnce(stubs.approveStub)
+    sinon.assert.calledOnce(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.merged,
+    )
+  },
+)
+
+tap.test(
   'should pick target version for production package update if target-production is not set',
   async () => {
     const PR_NUMBER = Math.random()
@@ -950,6 +1031,45 @@ tap.test(
       inputs: {
         PR_NUMBER,
         'target-production': 'major',
+        target: 'patch',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        updateType: updateTypes.major,
+        dependencyType: 'direct:development',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logWarning,
+      `Semver bump is higher than allowed in TARGET.
+Tried to do a '${updateTypes.major}' update but the max allowed is '${updateTypes.patch}'`,
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedBumpHigherThanTarget,
+    )
+  },
+)
+
+tap.test(
+  'should pick target version for development package update if target-indirect is not set',
+  async () => {
+    const PR_NUMBER = Math.random()
+
+    const { action, stubs } = buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        PR_NUMBER,
         target: 'patch',
       },
       dependabotMetadata: createDependabotMetadata({

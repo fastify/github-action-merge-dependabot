@@ -35,6 +35,9 @@ inputs:
   target-production:
     description: 'Auto-merge on updates based on Semantic Versioning for production dependencies'
     required: false
+  target-indirect:
+    description: 'Auto-merge on updates based on Semantic Versioning for indirect updates'
+    required: false
   pr-number:
     description: 'A pull request number, only required if triggered from a workflow_dispatch event'
     required: false
