@@ -5,7 +5,7 @@ const {
   dependabotCommitter,
 } = require('./getDependabotDetails')
 
-function verifyCommits(commits) {
+function verifyCommits (commits) {
   commits.forEach(function (commit) {
     const {
       commit: {
@@ -19,11 +19,11 @@ function verifyCommits(commits) {
   })
 }
 
-function verifyCommitSignatureCommitterAndAuthor(
+function verifyCommitSignatureCommitterAndAuthor (
   sha,
   author,
   committer,
-  verified,
+  verified
 ) {
   if (
     !verified ||
@@ -31,7 +31,7 @@ function verifyCommitSignatureCommitterAndAuthor(
     author.name !== dependabotAuthor
   ) {
     throw new Error(
-      `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+      `Signature for commit ${sha} could not be verified - Not a dependabot commit`
     )
   }
 }

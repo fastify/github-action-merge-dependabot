@@ -18,7 +18,7 @@ const { dependabotAuthor } = require('./getDependabotDetails')
 const { updateTypes } = require('./mapUpdateType')
 const { updateTypesPriority } = require('./mapUpdateType')
 
-module.exports = async function run({
+module.exports = async function run ({
   github,
   context,
   inputs,
@@ -26,7 +26,7 @@ module.exports = async function run({
 }) {
   const { updateType } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
-    dependabotMetadata.dependencyNames,
+    dependabotMetadata.dependencyNames
   )
 
   const {
@@ -47,16 +47,16 @@ module.exports = async function run({
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = context.payload
-    if (!pull_request && !PR_NUMBER) {
+    const PULLREQUEST = context.payload.pull_request
+    if (!PULLREQUEST && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
-        'This action must be used in the context of a Pull Request or with a Pull Request number',
+        'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
     }
 
     const client = githubClient(github, context)
-    const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
+    const pr = PULLREQUEST || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
     if (!SKIP_VERIFICATION && !isDependabotPR) {
@@ -79,17 +79,17 @@ module.exports = async function run({
       } catch {
         core.setOutput(
           MERGE_STATUS_KEY,
-          MERGE_STATUS.skippedCommitVerificationFailed,
+          MERGE_STATUS.skippedCommitVerificationFailed
         )
         return logWarning(
-          'PR contains invalid dependabot commit signatures, skipping.',
+          'PR contains invalid dependabot commit signatures, skipping.'
         )
       }
     }
 
     const target = getTarget(
       { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
-      dependabotMetadata,
+      dependabotMetadata
     )
 
     if (
@@ -113,7 +113,7 @@ Tried to do a '${updateType}' update but the max allowed is '${target}'`)
     }
 
     const changedExcludedPackages = EXCLUDE_PKGS.filter(
-      pkg => dependencyNames.indexOf(pkg) > -1,
+      pkg => dependencyNames.indexOf(pkg) > -1
     )
 
     // TODO: Improve error message for excluded packages?
@@ -140,7 +140,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     if (APPROVE_ONLY) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.approved)
       return logInfo(
-        'APPROVE_ONLY set, PR was approved but it will not be merged',
+        'APPROVE_ONLY set, PR was approved but it will not be merged'
       )
     }
 

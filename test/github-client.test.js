@@ -39,7 +39,7 @@ tap.afterEach(() => {
 tap.test('githubClient', async t => {
   t.test('getPullRequest', async () => {
     const result = await githubClient(githubStub, contextStub).getPullRequest(
-      PR_NUMBER,
+      PR_NUMBER
     )
     tap.equal(result, data)
 
@@ -54,7 +54,7 @@ tap.test('githubClient', async t => {
     const comment = 'Test pull request comment'
     const result = await githubClient(
       githubStub,
-      contextStub,
+      contextStub
     ).approvePullRequest(PR_NUMBER, comment)
     tap.equal(result, data)
 
@@ -71,7 +71,7 @@ tap.test('githubClient', async t => {
     const method = 'squash'
     const result = await githubClient(githubStub, contextStub).mergePullRequest(
       PR_NUMBER,
-      method,
+      method
     )
     tap.equal(result, data)
 
@@ -87,7 +87,7 @@ tap.test('githubClient', async t => {
     const method = 'squash'
     const result = await githubClient(
       githubStub,
-      contextStub,
+      contextStub
     ).enableAutoMergePullRequest(PR_NODE_ID, method)
     tap.equal(result, data)
 
@@ -117,7 +117,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
   t.test('getPullRequestDiff', async () => {
     const result = await githubClient(
       githubStub,
-      contextStub,
+      contextStub
     ).getPullRequestDiff(PR_NUMBER)
     tap.equal(result, data)
 
@@ -134,7 +134,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
   t.test('getPullRequestCommits', async () => {
     const result = await githubClient(
       githubStub,
-      contextStub,
+      contextStub
     ).getPullRequestCommits(PR_NUMBER)
     tap.equal(result, data)
 
