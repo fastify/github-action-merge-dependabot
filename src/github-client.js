@@ -1,6 +1,6 @@
 'use strict'
 
-function githubClient(github, context) {
+function githubClient (github, context) {
   const payload = context.payload
 
   const repo = payload.repository
@@ -8,7 +8,7 @@ function githubClient(github, context) {
   const repoName = repo.name
 
   return {
-    async getPullRequest(pullRequestNumber) {
+    async getPullRequest (pullRequestNumber) {
       const { data: pullRequest } = await github.rest.pulls.get({
         owner,
         repo: repoName,
@@ -17,7 +17,7 @@ function githubClient(github, context) {
       return pullRequest
     },
 
-    async approvePullRequest(pullRequestNumber, approveComment) {
+    async approvePullRequest (pullRequestNumber, approveComment) {
       const { data } = await github.rest.pulls.createReview({
         owner,
         repo: repoName,
@@ -29,7 +29,7 @@ function githubClient(github, context) {
       return data
     },
 
-    async mergePullRequest(pullRequestNumber, mergeMethod) {
+    async mergePullRequest (pullRequestNumber, mergeMethod) {
       const { data } = await github.rest.pulls.merge({
         owner,
         repo: repoName,
@@ -40,7 +40,7 @@ function githubClient(github, context) {
       return data
     },
 
-    async enableAutoMergePullRequest(pullRequestId, mergeMethod) {
+    async enableAutoMergePullRequest (pullRequestId, mergeMethod) {
       const query = `
 mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
   enablePullRequestAutoMerge(
@@ -64,7 +64,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
       return data
     },
 
-    async getPullRequestDiff(pullRequestNumber) {
+    async getPullRequestDiff (pullRequestNumber) {
       const { data: pullRequest } = await github.rest.pulls.get({
         owner,
         repo: repoName,
@@ -76,7 +76,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
       return pullRequest
     },
 
-    async getPullRequestCommits(pullRequestNumber) {
+    async getPullRequestCommits (pullRequestNumber) {
       const { data } = await github.rest.pulls.listCommits({
         owner,
         repo: repoName,

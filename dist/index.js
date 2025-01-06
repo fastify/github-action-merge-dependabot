@@ -3607,7 +3607,7 @@ const { dependabotAuthor } = __nccwpck_require__(138)
 const { updateTypes } = __nccwpck_require__(539)
 const { updateTypesPriority } = __nccwpck_require__(539)
 
-module.exports = async function run({
+module.exports = async function run ({
   github,
   context,
   inputs,
@@ -3615,7 +3615,7 @@ module.exports = async function run({
 }) {
   const { updateType } = dependabotMetadata
   const dependencyNames = parseCommaOrSemicolonSeparatedValue(
-    dependabotMetadata.dependencyNames,
+    dependabotMetadata.dependencyNames
   )
 
   const {
@@ -3636,16 +3636,16 @@ module.exports = async function run({
   try {
     toolkit.logActionRefWarning()
 
-    const { pull_request } = context.payload
-    if (!pull_request && !PR_NUMBER) {
+    const PULLREQUEST = context.payload.pull_request
+    if (!PULLREQUEST && !PR_NUMBER) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedNotADependabotPr)
       return logError(
-        'This action must be used in the context of a Pull Request or with a Pull Request number',
+        'This action must be used in the context of a Pull Request or with a Pull Request number'
       )
     }
 
     const client = githubClient(github, context)
-    const pr = pull_request || (await client.getPullRequest(PR_NUMBER))
+    const pr = PULLREQUEST || (await client.getPullRequest(PR_NUMBER))
 
     const isDependabotPR = pr.user.login === dependabotAuthor
     if (!SKIP_VERIFICATION && !isDependabotPR) {
@@ -3668,17 +3668,17 @@ module.exports = async function run({
       } catch {
         core.setOutput(
           MERGE_STATUS_KEY,
-          MERGE_STATUS.skippedCommitVerificationFailed,
+          MERGE_STATUS.skippedCommitVerificationFailed
         )
         return logWarning(
-          'PR contains invalid dependabot commit signatures, skipping.',
+          'PR contains invalid dependabot commit signatures, skipping.'
         )
       }
     }
 
     const target = getTarget(
       { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
-      dependabotMetadata,
+      dependabotMetadata
     )
 
     if (
@@ -3702,7 +3702,7 @@ Tried to do a '${updateType}' update but the max allowed is '${target}'`)
     }
 
     const changedExcludedPackages = EXCLUDE_PKGS.filter(
-      pkg => dependencyNames.indexOf(pkg) > -1,
+      pkg => dependencyNames.indexOf(pkg) > -1
     )
 
     // TODO: Improve error message for excluded packages?
@@ -3729,7 +3729,7 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
     if (APPROVE_ONLY) {
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.approved)
       return logInfo(
-        'APPROVE_ONLY set, PR was approved but it will not be merged',
+        'APPROVE_ONLY set, PR was approved but it will not be merged'
       )
     }
 
@@ -3774,7 +3774,7 @@ module.exports = {
 "use strict";
 
 
-function githubClient(github, context) {
+function githubClient (github, context) {
   const payload = context.payload
 
   const repo = payload.repository
@@ -3782,7 +3782,7 @@ function githubClient(github, context) {
   const repoName = repo.name
 
   return {
-    async getPullRequest(pullRequestNumber) {
+    async getPullRequest (pullRequestNumber) {
       const { data: pullRequest } = await github.rest.pulls.get({
         owner,
         repo: repoName,
@@ -3791,7 +3791,7 @@ function githubClient(github, context) {
       return pullRequest
     },
 
-    async approvePullRequest(pullRequestNumber, approveComment) {
+    async approvePullRequest (pullRequestNumber, approveComment) {
       const { data } = await github.rest.pulls.createReview({
         owner,
         repo: repoName,
@@ -3803,7 +3803,7 @@ function githubClient(github, context) {
       return data
     },
 
-    async mergePullRequest(pullRequestNumber, mergeMethod) {
+    async mergePullRequest (pullRequestNumber, mergeMethod) {
       const { data } = await github.rest.pulls.merge({
         owner,
         repo: repoName,
@@ -3814,7 +3814,7 @@ function githubClient(github, context) {
       return data
     },
 
-    async enableAutoMergePullRequest(pullRequestId, mergeMethod) {
+    async enableAutoMergePullRequest (pullRequestId, mergeMethod) {
       const query = `
 mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
   enablePullRequestAutoMerge(
@@ -3838,7 +3838,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
       return data
     },
 
-    async getPullRequestDiff(pullRequestNumber) {
+    async getPullRequestDiff (pullRequestNumber) {
       const { data: pullRequest } = await github.rest.pulls.get({
         owner,
         repo: repoName,
@@ -3850,7 +3850,7 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
       return pullRequest
     },
 
-    async getPullRequestCommits(pullRequestNumber) {
+    async getPullRequestCommits (pullRequestNumber) {
       const { data } = await github.rest.pulls.listCommits({
         owner,
         repo: repoName,
@@ -3959,7 +3959,7 @@ const getMergeMethod = inputs => {
 
   if (!mergeMethods[input]) {
     logWarning(
-      'merge-method input is ignored because it is malformed, defaulting to `squash`.',
+      'merge-method input is ignored because it is malformed, defaulting to `squash`.'
     )
     return mergeMethods.squash
   }
@@ -4001,7 +4001,7 @@ exports.getInputs = inputs => {
 
 exports.getTarget = (
   { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
-  { dependencyType },
+  { dependencyType }
 ) => {
   if (dependencyType === 'direct:development' && TARGET_DEV) {
     return TARGET_DEV
@@ -4044,7 +4044,7 @@ const {
   dependabotCommitter,
 } = __nccwpck_require__(138)
 
-function verifyCommits(commits) {
+function verifyCommits (commits) {
   commits.forEach(function (commit) {
     const {
       commit: {
@@ -4058,11 +4058,11 @@ function verifyCommits(commits) {
   })
 }
 
-function verifyCommitSignatureCommitterAndAuthor(
+function verifyCommitSignatureCommitterAndAuthor (
   sha,
   author,
   committer,
-  verified,
+  verified
 ) {
   if (
     !verified ||
@@ -4070,7 +4070,7 @@ function verifyCommitSignatureCommitterAndAuthor(
     author.name !== dependabotAuthor
   ) {
     throw new Error(
-      `Signature for commit ${sha} could not be verified - Not a dependabot commit`,
+      `Signature for commit ${sha} could not be verified - Not a dependabot commit`
     )
   }
 }
@@ -4087,7 +4087,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"github-action-merge-dependabot","version":"3.11.0","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.11.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.2","eslint":"^8.57.0","eslint-config-prettier":"^9.1.0","eslint-plugin-prettier":"^5.2.1","husky":"^9.1.6","prettier":"^3.3.3","proxyquire":"^2.1.3","sinon":"^19.0.2","tap":"^21.0.1"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"github-action-merge-dependabot","version":"3.11.0","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"tap","prepare":"husky install"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.11.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.3","eslint":"^9.17.0","husky":"^9.1.7","neostandard":"^0.12.0","prettier":"^3.4.2","proxyquire":"^2.1.3","sinon":"^19.0.2","tap":"^21.0.1"}}');
 
 /***/ })
 
