@@ -8,7 +8,7 @@
     "build": "ncc build src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "tap",
+    "test": "c8 --100 node --test",
     "prepare": "husky install"
   },
   "author": {
