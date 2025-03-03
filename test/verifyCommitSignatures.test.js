@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test } = require('node:test')
 
 const {
   dependabotAuthor,
@@ -65,9 +65,9 @@ const prCommitsValidAndInvalid = [
   InvalidAuthorValidCommitterVerifiedCommitMock,
 ]
 
-tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
-  t.test('shoud throw error when', async t => {
-    t.test('the verified flag is set to false', async t => {
+test('verifyCommitSignatureCommitterAndAuthor', async t => {
+  await t.test('shoud throw error when', async t => {
+    await t.test('the verified flag is set to false', async t => {
       const {
         commit: {
           author,
@@ -76,7 +76,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
         },
         sha,
       } = ValidAuthorValidCommitterUnverifiedCommitMock
-      t.throws(
+      t.assert.throws(
         () =>
           verifyCommitSignatureCommitterAndAuthor(
             sha,
@@ -90,7 +90,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
       )
     })
 
-    t.test('the committer name is not GitHub', async t => {
+    await t.test('the committer name is not GitHub', async t => {
       const {
         commit: {
           author,
@@ -99,7 +99,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
         },
         sha,
       } = ValidAuthorInvalidCommitterVerifiedCommitMock
-      t.throws(
+      t.assert.throws(
         () =>
           verifyCommitSignatureCommitterAndAuthor(
             sha,
@@ -113,7 +113,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
       )
     })
 
-    t.test('the authot name is not dependabot[bot]', async t => {
+    await t.test('the authot name is not dependabot[bot]', async t => {
       const {
         commit: {
           author,
@@ -122,7 +122,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
         },
         sha,
       } = InvalidAuthorValidCommitterVerifiedCommitMock
-      t.throws(
+      t.assert.throws(
         () =>
           verifyCommitSignatureCommitterAndAuthor(
             sha,
@@ -136,7 +136,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
       )
     })
 
-    t.test(
+    await t.test(
       'the committer name is not Github, the author is not dependabot[bot] and is not verified',
       async t => {
         const {
@@ -147,7 +147,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
           },
           sha,
         } = InvalidAuthorInvalidCommitterUnverifiedCommitMock
-        t.throws(
+        t.assert.throws(
           () =>
             verifyCommitSignatureCommitterAndAuthor(
               sha,
@@ -163,8 +163,8 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
     )
   })
 
-  t.test('should not throw an error when', async t => {
-    t.test(
+  await t.test('should not throw an error when', async t => {
+    await t.test(
       'the committer name is Github, the author is dependabot[bot] and is verified',
       async t => {
         const {
@@ -175,7 +175,7 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
           },
           sha,
         } = ValidAuthorValidCommitterVerifiedCommitMock
-        t.doesNotThrow(
+        t.assert.doesNotThrow(
           () =>
             verifyCommitSignatureCommitterAndAuthor(
               sha,
@@ -190,10 +190,10 @@ tap.test('verifyCommitSignatureCommitterAndAuthor', async t => {
   })
 })
 
-tap.test('VerifyCommits', async t => {
-  t.test('Should throw error when', async t => {
-    t.test('At least one commit does not match the requirements', async t => {
-      t.throws(
+test('VerifyCommits', async t => {
+  await t.test('Should throw error when', async t => {
+    await t.test('At least one commit does not match the requirements', async t => {
+      t.assert.throws(
         () => verifyCommits(prCommitsValidAndInvalid),
         new Error(
           'Signature for commit sha could not be verified - Not a dependabot commit'
@@ -201,8 +201,8 @@ tap.test('VerifyCommits', async t => {
       )
     })
 
-    t.test('At least one commit does not match the requirements', async t => {
-      t.throws(
+    await t.test('At least one commit does not match the requirements', async t => {
+      t.assert.throws(
         () => verifyCommits(prCommitsInvalid),
         new Error(
           'Signature for commit sha could not be verified - Not a dependabot commit'
@@ -210,9 +210,9 @@ tap.test('VerifyCommits', async t => {
       )
     })
   })
-  t.test('Should not throw error when', async t => {
-    t.test('All commits match the requirements', async t => {
-      t.doesNotThrow(() => verifyCommits(prCommitsValid), {})
+  await t.test('Should not throw error when', async t => {
+    await t.test('All commits match the requirements', async t => {
+      t.assert.doesNotThrow(() => verifyCommits(prCommitsValid), {})
     })
   })
 })
