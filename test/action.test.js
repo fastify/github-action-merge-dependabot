@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test, afterEach } = require('node:test')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
 
@@ -111,11 +111,11 @@ function buildStubbedAction ({ payload, inputs, dependabotMetadata }) {
   }
 }
 
-tap.afterEach(() => {
+afterEach(() => {
   sinon.restore()
 })
 
-tap.test('should not run if a pull request number is missing', async () => {
+test('should not run if a pull request number is missing', async () => {
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
   })
@@ -130,7 +130,7 @@ tap.test('should not run if a pull request number is missing', async () => {
   )
 })
 
-tap.test(
+test(
   'should retrieve PR info when trigger by non pull_request events',
   async () => {
     const PR_NUMBER = Math.random()
@@ -145,7 +145,7 @@ tap.test(
   }
 )
 
-tap.test('should skip non-dependabot PR', async () => {
+test('should skip non-dependabot PR', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -186,7 +186,7 @@ const prCommitsStubs = [
 ]
 
 for (const prCommitsStub of prCommitsStubs) {
-  tap.test('should skip PR with non dependabot commit', async () => {
+  test('should skip PR with non dependabot commit', async () => {
     const PR_NUMBER = Math.random()
     const { action, stubs } = buildStubbedAction({
       payload: {
@@ -220,7 +220,7 @@ for (const prCommitsStub of prCommitsStubs) {
 }
 
 for (const prCommitsStub of prCommitsStubs) {
-  tap.test(
+  test(
     'should NOT skip PR with non dependabot commit when skip-verification is enabled',
     async () => {
       const PR_NUMBER = Math.random()
@@ -258,7 +258,7 @@ for (const prCommitsStub of prCommitsStubs) {
   )
 }
 
-tap.test(
+test(
   'should skip PR if dependabot commit signatures cannot be verified',
   async () => {
     const PR_NUMBER = Math.random()
@@ -299,7 +299,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should review and merge even if commit signatures cannot be verified with skip-commit-verification',
   async () => {
     const PR_NUMBER = Math.random()
@@ -342,7 +342,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should review and merge even if commit signatures cannot be verified when skip-verification is enabled',
   async () => {
     const PR_NUMBER = Math.random()
@@ -386,7 +386,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should review and merge even the user is not dependabot when skip-verification is enabled',
   async () => {
     const PR_NUMBER = Math.random()
@@ -429,7 +429,7 @@ tap.test(
   }
 )
 
-tap.test('should ignore excluded package', async () => {
+test('should ignore excluded package', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -456,7 +456,7 @@ tap.test('should ignore excluded package', async () => {
   )
 })
 
-tap.test('approve only should not merge', async () => {
+test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: { issue: {} },
@@ -488,7 +488,7 @@ tap.test('approve only should not merge', async () => {
   )
 })
 
-tap.test('should review and merge', async () => {
+test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -515,7 +515,7 @@ tap.test('should review and merge', async () => {
   )
 })
 
-tap.test(
+test(
   'should merge github-action-merge-dependabot minor release',
   async () => {
     const PR_NUMBER = Math.random()
@@ -545,7 +545,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should not merge github-action-merge-dependabot major release',
   async () => {
     const PR_NUMBER = Math.random()
@@ -576,7 +576,7 @@ tap.test(
   }
 )
 
-tap.test('should review and merge', async () => {
+test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = buildStubbedAction({
     payload: {
@@ -604,7 +604,7 @@ tap.test('should review and merge', async () => {
   )
 })
 
-tap.test('should review and enable github auto-merge', async () => {
+test('should review and enable github auto-merge', async () => {
   const PR_NUMBER = Math.random()
   const PR_NODE_ID = Math.random()
   const { action, stubs } = buildStubbedAction({
@@ -638,7 +638,7 @@ tap.test('should review and enable github auto-merge', async () => {
   )
 })
 
-tap.test('should forbid major when target is minor', async () => {
+test('should forbid major when target is minor', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -674,7 +674,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
   )
 })
 
-tap.test('should forbid minor when target is patch', async () => {
+test('should forbid minor when target is patch', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -710,7 +710,7 @@ Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateType
   )
 })
 
-tap.test('should forbid when update type is missing', async () => {
+test('should forbid when update type is missing', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -745,7 +745,7 @@ tap.test('should forbid when update type is missing', async () => {
   )
 })
 
-tap.test('should forbid when update type is not valid', async () => {
+test('should forbid when update type is not valid', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -780,7 +780,7 @@ tap.test('should forbid when update type is not valid', async () => {
   )
 })
 
-tap.test('should allow minor when target is major', async () => {
+test('should allow minor when target is major', async () => {
   const PR_NUMBER = Math.random()
 
   const { action, stubs } = buildStubbedAction({
@@ -815,7 +815,7 @@ tap.test('should allow minor when target is major', async () => {
   )
 })
 
-tap.test(
+test(
   'should pick target-development version for dev package update',
   async () => {
     const PR_NUMBER = Math.random()
@@ -855,7 +855,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should pick target-production version for production package update',
   async () => {
     const PR_NUMBER = Math.random()
@@ -895,7 +895,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
   }
 )
 
-tap.test(
+test(
   'should pick target-indirect version for indirect package update',
   async () => {
     const PR_NUMBER = Math.random()
@@ -936,7 +936,7 @@ tap.test(
 )
 
 // https://github.com/dependabot/dependabot-core/issues/4893
-tap.test(
+test(
   'should merge if target-indirect is any and update-type metadata is not set',
   async () => {
     const PR_NUMBER = Math.random()
@@ -976,7 +976,7 @@ tap.test(
   }
 )
 
-tap.test(
+test(
   'should pick target version for production package update if target-production is not set',
   async () => {
     const PR_NUMBER = Math.random()
@@ -1016,7 +1016,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
   }
 )
 
-tap.test(
+test(
   'should pick target version for development package update if target-development is not set',
   async () => {
     const PR_NUMBER = Math.random()
@@ -1056,7 +1056,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
   }
 )
 
-tap.test(
+test(
   'should pick target version for development package update if target-indirect is not set',
   async () => {
     const PR_NUMBER = Math.random()
