@@ -1,7 +1,8 @@
 'use strict'
 
-const tap = require('tap')
+const { test, afterEach } = require('node:test')
 const sinon = require('sinon')
+const proxyquire = require('proxyquire')
 
 const coreStubs = {
   debug: sinon.stub(),
@@ -9,25 +10,26 @@ const coreStubs = {
   info: sinon.stub(),
   warning: sinon.stub(),
 }
-const log = tap.mockRequire('../src/log', {
+
+const log = proxyquire('../src/log', {
   '@actions/core': coreStubs,
 })
 
-tap.afterEach(() => {
+afterEach(() => {
   sinon.resetHistory()
 })
 
-tap.test('logError should work with numbers', async () => {
+test('logError should work with numbers', async () => {
   log.logError(100)
   sinon.assert.calledWith(coreStubs.error, '100')
 })
 
-tap.test('logError should work with strings', async () => {
+test('logError should work with strings', async () => {
   log.logError('100')
   sinon.assert.calledWith(coreStubs.error, '100')
 })
 
-tap.test('log should call aproppriate core function', async () => {
+test('log should call aproppriate core function', async () => {
   const msg = 'log message'
   log.logError(msg)
   sinon.assert.calledWith(coreStubs.error, msg)

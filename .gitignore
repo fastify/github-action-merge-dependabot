@@ -1,5 +1,5 @@
 .vscode
 node_modules/
 .idea
-.nyc_output
 .tap/
+coverage

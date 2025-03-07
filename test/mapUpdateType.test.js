@@ -1,18 +1,18 @@
 'use strict'
-const tap = require('tap')
+const { test } = require('node:test')
 
 const { updateTypes, mapUpdateType } = require('../src/mapUpdateType')
 
-tap.test('mapUpdateType', async t => {
+test('mapUpdateType', async t => {
   t.test(
     'should return the updateType or any if invalid or missing',
     async t => {
-      t.equal(mapUpdateType('major'), updateTypes.major)
-      t.equal(mapUpdateType('minor'), updateTypes.minor)
-      t.equal(mapUpdateType('patch'), updateTypes.patch)
-      t.equal(mapUpdateType('bad_input'), updateTypes.any)
-      t.equal(mapUpdateType(), updateTypes.any)
-      t.equal(mapUpdateType('any'), updateTypes.any)
+      t.assert.deepEqual(mapUpdateType('major'), updateTypes.major)
+      t.assert.deepEqual(mapUpdateType('minor'), updateTypes.minor)
+      t.assert.deepEqual(mapUpdateType('patch'), updateTypes.patch)
+      t.assert.deepEqual(mapUpdateType('bad_input'), updateTypes.any)
+      t.assert.deepEqual(mapUpdateType(), updateTypes.any)
+      t.assert.deepEqual(mapUpdateType('any'), updateTypes.any)
     }
   )
 })

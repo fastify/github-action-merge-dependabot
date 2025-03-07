@@ -1,6 +1,6 @@
 'use strict'
 
-const tap = require('tap')
+const { test, afterEach } = require('node:test')
 const sinon = require('sinon')
 const { githubClient } = require('../src/github-client')
 
@@ -32,16 +32,16 @@ const githubStub = {
 const PR_NUMBER = Math.floor(Math.random() * 10)
 const PR_NODE_ID = Math.floor(Math.random() * 10)
 
-tap.afterEach(() => {
+afterEach(() => {
   sinon.resetHistory()
 })
 
-tap.test('githubClient', async t => {
-  t.test('getPullRequest', async () => {
+test('githubClient', async t => {
+  await t.test('getPullRequest', async (t) => {
     const result = await githubClient(githubStub, contextStub).getPullRequest(
       PR_NUMBER
     )
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     sinon.assert.calledWith(octokitStubs.get, {
       owner: githubContext.repository.owner.login,
@@ -50,13 +50,13 @@ tap.test('githubClient', async t => {
     })
   })
 
-  t.test('approvePullRequest', async () => {
+  await t.test('approvePullRequest', async (t) => {
     const comment = 'Test pull request comment'
     const result = await githubClient(
       githubStub,
       contextStub
     ).approvePullRequest(PR_NUMBER, comment)
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     sinon.assert.calledWith(octokitStubs.createReview, {
       owner: githubContext.repository.owner.login,
@@ -67,13 +67,13 @@ tap.test('githubClient', async t => {
     })
   })
 
-  t.test('mergePullRequest', async () => {
+  await t.test('mergePullRequest', async (t) => {
     const method = 'squash'
     const result = await githubClient(githubStub, contextStub).mergePullRequest(
       PR_NUMBER,
       method
     )
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     sinon.assert.calledWith(octokitStubs.merge, {
       owner: githubContext.repository.owner.login,
@@ -83,13 +83,13 @@ tap.test('githubClient', async t => {
     })
   })
 
-  t.test('enableAutoMergePullRequest', async () => {
+  await t.test('enableAutoMergePullRequest', async (t) => {
     const method = 'squash'
     const result = await githubClient(
       githubStub,
       contextStub
     ).enableAutoMergePullRequest(PR_NODE_ID, method)
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     const query = `
 mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
@@ -114,12 +114,12 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
     })
   })
 
-  t.test('getPullRequestDiff', async () => {
+  await t.test('getPullRequestDiff', async (t) => {
     const result = await githubClient(
       githubStub,
       contextStub
     ).getPullRequestDiff(PR_NUMBER)
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     sinon.assert.calledWith(octokitStubs.get, {
       owner: githubContext.repository.owner.login,
@@ -131,12 +131,12 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
     })
   })
 
-  t.test('getPullRequestCommits', async () => {
+  await t.test('getPullRequestCommits', async (t) => {
     const result = await githubClient(
       githubStub,
       contextStub
     ).getPullRequestCommits(PR_NUMBER)
-    tap.equal(result, data)
+    t.assert.deepStrictEqual(result, data)
 
     sinon.assert.calledWith(octokitStubs.listCommits, {
       owner: githubContext.repository.owner.login,

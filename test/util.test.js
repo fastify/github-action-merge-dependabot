@@ -1,9 +1,10 @@
 'use strict'
-const tap = require('tap')
+const { test } = require('node:test')
 const sinon = require('sinon')
+const proxyquire = require('proxyquire')
 
 const logWarningStub = sinon.stub()
-const { getInputs, parseCommaOrSemicolonSeparatedValue } = tap.mockRequire(
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = proxyquire(
   '../src/util',
   {
     '../src/log.js': {
@@ -12,26 +13,26 @@ const { getInputs, parseCommaOrSemicolonSeparatedValue } = tap.mockRequire(
   }
 )
 
-tap.test('parseCommaOrSemicolonSeparatedValue', async t => {
-  t.test('should split semicolon separated values correctly', async t => {
-    t.same(parseCommaOrSemicolonSeparatedValue('test1;test2;test3'), [
+test('parseCommaOrSemicolonSeparatedValue', async t => {
+  await t.test('should split semicolon separated values correctly', async t => {
+    t.assert.deepStrictEqual(parseCommaOrSemicolonSeparatedValue('test1;test2;test3'), [
       'test1',
       'test2',
       'test3',
     ])
-    t.same(parseCommaOrSemicolonSeparatedValue('  test1; test2; test3'), [
+    t.assert.deepStrictEqual(parseCommaOrSemicolonSeparatedValue('  test1; test2; test3'), [
       'test1',
       'test2',
       'test3',
     ])
   })
-  t.test('should split comma separated values correctly', async t => {
-    t.same(parseCommaOrSemicolonSeparatedValue('test1,test2,test3'), [
+  await t.test('should split comma separated values correctly', async t => {
+    t.assert.deepStrictEqual(parseCommaOrSemicolonSeparatedValue('test1,test2,test3'), [
       'test1',
       'test2',
       'test3',
     ])
-    t.same(parseCommaOrSemicolonSeparatedValue('  test1, test2, test3'), [
+    t.assert.deepStrictEqual(parseCommaOrSemicolonSeparatedValue('  test1, test2, test3'), [
       'test1',
       'test2',
       'test3',
@@ -52,72 +53,72 @@ const BOOLEAN_INPUTS = [
   },
 ]
 
-tap.test('getInputs', async t => {
-  t.test('should fail if no inputs object is provided', async t => {
-    t.throws(() => getInputs())
+test('getInputs', async t => {
+  await t.test('should fail if no inputs object is provided', async t => {
+    t.assert.throws(() => getInputs())
   })
-  t.test(
+  await t.test(
     'should return the correct inputs with default value if needed',
     async t => {
-      t.test('MERGE_METHOD', async t => {
-        t.equal(getInputs({}).MERGE_METHOD, 'squash')
-        t.equal(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')
-        t.equal(logWarningStub.callCount, 0)
-        t.equal(
+      await t.test('MERGE_METHOD', async t => {
+        t.assert.deepEqual(getInputs({}).MERGE_METHOD, 'squash')
+        t.assert.deepEqual(getInputs({ 'merge-method': 'merge' }).MERGE_METHOD, 'merge')
+        t.assert.deepEqual(logWarningStub.callCount, 0)
+        t.assert.deepEqual(
           getInputs({ 'merge-method': 'invalid-merge-method' }).MERGE_METHOD,
           'squash'
         )
-        t.equal(logWarningStub.callCount, 1)
-        t.equal(
+        t.assert.deepEqual(logWarningStub.callCount, 1)
+        t.assert.deepEqual(
           logWarningStub.firstCall.args[0],
           'merge-method input is ignored because it is malformed, defaulting to `squash`.'
         )
       })
-      t.test('EXCLUDE_PKGS', async t => {
-        t.same(getInputs({ exclude: 'react,vue' }).EXCLUDE_PKGS, [
+      await t.test('EXCLUDE_PKGS', async t => {
+        t.assert.deepStrictEqual(getInputs({ exclude: 'react,vue' }).EXCLUDE_PKGS, [
           'react',
           'vue',
         ])
       })
-      t.test('MERGE_COMMENT', async t => {
-        t.equal(getInputs({}).MERGE_COMMENT, '')
-        t.equal(
+      await t.test('MERGE_COMMENT', async t => {
+        t.assert.deepEqual(getInputs({}).MERGE_COMMENT, '')
+        t.assert.deepStrictEqual(
           getInputs({ 'merge-comment': 'test-merge-comment' }).MERGE_COMMENT,
           'test-merge-comment'
         )
       })
-      t.test('BOOLEAN INPUTS', async t => {
+      await t.test('BOOLEAN INPUTS', async t => {
         BOOLEAN_INPUTS.forEach(({ input, key }) => {
-          t.equal(getInputs({})[key], false)
-          t.equal(getInputs({ [input]: 'false' })[key], false)
-          t.equal(getInputs({ [input]: 'False' })[key], false)
-          t.equal(getInputs({ [input]: 'FALSE' })[key], false)
-          t.equal(getInputs({ [input]: 'true' })[key], true)
-          t.equal(getInputs({ [input]: 'True' })[key], true)
-          t.equal(getInputs({ [input]: 'TRUE' })[key], true)
+          t.assert.deepEqual(getInputs({})[key], false)
+          t.assert.deepEqual(getInputs({ [input]: 'false' })[key], false)
+          t.assert.deepEqual(getInputs({ [input]: 'False' })[key], false)
+          t.assert.deepEqual(getInputs({ [input]: 'FALSE' })[key], false)
+          t.assert.deepEqual(getInputs({ [input]: 'true' })[key], true)
+          t.assert.deepEqual(getInputs({ [input]: 'True' })[key], true)
+          t.assert.deepEqual(getInputs({ [input]: 'TRUE' })[key], true)
         })
       })
-      t.test('TARGET', async t => {
-        t.equal(
+      await t.test('TARGET', async t => {
+        t.assert.deepEqual(
           getInputs({ target: 'major' }).TARGET,
           'version-update:semver-major'
         )
-        t.equal(
+        t.assert.deepEqual(
           getInputs({ target: 'minor' }).TARGET,
           'version-update:semver-minor'
         )
-        t.equal(
+        t.assert.deepEqual(
           getInputs({ target: 'patch' }).TARGET,
           'version-update:semver-patch'
         )
-        t.equal(getInputs({ target: '' }).TARGET, 'version-update:semver-any')
-        t.equal(
+        t.assert.deepEqual(getInputs({ target: '' }).TARGET, 'version-update:semver-any')
+        t.assert.deepEqual(
           getInputs({ target: 'any' }).TARGET,
           'version-update:semver-any'
         )
       })
-      t.test('PR_NUMBER', async t => {
-        t.equal(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
+      await t.test('PR_NUMBER', async t => {
+        t.assert.deepEqual(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
       })
     }
   )
