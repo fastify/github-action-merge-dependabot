@@ -4,9 +4,15 @@ on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
   check_pull_requests:
     runs-on: ubuntu-latest
+    permissions:
+        issues: read
+        pull-requests: write
     name: Check linked issues
     steps:
       - uses: nearform-actions/github-action-check-linked-issues@v1
