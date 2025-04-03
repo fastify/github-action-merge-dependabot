@@ -5,9 +5,14 @@ on:
     types: [published]
   schedule:
     - cron: '30 8 * * *'
+permissions:
+  contents: read
 jobs:
   setup:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     steps:
       - name: Notify release
         uses: nearform-actions/github-action-notify-release@v1
