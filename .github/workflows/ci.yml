@@ -19,7 +19,7 @@ jobs:
         with:
           check-latest: true
           node-version-file: '.nvmrc'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run test
 
