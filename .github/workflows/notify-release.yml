@@ -15,6 +15,6 @@ jobs:
       contents: read
     steps:
       - name: Notify release
-        uses: nearform-actions/github-action-notify-release@v1
+        uses: nearform-actions/github-action-notify-release@1a1c03a2b8c9a41a7a88f9a8de05b2b6582f0966 # v1.12.2
         with:
           github-token: ${{ github.token }}
