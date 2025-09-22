@@ -68,18 +68,24 @@ runs:
     - name: Merge/approve PR
       uses: actions/github-script@v7
       id: approver
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        UPDATE_TYPE: ${{ steps.dependabot-metadata.outputs.update-type }}
+        DEPENDENCY_TYPE: ${{ steps.dependabot-metadata.outputs.dependency-type }}
+        DEPENDENCY_NAMES: ${{ steps.dependabot-metadata.outputs.dependency-names }}
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          const script = require('${{ github.action_path }}/dist/index.js')
+          const { ACTION_PATH, UPDATE_TYPE, DEPENDENCY_TYPE, DEPENDENCY_NAMES } = process.env
+          const script = require('${ACTION_PATH}/dist/index.js')
           await script({
             github,
             context,
             inputs: ${{ toJSON(inputs) }},
             dependabotMetadata: {
-              updateType:  '${{ steps.dependabot-metadata.outputs.update-type }}',
-              dependencyType:'${{ steps.dependabot-metadata.outputs.dependency-type }}',
-              dependencyNames: '${{ steps.dependabot-metadata.outputs.dependency-names }}',
+              updateType:  UPDATE_TYPE,
+              dependencyType: DEPENDENCY_TYPE,
+              dependencyNames: DEPENDENCY_NAMES,
             }
           })
 
