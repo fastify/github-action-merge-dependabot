@@ -27,11 +27,11 @@ jobs:
       pull-requests: write
     steps:
       - name: Setting action build runtime
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           check-latest: true
           node-version: 20
-      - uses: nearform-actions/optic-release-automation-action@c51e9095203d5760ed5bdb11371668ac00a20182 # v4.12.0
+      - uses: nearform-actions/optic-release-automation-action@9e3518763346efacba15d729d0faaa4cbd8fdd52 # v4.12.3
         with:
           github-token: ${{ github.token }}
           semver: ${{ github.event.inputs.semver }}
