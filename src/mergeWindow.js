@@ -87,6 +87,17 @@ const parseField = (rawField, field) => {
   return values
 }
 
+// True when `values` already covers every value in the field's domain, in
+// which case the field places no real restriction on the schedule.
+const coversFullDomain = (values, field) => {
+  for (let value = field.min; value <= field.max; value += 1) {
+    if (!values.has(value)) {
+      return false
+    }
+  }
+  return true
+}
+
 const parseCron = expression => {
   const fields = expression.trim().split(/\s+/)
   if (fields.length !== CRON_FIELDS.length) {
@@ -97,17 +108,31 @@ const parseCron = expression => {
 
   const schedule = {}
   CRON_FIELDS.forEach((field, index) => {
-    const rawField = fields[index]
     schedule[field.name] = {
-      restricted: rawField !== '*',
-      values: parseField(rawField, field),
+      values: parseField(fields[index], field),
     }
   })
 
-  // In cron, both 0 and 7 represent Sunday.
+  // In cron, both 0 and 7 represent Sunday, so keep the set consistent in both
+  // directions (this also lets `0-6` count as covering every weekday).
   if (schedule.dayOfWeek.values.has(7)) {
     schedule.dayOfWeek.values.add(0)
   }
+  if (schedule.dayOfWeek.values.has(0)) {
+    schedule.dayOfWeek.values.add(7)
+  }
+
+  // A field only constrains the schedule when it does not match its entire
+  // domain. Treating expressions such as `*/1` or `0-6` (day-of-week) as
+  // restricted would wrongly trigger the day-of-month/day-of-week OR rule in
+  // isWithinMergeWindow(), so derive `restricted` from the expanded values
+  // rather than the raw text.
+  CRON_FIELDS.forEach(field => {
+    schedule[field.name].restricted = !coversFullDomain(
+      schedule[field.name].values,
+      field
+    )
+  })
 
   return schedule
 }

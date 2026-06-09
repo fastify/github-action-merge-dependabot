@@ -144,6 +144,40 @@ test('isWithinMergeWindow', async t => {
     )
   })
 
+  await t.test(
+    'does not OR the day fields when a day field covers its full domain',
+    t => {
+      // `*/1` day-of-week spans every weekday, so it must not be treated as a
+      // restriction: only the day-of-month (15) should constrain the match.
+      t.assert.strictEqual(
+        isWithinMergeWindow({
+          mergeWindow: '* * 15 * */1',
+          timezone: 'UTC',
+          now: MONDAY_AFTERNOON_UTC, // the 3rd, not the 15th
+        }),
+        false
+      )
+      // `0-6` likewise covers every weekday and must not widen the match.
+      t.assert.strictEqual(
+        isWithinMergeWindow({
+          mergeWindow: '* * 15 * 0-6',
+          timezone: 'UTC',
+          now: MONDAY_AFTERNOON_UTC, // the 3rd, not the 15th
+        }),
+        false
+      )
+      // A full-domain day-of-month behaves the same way for day-of-week.
+      t.assert.strictEqual(
+        isWithinMergeWindow({
+          mergeWindow: '* * */1 * 0',
+          timezone: 'UTC',
+          now: MONDAY_AFTERNOON_UTC, // Monday, day-of-week 1 (not 0)
+        }),
+        false
+      )
+    }
+  )
+
   await t.test('treats both 0 and 7 as Sunday', t => {
     const sunday = new Date('2024-06-02T10:00:00Z')
     t.assert.strictEqual(
