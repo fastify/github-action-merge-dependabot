@@ -49,6 +49,14 @@ inputs:
     type: boolean
     description: 'If true, the action will not validate the user or the commit verification status'
     default: false
+  merge-window:
+    description: 'A 5-field cron expression (e.g. "0 9-16 * * 1-5") describing when merges are allowed. PRs evaluated outside this window are skipped.'
+    required: false
+    default: ''
+  merge-window-timezone:
+    description: 'The IANA timezone (e.g. "Europe/London") used to evaluate merge-window. Defaults to UTC.'
+    required: false
+    default: ''
 
 outputs:
   merge_status:
