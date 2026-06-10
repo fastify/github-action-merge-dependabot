@@ -35143,6 +35143,17 @@ const parseField = (rawField, field) => {
   return values
 }
 
+// True when `values` already covers every value in the field's domain, in
+// which case the field places no real restriction on the schedule.
+const coversFullDomain = (values, field) => {
+  for (let value = field.min; value <= field.max; value += 1) {
+    if (!values.has(value)) {
+      return false
+    }
+  }
+  return true
+}
+
 const parseCron = expression => {
   const fields = expression.trim().split(/\s+/)
   if (fields.length !== CRON_FIELDS.length) {
@@ -35153,17 +35164,31 @@ const parseCron = expression => {
 
   const schedule = {}
   CRON_FIELDS.forEach((field, index) => {
-    const rawField = fields[index]
     schedule[field.name] = {
-      restricted: rawField !== '*',
-      values: parseField(rawField, field),
+      values: parseField(fields[index], field),
     }
   })
 
-  // In cron, both 0 and 7 represent Sunday.
+  // In cron, both 0 and 7 represent Sunday, so keep the set consistent in both
+  // directions (this also lets `0-6` count as covering every weekday).
   if (schedule.dayOfWeek.values.has(7)) {
     schedule.dayOfWeek.values.add(0)
   }
+  if (schedule.dayOfWeek.values.has(0)) {
+    schedule.dayOfWeek.values.add(7)
+  }
+
+  // A field only constrains the schedule when it does not match its entire
+  // domain. Treating expressions such as `*/1` or `0-6` (day-of-week) as
+  // restricted would wrongly trigger the day-of-month/day-of-week OR rule in
+  // isWithinMergeWindow(), so derive `restricted` from the expanded values
+  // rather than the raw text.
+  CRON_FIELDS.forEach(field => {
+    schedule[field.name].restricted = !coversFullDomain(
+      schedule[field.name].values,
+      field
+    )
+  })
 
   return schedule
 }
@@ -35390,7 +35415,7 @@ module.exports = {
 /***/ ((module) => {
 
 "use strict";
-module.exports = /*#__PURE__*/JSON.parse('{"name":"github-action-merge-dependabot","version":"3.12.0","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"c8 --100 node --test"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.11.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.4","c8":"^11.0.0","eslint":"^9.39.2","neostandard":"^0.13.0","proxyquire":"^2.1.3","sinon":"^21.1.2"}}');
+module.exports = /*#__PURE__*/JSON.parse('{"name":"github-action-merge-dependabot","version":"3.13.0","description":"A GitHub action to automatically merge and approve Dependabot pull requests","main":"src/index.js","type":"commonjs","scripts":{"build":"ncc build src/index.js","lint":"eslint .","lint:fix":"eslint . --fix","test":"c8 --100 node --test"},"author":{"name":"Salman Mitha","email":"SalmanMitha@gmail.com"},"contributors":["Simone Busoli <simone.busoli@nearform.com>"],"license":"MIT","repository":{"type":"git","url":"git+https://github.com/fastify/github-action-merge-dependabot.git"},"bugs":{"url":"https://github.com/fastify/github-action-merge-dependabot/issues"},"homepage":"https://github.com/fastify/github-action-merge-dependabot#readme","dependencies":{"@actions/core":"^1.11.1","actions-toolkit":"github:nearform/actions-toolkit"},"devDependencies":{"@vercel/ncc":"^0.38.4","c8":"^11.0.0","eslint":"^9.39.2","neostandard":"^0.13.0","proxyquire":"^2.1.3","sinon":"^21.1.2"}}');
 
 /***/ })
 
