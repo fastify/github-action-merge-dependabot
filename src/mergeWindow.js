@@ -1,5 +1,3 @@
-'use strict'
-
 // Standard 5-field cron layout: minute hour day-of-month month day-of-week.
 const CRON_FIELDS = [
   { name: 'minute', min: 0, max: 59 },
@@ -197,6 +195,4 @@ const isWithinMergeWindow = ({ mergeWindow, timezone = 'UTC', now = new Date() }
   return minuteMatch && hourMatch && monthMatch && dayMatch
 }
 
-exports.isWithinMergeWindow = isWithinMergeWindow
-exports.parseCron = parseCron
-exports.getTimeParts = getTimeParts
+export { isWithinMergeWindow, parseCron, getTimeParts }

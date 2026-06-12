@@ -1,19 +1,9 @@
-'use strict'
+import { test, afterEach } from 'node:test'
+import sinon from 'sinon'
+import esmock from 'esmock'
 
-const { test, afterEach } = require('node:test')
-const proxyquire = require('proxyquire')
-const sinon = require('sinon')
-
-// Stubbing modules
-const core = require('@actions/core')
-const toolkit = require('actions-toolkit')
-
-const actionLog = require('../src/log')
-const actionGithubClient = require('../src/github-client')
-const verifyCommits = require('../src/verifyCommitSignatures')
-const mergeWindow = require('../src/mergeWindow')
-const { updateTypes } = require('../src/mapUpdateType')
-const { MERGE_STATUS, MERGE_STATUS_KEY } = require('../src/util')
+import { updateTypes } from '../src/mapUpdateType.js'
+import { MERGE_STATUS, MERGE_STATUS_KEY } from '../src/util.js'
 
 const BOT_NAME = 'dependabot[bot]'
 
@@ -41,11 +31,58 @@ const createDependabotMetadata = (props = {}) => ({
   ...props,
 })
 
-function buildStubbedAction ({ payload, inputs, dependabotMetadata }) {
-  const coreStub = sinon.stub(core)
-  const toolkitStub = sinon
-    .stub(toolkit, 'logActionRefWarning')
-    .get(() => sinon.stub())
+async function buildStubbedAction ({ payload, inputs, dependabotMetadata } = {}) {
+  const setOutputStub = sinon.stub()
+  const setFailedStub = sinon.stub()
+
+  const logErrorStub = sinon.stub()
+  const logInfoStub = sinon.stub()
+  const logWarningStub = sinon.stub()
+  const logDebugStub = sinon.stub()
+
+  const prStub = sinon.stub().resolves()
+  const prDiffStub = sinon.stub().resolves()
+  const prCommitsStub = sinon.stub().resolves([])
+  const approveStub = sinon.stub().resolves()
+  const mergeStub = sinon.stub().resolves()
+  const enableAutoMergeStub = sinon.stub().resolves()
+
+  const githubClientStub = sinon.stub().returns({
+    getPullRequest: prStub,
+    approvePullRequest: approveStub,
+    mergePullRequest: mergeStub,
+    enableAutoMergePullRequest: enableAutoMergeStub,
+    getPullRequestDiff: prDiffStub,
+    getPullRequestCommits: prCommitsStub,
+  })
+
+  const verifyCommitsStub = sinon.stub()
+  const isWithinMergeWindowStub = sinon.stub().returns(true)
+
+  const { default: action } = await esmock('../src/action.js', {
+    '@actions/core': {
+      setOutput: setOutputStub,
+      setFailed: setFailedStub,
+    },
+    'actions-toolkit': {
+      logActionRefWarning: sinon.stub(),
+    },
+    '../src/log.js': {
+      logError: logErrorStub,
+      logInfo: logInfoStub,
+      logWarning: logWarningStub,
+      logDebug: logDebugStub,
+    },
+    '../src/github-client.js': {
+      githubClient: githubClientStub,
+    },
+    '../src/verifyCommitSignatures.js': {
+      verifyCommits: verifyCommitsStub,
+    },
+    '../src/mergeWindow.js': {
+      isWithinMergeWindow: isWithinMergeWindowStub,
+    },
+  })
 
   const contextStub = {
     payload: {
@@ -64,35 +101,6 @@ function buildStubbedAction ({ payload, inputs, dependabotMetadata }) {
     ...{ payload },
   }
 
-  const logStub = sinon.stub(actionLog)
-  const prStub = sinon.stub()
-  const prDiffStub = sinon.stub()
-  const prCommitsStub = sinon.stub()
-  const approveStub = sinon.stub()
-  const mergeStub = sinon.stub()
-  const enableAutoMergeStub = sinon.stub()
-
-  const clientStub = sinon.stub(actionGithubClient, 'githubClient').returns({
-    getPullRequest: prStub.resolves(),
-    approvePullRequest: approveStub.resolves(),
-    mergePullRequest: mergeStub.resolves(),
-    enableAutoMergePullRequest: enableAutoMergeStub.resolves(),
-    getPullRequestDiff: prDiffStub.resolves(),
-    getPullRequestCommits: prCommitsStub.resolves([]),
-  })
-
-  const verifyCommitsStub = sinon.stub(verifyCommits, 'verifyCommits')
-  const isWithinMergeWindowStub = sinon
-    .stub(mergeWindow, 'isWithinMergeWindow')
-    .returns(true)
-
-  const action = proxyquire('../src/action', {
-    '@actions/core': coreStub,
-    'actions-toolkit': toolkitStub,
-    './log': logStub,
-    './github-client': clientStub,
-    './mergeWindow': { isWithinMergeWindow: isWithinMergeWindowStub },
-  })
   return {
     action: props =>
       action({
@@ -103,9 +111,14 @@ function buildStubbedAction ({ payload, inputs, dependabotMetadata }) {
         ...props,
       }),
     stubs: {
-      coreStub,
+      coreStub: { setOutput: setOutputStub, setFailed: setFailedStub },
       githubStub,
-      logStub,
+      logStub: {
+        logError: logErrorStub,
+        logInfo: logInfoStub,
+        logWarning: logWarningStub,
+        logDebug: logDebugStub,
+      },
       prStub,
       approveStub,
       mergeStub,
@@ -118,11 +131,11 @@ function buildStubbedAction ({ payload, inputs, dependabotMetadata }) {
 }
 
 afterEach(() => {
-  sinon.restore()
+  sinon.resetHistory()
 })
 
 test('should not run if a pull request number is missing', async () => {
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: { issue: {} },
   })
   await action()
@@ -140,7 +153,7 @@ test(
   'should retrieve PR info when trigger by non pull_request events',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: { 'not a pull_request': {} },
       inputs: { 'pr-number': PR_NUMBER },
     })
@@ -153,7 +166,7 @@ test(
 
 test('should skip non-dependabot PR', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: { issue: {} },
     inputs: { 'pr-number': PR_NUMBER },
   })
@@ -194,7 +207,7 @@ const prCommitsStubs = [
 for (const prCommitsStub of prCommitsStubs) {
   test('should skip PR with non dependabot commit', async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           user: {
@@ -230,7 +243,7 @@ for (const prCommitsStub of prCommitsStubs) {
     'should NOT skip PR with non dependabot commit when skip-verification is enabled',
     async () => {
       const PR_NUMBER = Math.random()
-      const { action, stubs } = buildStubbedAction({
+      const { action, stubs } = await buildStubbedAction({
         payload: {
           pull_request: {
             user: {
@@ -268,7 +281,7 @@ test(
   'should skip PR if dependabot commit signatures cannot be verified',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           user: {
@@ -309,7 +322,7 @@ test(
   'should review and merge even if commit signatures cannot be verified with skip-commit-verification',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           user: {
@@ -352,7 +365,7 @@ test(
   'should review and merge even if commit signatures cannot be verified when skip-verification is enabled',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           user: {
@@ -396,7 +409,7 @@ test(
   'should review and merge even the user is not dependabot when skip-verification is enabled',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           user: {
@@ -437,7 +450,7 @@ test(
 
 test('should ignore excluded package', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -464,7 +477,7 @@ test('should ignore excluded package', async () => {
 
 test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: { issue: {} },
     inputs: {
       'pr-number': PR_NUMBER,
@@ -496,7 +509,7 @@ test('approve only should not merge', async () => {
 
 test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -525,7 +538,7 @@ test(
   'should merge github-action-merge-dependabot minor release',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -555,7 +568,7 @@ test(
   'should not merge github-action-merge-dependabot major release',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -584,7 +597,7 @@ test(
 
 test('should review and merge', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -613,7 +626,7 @@ test('should review and merge', async () => {
 test('should review and enable github auto-merge', async () => {
   const PR_NUMBER = Math.random()
   const PR_NODE_ID = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -647,7 +660,7 @@ test('should review and enable github auto-merge', async () => {
 test('should forbid major when target is minor', async () => {
   const PR_NUMBER = Math.random()
 
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -683,7 +696,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
 test('should forbid minor when target is patch', async () => {
   const PR_NUMBER = Math.random()
 
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -719,7 +732,7 @@ Tried to do a '${updateTypes.minor}' update but the max allowed is '${updateType
 test('should forbid when update type is missing', async () => {
   const PR_NUMBER = Math.random()
 
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -754,7 +767,7 @@ test('should forbid when update type is missing', async () => {
 test('should forbid when update type is not valid', async () => {
   const PR_NUMBER = Math.random()
 
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -789,7 +802,7 @@ test('should forbid when update type is not valid', async () => {
 test('should allow minor when target is major', async () => {
   const PR_NUMBER = Math.random()
 
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -826,7 +839,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -866,7 +879,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -906,7 +919,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -947,7 +960,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -987,7 +1000,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -1027,7 +1040,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -1067,7 +1080,7 @@ test(
   async () => {
     const PR_NUMBER = Math.random()
 
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -1103,7 +1116,7 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
 
 test('should skip when outside the configured merge-window', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,
@@ -1143,7 +1156,7 @@ test(
   'should skip when outside the merge-window without a timezone',
   async () => {
     const PR_NUMBER = Math.random()
-    const { action, stubs } = buildStubbedAction({
+    const { action, stubs } = await buildStubbedAction({
       payload: {
         pull_request: {
           number: PR_NUMBER,
@@ -1181,7 +1194,7 @@ test(
 
 test('should merge when inside the configured merge-window', async () => {
   const PR_NUMBER = Math.random()
-  const { action, stubs } = buildStubbedAction({
+  const { action, stubs } = await buildStubbedAction({
     payload: {
       pull_request: {
         number: PR_NUMBER,

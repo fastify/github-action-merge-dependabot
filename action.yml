@@ -85,7 +85,7 @@ runs:
         github-token: ${{ inputs.github-token }}
         script: |
           const { ACTION_PATH, UPDATE_TYPE, DEPENDENCY_TYPE, DEPENDENCY_NAMES } = process.env
-          const script = require(ACTION_PATH + '/dist/index.js')
+          const { default: script } = await import('file://' + ACTION_PATH + '/dist/index.js')
           await script({
             github,
             context,

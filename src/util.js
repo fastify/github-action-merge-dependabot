@@ -1,7 +1,5 @@
-'use strict'
-
-const { mapUpdateType } = require('./mapUpdateType')
-const { logWarning } = require('./log')
+import { mapUpdateType } from './mapUpdateType.js'
+import { logWarning } from './log.js'
 
 const mergeMethods = {
   merge: 'merge',
@@ -26,14 +24,11 @@ const getMergeMethod = inputs => {
   return mergeMethods[input]
 }
 
-const parseCommaOrSemicolonSeparatedValue = value => {
+export const parseCommaOrSemicolonSeparatedValue = value => {
   return value ? value.split(/[;,]/).map(el => el.trim()) : []
 }
 
-exports.parseCommaOrSemicolonSeparatedValue =
-  parseCommaOrSemicolonSeparatedValue
-
-exports.getInputs = inputs => {
+export const getInputs = inputs => {
   if (!inputs) {
     throw new Error('Invalid inputs object passed to getInputs')
   }
@@ -60,7 +55,7 @@ exports.getInputs = inputs => {
   }
 }
 
-exports.getTarget = (
+export const getTarget = (
   { TARGET, TARGET_DEV, TARGET_PROD, TARGET_INDIRECT },
   { dependencyType }
 ) => {
@@ -76,7 +71,7 @@ exports.getTarget = (
   return TARGET
 }
 
-exports.MERGE_STATUS = {
+export const MERGE_STATUS = {
   approved: 'approved',
   merged: 'merged',
   autoMerge: 'auto_merge',
@@ -90,4 +85,4 @@ exports.MERGE_STATUS = {
   skippedOutsideMergeWindow: 'skipped:outside_merge_window',
 }
 
-exports.MERGE_STATUS_KEY = 'merge_status'
+export const MERGE_STATUS_KEY = 'merge_status'

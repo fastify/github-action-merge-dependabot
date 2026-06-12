@@ -1,11 +1,9 @@
-'use strict'
-
-const { test } = require('node:test')
-const {
+import { test } from 'node:test'
+import {
   isWithinMergeWindow,
   parseCron,
   getTimeParts,
-} = require('../src/mergeWindow')
+} from '../src/mergeWindow.js'
 
 // A fixed point in time used across tests: Monday, 2024-06-03 14:30 UTC.
 const MONDAY_AFTERNOON_UTC = new Date('2024-06-03T14:30:00Z')

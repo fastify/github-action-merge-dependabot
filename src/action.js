@@ -1,25 +1,24 @@
-'use strict'
+import * as core from '@actions/core'
+import { logActionRefWarning } from 'actions-toolkit'
+import { createRequire } from 'module'
 
-const core = require('@actions/core')
-const toolkit = require('actions-toolkit')
-
+const require = createRequire(import.meta.url)
 const packageInfo = require('../package.json')
-const { githubClient } = require('./github-client')
-const { logInfo, logWarning, logError } = require('./log')
-const {
+import { githubClient } from './github-client.js'
+import { logInfo, logWarning, logError } from './log.js'
+import {
   MERGE_STATUS,
   MERGE_STATUS_KEY,
   getInputs,
   parseCommaOrSemicolonSeparatedValue,
   getTarget,
-} = require('./util')
-const { verifyCommits } = require('./verifyCommitSignatures')
-const { isWithinMergeWindow } = require('./mergeWindow')
-const { dependabotAuthor } = require('./getDependabotDetails')
-const { updateTypes } = require('./mapUpdateType')
-const { updateTypesPriority } = require('./mapUpdateType')
+} from './util.js'
+import { verifyCommits } from './verifyCommitSignatures.js'
+import { isWithinMergeWindow } from './mergeWindow.js'
+import { dependabotAuthor } from './getDependabotDetails.js'
+import { updateTypes, updateTypesPriority } from './mapUpdateType.js'
 
-module.exports = async function run ({
+export default async function run ({
   github,
   context,
   inputs,
@@ -48,7 +47,7 @@ module.exports = async function run ({
   } = getInputs(inputs)
 
   try {
-    toolkit.logActionRefWarning()
+    logActionRefWarning()
 
     const PULLREQUEST = context.payload.pull_request
     if (!PULLREQUEST && !PR_NUMBER) {

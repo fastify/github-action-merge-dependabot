@@ -1,6 +1,4 @@
-'use strict'
-
-function githubClient (github, context) {
+export function githubClient (github, context) {
   const payload = context.payload
 
   const repo = payload.repository
@@ -87,5 +85,3 @@ mutation ($pullRequestId: ID!, $mergeMethod: PullRequestMergeMethod!) {
     },
   }
 }
-
-module.exports = { githubClient }
