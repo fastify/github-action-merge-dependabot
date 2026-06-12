@@ -35,12 +35,14 @@ Error: Resource not accessible by integration
 | `pr-number`                | No       |                     | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a separate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event) example.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `skip-commit-verification` | No       | `false`             | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `skip-verification`        | No       | `false`             | If true, the action will not validate the user or the commit verification status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `merge-window`             | No       |                     | A 5-field [cron expression](https://en.wikipedia.org/wiki/Cron) (e.g. `0 9-16 * * 1-5`) describing when merges are allowed. When set, PRs evaluated outside this window are skipped instead of merged. Supports `*`, ranges (`a-b`), lists (`a,b`), and steps (`*/n`). The day-of-week field accepts `0`-`7` (both `0` and `7` mean Sunday). See [Restricting merges to business hours](#restricting-merges-to-business-hours).                                                                                                                                                                                                                                                                                                                                                  |
+| `merge-window-timezone`    | No       | `UTC`               | The [IANA timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (e.g. `Europe/London`) used to evaluate `merge-window`. Defaults to `UTC`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## Output
 
 | outputs      | Description                                                                                                                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded` |
+| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded`, `skipped:outside_merge_window` |
 
 ## Examples
 
@@ -116,6 +118,30 @@ steps:
       target-development: 'major'
       target-production: 'minor'
 ```
+
+### Restricting merges to business hours
+
+Use `merge-window` to only auto-merge during a time window, for example to avoid
+deployments while everyone is asleep. The window is a standard 5-field cron
+expression and is evaluated in `merge-window-timezone` (UTC by default). PRs
+evaluated outside the window are skipped (`merge_status: skipped:outside_merge_window`)
+rather than merged.
+
+```yml
+steps:
+  - uses: fastify/github-action-merge-dependabot@v3
+    with:
+      # Allow merges Monday-Friday, 09:00-16:59 London time
+      merge-window: '* 9-16 * * 1-5'
+      merge-window-timezone: 'Europe/London'
+```
+
+Note that the `pull_request` event only fires when a PR is opened or updated, so a
+PR opened outside the window stays unmerged until something triggers the action
+again. To re-evaluate skipped PRs on a schedule, also run the action from a
+[`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule)
+trigger together with the [`workflow_dispatch` approach](#trigger-action-from-workflow_dispatch-event)
+described below.
 
 ### Trigger action from workflow_dispatch event
 

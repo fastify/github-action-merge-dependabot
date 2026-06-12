@@ -14,6 +14,7 @@ import {
   getTarget,
 } from './util.js'
 import { verifyCommits } from './verifyCommitSignatures.js'
+import { isWithinMergeWindow } from './mergeWindow.js'
 import { dependabotAuthor } from './getDependabotDetails.js'
 import { updateTypes, updateTypesPriority } from './mapUpdateType.js'
 
@@ -41,6 +42,8 @@ export default async function run ({
     PR_NUMBER,
     SKIP_COMMIT_VERIFICATION,
     SKIP_VERIFICATION,
+    MERGE_WINDOW,
+    MERGE_WINDOW_TIMEZONE,
   } = getInputs(inputs)
 
   try {
@@ -133,6 +136,21 @@ ${changedExcludedPackages.join(', ')}. Skipping.`)
       core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedCannotUpdateMajor)
       core.setFailed(upgradeMessage)
       return
+    }
+
+    if (
+      MERGE_WINDOW &&
+      !isWithinMergeWindow({
+        mergeWindow: MERGE_WINDOW,
+        timezone: MERGE_WINDOW_TIMEZONE || undefined,
+      })
+    ) {
+      core.setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedOutsideMergeWindow)
+      return logInfo(
+        `Outside of the configured merge-window ('${MERGE_WINDOW}'${
+          MERGE_WINDOW_TIMEZONE ? ` in ${MERGE_WINDOW_TIMEZONE}` : ''
+        }), skipping.`
+      )
     }
 
     await client.approvePullRequest(pr.number, MERGE_COMMENT)

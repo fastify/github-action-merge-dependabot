@@ -1,6 +1,6 @@
 {
   "name": "github-action-merge-dependabot",
-  "version": "3.12.0",
+  "version": "3.14.0",
   "description": "A GitHub action to automatically merge and approve Dependabot pull requests",
   "main": "src/index.js",
   "type": "module",
@@ -36,6 +36,6 @@
     "eslint": "^9.39.2",
     "esmock": "^2.7.6",
     "neostandard": "^0.13.0",
-    "sinon": "^21.1.2"
+    "sinon": "^22.0.0"
   }
 }

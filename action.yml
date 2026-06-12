@@ -49,6 +49,14 @@ inputs:
     type: boolean
     description: 'If true, the action will not validate the user or the commit verification status'
     default: false
+  merge-window:
+    description: 'A 5-field cron expression (e.g. "0 9-16 * * 1-5") describing when merges are allowed. PRs evaluated outside this window are skipped.'
+    required: false
+    default: ''
+  merge-window-timezone:
+    description: 'The IANA timezone (e.g. "Europe/London") used to evaluate merge-window. Defaults to UTC.'
+    required: false
+    default: ''
 
 outputs:
   merge_status:
@@ -60,7 +68,7 @@ runs:
   steps:
     - name: Fetch metadata
       id: dependabot-metadata
-      uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+      uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
       if: github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || inputs.skip-verification == 'true')
       with:
         skip-commit-verification: ${{ inputs.skip-commit-verification }}

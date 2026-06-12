@@ -57,6 +57,7 @@ async function buildStubbedAction ({ payload, inputs, dependabotMetadata } = {})
   })
 
   const verifyCommitsStub = sinon.stub()
+  const isWithinMergeWindowStub = sinon.stub().returns(true)
 
   const { default: action } = await esmock('../src/action.js', {
     '@actions/core': {
@@ -77,6 +78,9 @@ async function buildStubbedAction ({ payload, inputs, dependabotMetadata } = {})
     },
     '../src/verifyCommitSignatures.js': {
       verifyCommits: verifyCommitsStub,
+    },
+    '../src/mergeWindow.js': {
+      isWithinMergeWindow: isWithinMergeWindowStub,
     },
   })
 
@@ -121,6 +125,7 @@ async function buildStubbedAction ({ payload, inputs, dependabotMetadata } = {})
       enableAutoMergeStub,
       prCommitsStub,
       verifyCommitsStub,
+      isWithinMergeWindowStub,
     },
   }
 }
@@ -1108,3 +1113,115 @@ Tried to do a '${updateTypes.major}' update but the max allowed is '${updateType
     )
   }
 )
+
+test('should skip when outside the configured merge-window', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = await buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      'pr-number': PR_NUMBER,
+      target: 'any',
+      'merge-window': '0-59 9-16 * * 1-5',
+      'merge-window-timezone': 'Europe/London',
+    },
+  })
+
+  stubs.isWithinMergeWindowStub.returns(false)
+
+  await action()
+
+  sinon.assert.calledWithExactly(stubs.isWithinMergeWindowStub, {
+    mergeWindow: '0-59 9-16 * * 1-5',
+    timezone: 'Europe/London',
+  })
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    "Outside of the configured merge-window ('0-59 9-16 * * 1-5' in Europe/London), skipping."
+  )
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.skippedOutsideMergeWindow
+  )
+})
+
+test(
+  'should skip when outside the merge-window without a timezone',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = await buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        'pr-number': PR_NUMBER,
+        target: 'any',
+        'merge-window': '0-59 9-16 * * 1-5',
+      },
+    })
+
+    stubs.isWithinMergeWindowStub.returns(false)
+
+    await action()
+
+    sinon.assert.calledWithExactly(stubs.isWithinMergeWindowStub, {
+      mergeWindow: '0-59 9-16 * * 1-5',
+      timezone: undefined,
+    })
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      "Outside of the configured merge-window ('0-59 9-16 * * 1-5'), skipping."
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedOutsideMergeWindow
+    )
+  }
+)
+
+test('should merge when inside the configured merge-window', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = await buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: {
+      'pr-number': PR_NUMBER,
+      target: 'any',
+      'merge-window': '0-59 9-16 * * 1-5',
+    },
+  })
+
+  stubs.isWithinMergeWindowStub.returns(true)
+
+  await action()
+
+  sinon.assert.calledOnce(stubs.isWithinMergeWindowStub)
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'Dependabot merge completed'
+  )
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.merged
+  )
+})

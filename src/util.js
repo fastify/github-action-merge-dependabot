@@ -50,6 +50,8 @@ export const getInputs = inputs => {
     PR_NUMBER: inputs['pr-number'],
     SKIP_COMMIT_VERIFICATION: /true/i.test(inputs['skip-commit-verification']),
     SKIP_VERIFICATION: /true/i.test(inputs['skip-verification']),
+    MERGE_WINDOW: (inputs['merge-window'] || '').trim(),
+    MERGE_WINDOW_TIMEZONE: (inputs['merge-window-timezone'] || '').trim(),
   }
 }
 
@@ -80,6 +82,7 @@ export const MERGE_STATUS = {
   skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
   skippedPackageExcluded: 'skipped:packaged_excluded',
   skippedInvalidVersion: 'skipped:invalid_semver',
+  skippedOutsideMergeWindow: 'skipped:outside_merge_window',
 }
 
 export const MERGE_STATUS_KEY = 'merge_status'
