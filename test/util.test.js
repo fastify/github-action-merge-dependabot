@@ -1,11 +1,10 @@
-'use strict'
-const { test } = require('node:test')
-const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+import { test } from 'node:test'
+import sinon from 'sinon'
+import esmock from 'esmock'
 
 const logWarningStub = sinon.stub()
-const { getInputs, parseCommaOrSemicolonSeparatedValue } = proxyquire(
-  '../src/util',
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = await esmock(
+  '../src/util.js',
   {
     '../src/log.js': {
       logWarning: logWarningStub,
