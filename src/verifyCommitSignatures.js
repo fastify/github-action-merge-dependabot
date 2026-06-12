@@ -1,11 +1,9 @@
-'use strict'
-
-const {
+import {
   dependabotAuthor,
   dependabotCommitter,
-} = require('./getDependabotDetails')
+} from './getDependabotDetails.js'
 
-function verifyCommits (commits) {
+export function verifyCommits (commits) {
   commits.forEach(function (commit) {
     const {
       commit: {
@@ -19,7 +17,7 @@ function verifyCommits (commits) {
   })
 }
 
-function verifyCommitSignatureCommitterAndAuthor (
+export function verifyCommitSignatureCommitterAndAuthor (
   sha,
   author,
   committer,
@@ -34,9 +32,4 @@ function verifyCommitSignatureCommitterAndAuthor (
       `Signature for commit ${sha} could not be verified - Not a dependabot commit`
     )
   }
-}
-
-module.exports = {
-  verifyCommits,
-  verifyCommitSignatureCommitterAndAuthor,
 }

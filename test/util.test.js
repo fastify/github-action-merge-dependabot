@@ -1,11 +1,10 @@
-'use strict'
-const { test } = require('node:test')
-const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+import { test } from 'node:test'
+import sinon from 'sinon'
+import esmock from 'esmock'
 
 const logWarningStub = sinon.stub()
-const { getInputs, parseCommaOrSemicolonSeparatedValue } = proxyquire(
-  '../src/util',
+const { getInputs, parseCommaOrSemicolonSeparatedValue } = await esmock(
+  '../src/util.js',
   {
     '../src/log.js': {
       logWarning: logWarningStub,
@@ -119,6 +118,21 @@ test('getInputs', async t => {
       })
       await t.test('PR_NUMBER', async t => {
         t.assert.deepEqual(getInputs({ 'pr-number': '10' }).PR_NUMBER, '10')
+      })
+      await t.test('MERGE_WINDOW', async t => {
+        t.assert.deepEqual(getInputs({}).MERGE_WINDOW, '')
+        t.assert.deepEqual(
+          getInputs({ 'merge-window': '  0 9-16 * * 1-5  ' }).MERGE_WINDOW,
+          '0 9-16 * * 1-5'
+        )
+      })
+      await t.test('MERGE_WINDOW_TIMEZONE', async t => {
+        t.assert.deepEqual(getInputs({}).MERGE_WINDOW_TIMEZONE, '')
+        t.assert.deepEqual(
+          getInputs({ 'merge-window-timezone': ' Europe/London ' })
+            .MERGE_WINDOW_TIMEZONE,
+          'Europe/London'
+        )
       })
     }
   )

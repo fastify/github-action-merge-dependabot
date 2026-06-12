@@ -1,15 +1,13 @@
-'use strict'
+import { test } from 'node:test'
 
-const { test } = require('node:test')
-
-const {
+import {
   dependabotAuthor,
   dependabotCommitter,
-} = require('../src/getDependabotDetails')
-const {
+} from '../src/getDependabotDetails.js'
+import {
   verifyCommits,
   verifyCommitSignatureCommitterAndAuthor,
-} = require('../src/verifyCommitSignatures')
+} from '../src/verifyCommitSignatures.js'
 
 const ValidAuthorValidCommitterVerifiedCommitMock = {
   commit: {

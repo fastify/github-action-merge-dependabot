@@ -1,5 +1,3 @@
-'use strict'
+import run from './action.js'
 
-const run = require('./action')
-
-module.exports = run
+export default run

@@ -1,8 +1,6 @@
-'use strict'
-
-const { test, afterEach } = require('node:test')
-const sinon = require('sinon')
-const proxyquire = require('proxyquire')
+import { test, afterEach } from 'node:test'
+import sinon from 'sinon'
+import esmock from 'esmock'
 
 const coreStubs = {
   debug: sinon.stub(),
@@ -11,7 +9,7 @@ const coreStubs = {
   warning: sinon.stub(),
 }
 
-const log = proxyquire('../src/log', {
+const log = await esmock('../src/log.js', {
   '@actions/core': coreStubs,
 })
 
