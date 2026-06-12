@@ -1,4 +1,3 @@
-
 // Standard 5-field cron layout: minute hour day-of-month month day-of-week.
 const CRON_FIELDS = [
   { name: 'minute', min: 0, max: 59 },
