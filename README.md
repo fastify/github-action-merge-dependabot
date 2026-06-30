@@ -170,7 +170,7 @@ jobs:
           pr-number: ${{ github.event.inputs.pr-number }}
 ```
 
-You can initiate a call to trigger this event via [API](hhttps://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10#create-a-workflow-dispatch-event):
+You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10#create-a-workflow-dispatch-event):
 
 ```bash
 # Note: replace dynamic values with your relevant data
