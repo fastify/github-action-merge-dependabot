@@ -25323,7 +25323,7 @@ function isErrorLike (object) {
 
 // Check whether |statusText| is a ByteString and
 // matches the Reason-Phrase token production.
-// RFC 2616: https://tools.ietf.org/html/rfc2616
+// RFC 2616: https://datatracker.ietf.org/doc/html/rfc2616
 // RFC 7230: https://tools.ietf.org/html/rfc7230
 // "reason-phrase = *( HTAB / SP / VCHAR / obs-text )"
 // https://github.com/chromium/chromium/blob/94.0.4604.1/third_party/blink/renderer/core/fetch/response.cc#L116
