@@ -5,12 +5,12 @@ This action automatically approves and merges dependabot PRs.
 ## Usage
 
 Configure this action in your workflows providing the inputs described below.
-Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
+Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
 
 The permissions required are:
 
-- [`pull-requests`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#pull-requests): it is needed to approve PRs.
-- [`contents`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see [Approving without merging](#approving-without-merging) example below.
+- [`pull-requests`](https://docs.github.com/en/rest/authentication/permissions-required-for-github-apps?apiVersion=2022-11-28#pull-requests): it is needed to approve PRs.
+- [`contents`](https://docs.github.com/en/rest/authentication/permissions-required-for-github-apps?apiVersion=2022-11-28#contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see [Approving without merging](#approving-without-merging) example below.
 
 If some of the required permissions are missing, the action will fail with the error message:
 
@@ -139,13 +139,13 @@ steps:
 Note that the `pull_request` event only fires when a PR is opened or updated, so a
 PR opened outside the window stays unmerged until something triggers the action
 again. To re-evaluate skipped PRs on a schedule, also run the action from a
-[`schedule`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#schedule)
+[`schedule`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
 trigger together with the [`workflow_dispatch` approach](#trigger-action-from-workflow_dispatch-event)
 described below.
 
 ### Trigger action from workflow_dispatch event
 
-If you need to trigger this action manually, you can use the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
+If you need to trigger this action manually, you can use the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
 
 When using the `workflow_dispatch` approach, you will need to send the PR number as part of the input for this action:
 
@@ -170,7 +170,7 @@ jobs:
           pr-number: ${{ github.event.inputs.pr-number }}
 ```
 
-You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/reference/actions/#create-a-workflow-dispatch-event):
+You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10#create-a-workflow-dispatch-event):
 
 ```bash
 # Note: replace dynamic values with your relevant data
@@ -214,7 +214,7 @@ jobs:
 
 - A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token`. If you want to provide a token that's not the default one you can used the `github-token` input.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
-- If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
+- If you want to use GitHub's [auto-merge](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
 
 ## Acknowledgements
 
