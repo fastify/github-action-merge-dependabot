@@ -1,7 +1,6 @@
-'use strict'
-const { test } = require('node:test')
+import { test } from 'node:test'
 
-const { updateTypes, mapUpdateType } = require('../src/mapUpdateType')
+import { updateTypes, mapUpdateType } from '../src/mapUpdateType.js'
 
 test('mapUpdateType', async t => {
   t.test(

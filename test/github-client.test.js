@@ -1,8 +1,6 @@
-'use strict'
-
-const { test, afterEach } = require('node:test')
-const sinon = require('sinon')
-const { githubClient } = require('../src/github-client')
+import { test, afterEach } from 'node:test'
+import sinon from 'sinon'
+import { githubClient } from '../src/github-client.js'
 
 const githubContext = {
   repository: {

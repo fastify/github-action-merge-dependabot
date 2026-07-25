@@ -5,12 +5,12 @@ This action automatically approves and merges dependabot PRs.
 ## Usage
 
 Configure this action in your workflows providing the inputs described below.
-Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
+Note that this action requires a GitHub token with additional permissions. You must use the [`permissions`](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions) tag to specify the required rules or configure your [GitHub account](https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/).
 
 The permissions required are:
 
-- [`pull-requests`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#pull-requests): it is needed to approve PRs.
-- [`contents`](https://docs.github.com/en/rest/overview/permissions-required-for-github-apps?apiVersion=2022-11-28#contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see [Approving without merging](#approving-without-merging) example below.
+- [`pull-requests`](https://docs.github.com/en/rest/authentication/permissions-required-for-github-apps?apiVersion=2022-11-28#pull-requests): it is needed to approve PRs.
+- [`contents`](https://docs.github.com/en/rest/authentication/permissions-required-for-github-apps?apiVersion=2022-11-28#contents): it is necessary to merge the pull request. You don't need it if you set `approve-only: true`, see [Approving without merging](#approving-without-merging) example below.
 
 If some of the required permissions are missing, the action will fail with the error message:
 
@@ -35,12 +35,14 @@ Error: Resource not accessible by integration
 | `pr-number`                | No       |                     | A pull request number, only required if triggered from a workflow_dispatch event. Typically this would be triggered by a script running in a separate CI provider. See [Trigger action from workflow_dispatch event](#trigger-action-from-workflow_dispatch-event) example.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `skip-commit-verification` | No       | `false`             | If `true`, then the action will not expect the commits to have a verification signature. It is required to set this to `true` in GitHub Enterprise Server.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `skip-verification`        | No       | `false`             | If true, the action will not validate the user or the commit verification status                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `merge-window`             | No       |                     | A 5-field [cron expression](https://en.wikipedia.org/wiki/Cron) (e.g. `0 9-16 * * 1-5`) describing when merges are allowed. When set, PRs evaluated outside this window are skipped instead of merged. Supports `*`, ranges (`a-b`), lists (`a,b`), and steps (`*/n`). The day-of-week field accepts `0`-`7` (both `0` and `7` mean Sunday). See [Restricting merges to business hours](#restricting-merges-to-business-hours).                                                                                                                                                                                                                                                                                                                                                  |
+| `merge-window-timezone`    | No       | `UTC`               | The [IANA timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (e.g. `Europe/London`) used to evaluate `merge-window`. Defaults to `UTC`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## Output
 
 | outputs      | Description                                                                                                                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded` |
+| merge_status | The result status of the merge. It can be one of the following: `approved`, `merged`, `auto_merge`, `merge_failed`, `skipped:commit_verification_failed`, `skipped:not_a_dependabot_pr`, `skipped:cannot_update_major`, `skipped:bump_higher_than_target`, `skipped:packaged_excluded`, `skipped:outside_merge_window` |
 
 ## Examples
 
@@ -117,9 +119,33 @@ steps:
       target-production: 'minor'
 ```
 
+### Restricting merges to business hours
+
+Use `merge-window` to only auto-merge during a time window, for example to avoid
+deployments while everyone is asleep. The window is a standard 5-field cron
+expression and is evaluated in `merge-window-timezone` (UTC by default). PRs
+evaluated outside the window are skipped (`merge_status: skipped:outside_merge_window`)
+rather than merged.
+
+```yml
+steps:
+  - uses: fastify/github-action-merge-dependabot@v3
+    with:
+      # Allow merges Monday-Friday, 09:00-16:59 London time
+      merge-window: '* 9-16 * * 1-5'
+      merge-window-timezone: 'Europe/London'
+```
+
+Note that the `pull_request` event only fires when a PR is opened or updated, so a
+PR opened outside the window stays unmerged until something triggers the action
+again. To re-evaluate skipped PRs on a schedule, also run the action from a
+[`schedule`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+trigger together with the [`workflow_dispatch` approach](#trigger-action-from-workflow_dispatch-event)
+described below.
+
 ### Trigger action from workflow_dispatch event
 
-If you need to trigger this action manually, you can use the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
+If you need to trigger this action manually, you can use the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch) event. A use case might be that your CI runs on a seperate provider, so you would like to run this action as a result of a successful CI run.
 
 When using the `workflow_dispatch` approach, you will need to send the PR number as part of the input for this action:
 
@@ -144,7 +170,7 @@ jobs:
           pr-number: ${{ github.event.inputs.pr-number }}
 ```
 
-You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/reference/actions/#create-a-workflow-dispatch-event):
+You can initiate a call to trigger this event via [API](https://docs.github.com/en/rest/actions/workflows?apiVersion=2026-03-10#create-a-workflow-dispatch-event):
 
 ```bash
 # Note: replace dynamic values with your relevant data
@@ -188,7 +214,7 @@ jobs:
 
 - A GitHub token is automatically provided by Github Actions, which can be accessed using `github.token`. If you want to provide a token that's not the default one you can used the `github-token` input.
 - Make sure to use `needs: <jobs>` to delay the auto-merging until CI checks (test/build) are passed.
-- If you want to use GitHub's [auto-merge](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
+- If you want to use GitHub's [auto-merge](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-from-a-pull-request/automatically-merging-a-pull-request) feature but still use this action to approve Pull Requests without merging, use `approve-only: true`.
 
 ## Acknowledgements
 
