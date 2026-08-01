@@ -32,7 +32,7 @@ jobs:
           check-latest: true
           node-version: 20
           package-manager-cache: false
-      - uses: nearform-actions/optic-release-automation-action@9e3518763346efacba15d729d0faaa4cbd8fdd52 # v4.12.3
+      - uses: nearform-actions/optic-release-automation-action@08642f7889f3bb519fb69ce2c3bf58e4f900c018 # v4.12.4
         with:
           github-token: ${{ github.token }}
           semver: ${{ github.event.inputs.semver }}
