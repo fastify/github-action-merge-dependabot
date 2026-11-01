@@ -475,6 +475,97 @@ test('should ignore excluded package', async () => {
   )
 })
 
+test('should skip package not in include list', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = await buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: { 'pr-number': PR_NUMBER, target: 'any', include: 'vitest,eslint' },
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    '1 package(s) not included: react. Skipping.'
+  )
+  sinon.assert.notCalled(stubs.approveStub)
+  sinon.assert.notCalled(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.skippedPackageNotIncluded
+  )
+})
+
+test('should merge package in include list', async () => {
+  const PR_NUMBER = Math.random()
+  const { action, stubs } = await buildStubbedAction({
+    payload: {
+      pull_request: {
+        number: PR_NUMBER,
+        user: { login: BOT_NAME },
+      },
+    },
+    inputs: { 'pr-number': PR_NUMBER, target: 'any', include: 'react,vitest' },
+  })
+
+  await action()
+
+  sinon.assert.calledWithExactly(
+    stubs.logStub.logInfo,
+    'Dependabot merge completed'
+  )
+  sinon.assert.calledOnce(stubs.approveStub)
+  sinon.assert.calledOnce(stubs.mergeStub)
+  sinon.assert.calledWith(
+    stubs.coreStub.setOutput,
+    MERGE_STATUS_KEY,
+    MERGE_STATUS.merged
+  )
+})
+
+test(
+  'should skip grouped PR when not all packages are in include list',
+  async () => {
+    const PR_NUMBER = Math.random()
+    const { action, stubs } = await buildStubbedAction({
+      payload: {
+        pull_request: {
+          number: PR_NUMBER,
+          user: { login: BOT_NAME },
+        },
+      },
+      inputs: {
+        'pr-number': PR_NUMBER,
+        target: 'any',
+        include: 'vitest,eslint',
+      },
+      dependabotMetadata: createDependabotMetadata({
+        dependencyNames: 'vitest,react',
+      }),
+    })
+
+    await action()
+
+    sinon.assert.calledWithExactly(
+      stubs.logStub.logInfo,
+      '1 package(s) not included: react. Skipping.'
+    )
+    sinon.assert.notCalled(stubs.approveStub)
+    sinon.assert.notCalled(stubs.mergeStub)
+    sinon.assert.calledWith(
+      stubs.coreStub.setOutput,
+      MERGE_STATUS_KEY,
+      MERGE_STATUS.skippedPackageNotIncluded
+    )
+  }
+)
+
 test('approve only should not merge', async () => {
   const PR_NUMBER = Math.random()
   const { action, stubs } = await buildStubbedAction({
