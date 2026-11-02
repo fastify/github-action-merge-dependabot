@@ -34596,6 +34596,7 @@ const getInputs = inputs => {
   return {
     MERGE_METHOD: getMergeMethod(inputs),
     EXCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['exclude']),
+    INCLUDE_PKGS: parseCommaOrSemicolonSeparatedValue(inputs['include']),
     MERGE_COMMENT: inputs['merge-comment'] || '',
     APPROVE_ONLY: /true/i.test(inputs['approve-only']),
     USE_GITHUB_AUTO_MERGE: /true/i.test(inputs['use-github-auto-merge']),
@@ -34641,6 +34642,7 @@ const MERGE_STATUS = {
   skippedCannotUpdateMajor: 'skipped:cannot_update_major',
   skippedBumpHigherThanTarget: 'skipped:bump_higher_than_target',
   skippedPackageExcluded: 'skipped:packaged_excluded',
+  skippedPackageNotIncluded: 'skipped:package_not_included',
   skippedInvalidVersion: 'skipped:invalid_semver',
   skippedOutsideMergeWindow: 'skipped:outside_merge_window',
 }
@@ -34915,6 +34917,7 @@ async function run ({
   const {
     MERGE_METHOD,
     EXCLUDE_PKGS,
+    INCLUDE_PKGS,
     MERGE_COMMENT,
     APPROVE_ONLY,
     USE_GITHUB_AUTO_MERGE,
@@ -35006,6 +35009,18 @@ Tried to do a '${updateType}' update but the max allowed is '${target}'`)
       setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedPackageExcluded)
       return logInfo(`${changedExcludedPackages.length} package(s) excluded: \
 ${changedExcludedPackages.join(', ')}. Skipping.`)
+    }
+
+    if (INCLUDE_PKGS.length > 0) {
+      const nonIncludedPackages = dependencyNames.filter(
+        pkg => !INCLUDE_PKGS.includes(pkg)
+      )
+
+      if (nonIncludedPackages.length > 0) {
+        setOutput(MERGE_STATUS_KEY, MERGE_STATUS.skippedPackageNotIncluded)
+        return logInfo(`${nonIncludedPackages.length} package(s) not included: \
+${nonIncludedPackages.join(', ')}. Skipping.`)
+      }
     }
 
     if (

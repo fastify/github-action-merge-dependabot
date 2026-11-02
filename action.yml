@@ -9,6 +9,9 @@ inputs:
   exclude:
     description: 'Packages that you want to manually review before upgrading'
     required: false
+  include:
+    description: 'Packages that you want to allow to be automatically merged'
+    required: false
   approve-only:
     description: 'If true, the PR is only approved but not merged'
     required: false

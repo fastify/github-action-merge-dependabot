@@ -79,6 +79,13 @@ test('getInputs', async t => {
           'vue',
         ])
       })
+      await t.test('INCLUDE_PKGS', async t => {
+        t.assert.deepStrictEqual(getInputs({}).INCLUDE_PKGS, [])
+        t.assert.deepStrictEqual(getInputs({ include: 'vitest,eslint' }).INCLUDE_PKGS, [
+          'vitest',
+          'eslint',
+        ])
+      })
       await t.test('MERGE_COMMENT', async t => {
         t.assert.deepEqual(getInputs({}).MERGE_COMMENT, '')
         t.assert.deepStrictEqual(
